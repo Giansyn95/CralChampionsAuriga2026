@@ -44,9 +44,6 @@
     .btn.secondary{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.28)}
     .btn.icon-btn{padding:10px 12px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:14px;font-size:18px;line-height:1}
     input[type=file]{display:none}
-    /* ── Banner errore ── */
-    #errorBanner{display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:14px;padding:14px 18px;margin-bottom:14px;color:var(--red);font-weight:600}
-    #errorBanner ul{margin:6px 0 0 18px;font-weight:400;font-size:13px}
     /* ── Status ── */
     .status{font-size:13px;color:#dbeaff;margin-left:auto}
     /* ── Tabs ── */
@@ -159,7 +156,6 @@
       .hero-top{gap:12px;}
       .hero-logo{width:56px; height:56px; padding:4px; border-radius:12px;}
       
-      /* Trasformazione Tabelle Mobile First: Dati principali sempre visibili */
       table { display: block; width: 100%; }
       thead { display: block; }
       tbody { display: block; }
@@ -167,12 +163,10 @@
       tr:hover td { background: transparent; }
       th, td { padding: 4px; border: none; white-space: normal; display: inline-block; font-size: 14px; }
       
-      /* Forza la visualizzazione orizzontale in primo piano solo delle prime 3 colonne (es: Pos, Nome, Punti/Gol) */
       th:nth-child(n+4), td:nth-child(n+4) {
         display: none !important;
       }
       
-      /* Ottimizzazione schede Riepilogo Giornata (Risoluzione testi e dati a capo) */
       .riepilogo-kpi-grid { grid-template-columns: 1fr 1fr !important; gap: 8px; }
       .riepilogo-kpi { min-height: 64px; padding: 8px; }
       .riepilogo-kpi .n { font-size: 16px !important; white-space: normal; }
@@ -181,11 +175,10 @@
       .riepilogo-match .match-team { max-width: 100% !important; width: 100%; justify-content: flex-start; }
       .riepilogo-match .score { text-align: left; font-size: 20px; padding-top: 0; min-width: auto; font-weight: 800; color: var(--blue); margin: 2px 0; }
       
-      /* Compattazione Grafici e rimozione sovrapposizione label */
       .chart-container { height: 210px !important; }
       .chart-label-strip { display: none !important; }
     }
-    @media print{.toolbar,.tabs,.search,#errorBanner{display:none}.section{display:block}.wrap{max-width:none}.card,.hero{box-shadow:none}}
+    @media print{.toolbar,.tabs,.search{display:none}.section{display:block}.wrap{max-width:none}.card,.hero{box-shadow:none}}
     @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
   </style>
 </head>
@@ -212,11 +205,6 @@
     </div>
   </div>
 
-  <div id="errorBanner" role="alert" aria-live="polite" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:14px;padding:14px 18px;margin-bottom:14px;color:var(--red);font-weight:600">
-    <div>⚠️ Trovati <span id="errCount">0</span> problema/i durante il caricamento dei CSV</div>
-    <div id="errGroups"></div>
-  </div>
-
   <input class="search" id="search" placeholder="Cerca squadra, giocatore, partita…" aria-label="Ricerca globale" />
   <div class="tabs" id="tabs" role="tablist"></div>
 
@@ -230,7 +218,7 @@
 </div>
 
 <script>
-/* ── Costanti ── */
+/* ── Costanti Struttura Originale Estesa ── */
 const DEFAULT_TITLE    = 'CRAL Champions - Auriga 2026';
 const DEFAULT_SUBTITLE = 'Classifiche, calendario, risultati e statistiche giocatori';
 const DEFAULT_FILES    = [
@@ -254,7 +242,6 @@ let state = {
   selectedRiepilogoGiornata: '',
   sortState: {}
 };
-let loadErrors = [];
 let manualLoadActive = false;
 
 /* ══════════════════════════════════
@@ -324,36 +311,7 @@ function prettyColumnName(header){
     totalemarcatoregiornata:'Totale marcatore giornata', voce:'Voce', voci:'Voci', dato:'Dato', etichetta:'Etichetta'
   };
   if(map[n]) return map[n];
-
-  const tokens=['player','team','code','squadra','trasferta','ospite','giornata','originali','penalita','penalità','finali','totali','punti','portiere','giocatore','marcatori','marcatore','miglior','differenza','partite','partita','presenze','statistica','valore','cognome','numero','subiti','fatti','clean','sheet','assist','autogol','ruolo','media','goal','casa','note','nota','nome','reti','gol','mvp','pg','gf','gs','dr','pt','v','n','p'];
-  let compact=n;
-  const parts=[];
-  while(compact){
-    const found=tokens.find(t=>compact.startsWith(t));
-    if(found){
-      parts.push(found);
-      compact=compact.slice(found.length);
-      continue;
-    }
-    const nextIndexes=tokens.map(t=>compact.indexOf(t)).filter(i=>i>0);
-    const next=nextIndexes.length ? Math.min(...nextIndexes) : compact.length;
-    parts.push(compact.slice(0,next));
-    compact=compact.slice(next);
-  }
-  if(parts.length>1){
-    let joined=parts.join(' ')
-      .replace(/\bpt\b/gi,'PT')
-      .replace(/\bmvp\b/gi,'MVP')
-      .replace(/\bpg\b/gi,'PG')
-      .replace(/\bgf\b/gi,'GF')
-      .replace(/\bgs\b/gi,'GS')
-      .replace(/\bdr\b/gi,'DR')
-      .replace(/\bpenalita\b/gi,'penalità');
-    return joined.charAt(0).toUpperCase()+joined.slice(1);
-  }
-
-  const spaced=smartSpace(raw.replace(/_/g,' '));
-  return spaced.charAt(0).toUpperCase()+spaced.slice(1);
+  return smartSpace(raw.replace(/_/g,' '));
 }
 
 function esc(s){ const t=document.createElement('span'); t.textContent=String(s??''); return t.innerHTML; }
@@ -384,10 +342,10 @@ function rowsToObjects(rows){ if(!rows||!rows.length) return []; const h=rows[0]
 function col(obj,names){ const keys=Object.keys(obj||{}); for(const n of names){ const nk=norm(n); const k=keys.find(x=>norm(x)===nk||norm(x).includes(nk)); if(k) return obj[k]; } return ''; }
 function num(x){ const n=parseFloat(String(x||'0').replace(',','.').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; }
 
-/* ══════════════════════════════════
-   CLASSIFICAZIONE FILE
-   ══════════════════════════════════ */
-function fileKind(f){ const n=norm(f);
+/* ── FILTRO ESCLUSIONE TOTALE SCONOSCIUTI / ISCRITTI ── */
+function fileKind(f){ 
+  const n=norm(f);
+  if(n.includes('iscritti')) return 'ignora'; // Esclusione radicale
   if(n.includes('classificasquadre')) return 'classifica_squadre';
   if(n.includes('marcatori')) return 'marcatori';
   if(n.includes('mvp')) return 'mvp';
@@ -436,16 +394,10 @@ function imageFor(type,name){
     let score=999;
     if(k.includes(folder) && base===key) score=0;
     else if(base===key) score=1;
-    else if(k.includes(folder) && (base.includes(key)||key.includes(base))) score=2;
-    else if(k.includes(folder) && k.includes(key)) score=3;
-    else if(base.includes(key)||key.includes(base)) score=4;
-    else if(k.includes(key)) score=5;
     return {score,url};
   }).filter(x=>x.score<999).sort((a,b)=>a.score-b.score);
   if(candidates.length) return candidates[0].url;
-
-  const prefix=type==='team'?'immagini/squadre/':'immagini/giocatori/';
-  return prefix+key+'.png';
+  return type==='team'?'immagini/squadre/'+key+'.png':'immagini/giocatori/'+key+'.png';
 }
 
 function imgOrInitialEl(type,name,cls){
@@ -459,13 +411,6 @@ function imgOrInitialEl(type,name,cls){
   const addCandidate=(src)=>{ if(src && !candidates.includes(src)) candidates.push(src); };
 
   names.forEach(n=>addCandidate(imageFor(type,n)));
-  names.forEach(n=>{
-    const key=norm(n);
-    for(const pref of prefixes){
-      for(const ext of imageExts()) addCandidate(pref+key+'.'+ext);
-    }
-  });
-
   let fallbackIndex=0;
   img.onerror=function(){
     if(String(this.src||'').startsWith('blob:')){
@@ -473,145 +418,56 @@ function imgOrInitialEl(type,name,cls){
       return;
     }
     while(fallbackIndex<candidates.length && candidates[fallbackIndex]===this.src) fallbackIndex++;
-    if(fallbackIndex<candidates.length){
-      this.src=candidates[fallbackIndex++];
-      return;
-    }
+    if(fallbackIndex<candidates.length){ this.src=candidates[fallbackIndex++]; return; }
     const d=document.createElement('div'); d.className=cls; d.textContent=initials(mainName); this.replaceWith(d);
   };
   img.src=candidates[fallbackIndex++] || '';
   return img;
 }
 
-/* FIX LOGO CRAL DINAMICO ADATTIVO */
 function tryLoadLogo() {
   const logoWrap = document.getElementById('heroLogoWrap');
   if (!logoWrap) return;
-
   let detectedUrl = '';
   if (state.imageURLs) {
     const logoKey = Object.keys(state.imageURLs).find(k => norm(k).includes('logo') || norm(k).includes('manifest'));
     if (logoKey) detectedUrl = state.imageURLs[logoKey];
   }
-
-  if (!detectedUrl) {
-    detectedUrl = imageFor('team', 'logo') || 'immagini/logo.png';
-  }
-
+  if (!detectedUrl) detectedUrl = imageFor('team', 'logo') || 'immagini/logo.png';
   const img = new Image();
   img.src = detectedUrl;
   img.onload = function() {
     logoWrap.innerHTML = '';
-    const newImg = document.createElement('img');
-    newImg.src = detectedUrl;
-    newImg.alt = 'Logo CRAL';
-    newImg.style.width = '100%';
-    newImg.style.height = '100%';
-    newImg.style.objectFit = 'contain';
+    const newImg = document.createElement('img'); newImg.src = detectedUrl; newImg.style.width = '100%'; newImg.style.height = '100%'; newImg.style.objectFit = 'contain';
     logoWrap.appendChild(newImg);
   };
-  img.onerror = function() {
-    // Resta l'SVG di fallback inserito nel DOM iniziale se l'immagine non è presente
-  };
 }
 
 /* ══════════════════════════════════
-   VALIDAZIONE VALIDATORI
-   ══════════════════════════════════ */
-function checkCsvErrors(fileName, rawText, parsedRows){
-  const problems=[];
-  if(!rawText||!rawText.trim()){
-    problems.push({icon:'⚠️',msg:'Il file è completamente vuoto.',fix:'Inserisci i dati nel foglio elettronico e salvalo di nuovo.'});
-    return problems;
-  }
-  const rawLines=rawText.split('\n').filter(l=>l.trim());
-  if(rawLines.length>0){
-    const firstLine=rawLines[0];
-    if(!firstLine.includes(',') && !firstLine.includes(';')){
-      problems.push({icon:'🔀',msg:"Impossibile rilevare il separatore. La prima riga non contiene né virgole (,) né punti e virgola (;). Probabile esportazione errata.",fix:"Verifica le impostazioni di esportazione del software (es. Excel o Drive) affinché usi il punto e virgola o la virgola come delimitatore."});
-    }
-  }
-  if(parsedRows&&parsedRows.length>1){
-    const isBlockFmt=isBlockCalendar(rawText);
-    if(!isBlockFmt){
-      const expectedCols=parsedRows[0].length;
-      const badRows=parsedRows.slice(1).map((r,i)=>({row:i+2,cols:r.length})).filter(x=>x.cols!==expectedCols&&x.cols>1);
-      if(badRows.length){
-        const sample=badRows.slice(0,3).map(x=>`riga ${x.row} (${x.cols} colonne invece di ${expectedCols})`).join(', ');
-        problems.push({icon:'📐',msg:`Numero colonne non uniforme: ${badRows.length} riga/e non corrispondono all'header. Es: ${sample}.`,fix:'Controlla se ci sono colonne extra o righe sporche in fondo al file.'});
-      }
-      const emptyHeaders=parsedRows[0].map((h,i)=>({h,i})).filter(x=>!x.h||!x.h.trim());
-      if(emptyHeaders.length) problems.push({icon:'🏷️',msg:`${emptyHeaders.length} colonna/e senza intestazione (posizioni: ${emptyHeaders.map(x=>x.i+1).join(', ')}).`,fix:'Aggiungi un nome a tutte le colonne nella prima riga del CSV.'});
-      const midEmpty=parsedRows.slice(1).filter(r=>r.every(c=>!String(c).trim()));
-      if(midEmpty.length) problems.push({icon:'⬜',msg:`${midEmpty.length} riga/e completamente vuota/e nel file.`,fix:'Rimuovi le righe vuote dal CSV prima di caricarlo.'});
-    }
-  }
-  return problems;
-}
-
-function showErrors(){
-  const banner=document.getElementById('errorBanner');
-  const countEl=document.getElementById('errCount');
-  const groupsEl=document.getElementById('errGroups');
-  if(!banner) return;
-  if(!loadErrors.length){ banner.style.display='none'; return; }
-  countEl.textContent=loadErrors.length;
-  groupsEl.innerHTML='';
-  banner.style.display='block';
-
-  const map=new Map();
-  loadErrors.forEach(e=>{
-    const f=e.file||'Generale';
-    if(!map.has(f)) map.set(f,[]);
-    map.get(f).push(e);
-  });
-
-  for(const [f,errs] of map.entries()){
-    const details=document.createElement('details');
-    details.className='err-section';
-    const summ=document.createElement('summary');
-    summ.innerHTML=`<b>${esc(prettyFileName(f))}</b> (${errs.length} anomalie)`;
-    details.appendChild(summ);
-    errs.forEach(e=>{
-      const div=document.createElement('div'); div.className='err-item';
-      div.innerHTML=`<div class="err-icon">${esc(e.icon||'❌')}</div>
-                     <div class="err-detail"><b>Anomalia:</b> ${esc(e.msg)}
-                     <div class="err-fix">💡 <b>Come risolvere:</b> ${esc(e.fix||'Apri il file originale, correggi la riga ed effettua nuovamente il caricamento.')}</div></div>`;
-      details.appendChild(div);
-    });
-    groupsEl.appendChild(details);
-  }
-}
-
-/* ══════════════════════════════════
-   TEMA & LOGICA INTERFACCIA
+   INTERFACCIA E TABS
    ══════════════════════════════════ */
 function applyTheme(dark,save=true){
   document.documentElement.setAttribute('data-theme',dark?'dark':'light');
   document.getElementById('btnTheme').textContent=dark?'☀️':'🌙';
-  document.getElementById('btnTheme').title=dark?'Passa al tema chiaro':'Passa al tema scuro';
   if(save) localStorage.setItem('cral_theme',dark?'dark':'light');
   if(window._chart) redrawCharts();
 }
 document.getElementById('btnTheme').addEventListener('click',()=>{
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
-  applyTheme(!isDark);
+  applyTheme(document.documentElement.setAttribute('data-theme')!=='dark');
 });
 
 function renderTabs(){
   const el=document.getElementById('tabs'); el.innerHTML='';
   TABS.forEach(([id,label])=>{
-    const b=document.createElement('button');
-    b.className='tab'+(id===state.activeTab?' active':'');
-    b.dataset.tab=id; b.textContent=label; b.setAttribute('role','tab');
-    b.onclick=()=>showTab(id); el.appendChild(b);
+    const b=document.createElement('button'); b.className='tab'+(id===state.activeTab?' active':'');
+    b.textContent=label; b.onclick=()=>showTab(id); el.appendChild(b);
   });
 }
 function showTab(id){
   state.activeTab=id;
   document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===id));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===id));
-  renderActiveSection();
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.textContent.includes(id)));
+  renderTabs(); renderActiveSection();
 }
 
 function updateTitle(){
@@ -622,8 +478,7 @@ function updateTitle(){
 function applyConfig(){
   const f=Object.keys(state.rows).find(x=>norm(x)==='configcsv'); if(!f) return;
   for(const r of rowsToObjects(state.rows[f])){
-    const k=norm(col(r,['chiave','key','nome']));
-    const v=col(r,['valore','value','testo']);
+    const k=norm(col(r,['chiave','key','nome'])); const v=col(r,['valore','value','testo']);
     if(k&&v) state.config[k]=v;
   }
   updateTitle();
@@ -633,47 +488,35 @@ function filterRows(rows){
   const q=norm(state.search); if(!q) return rows;
   return rows.filter(r=>norm(Array.isArray(r)?r.join(' '):JSON.stringify(r)).includes(q));
 }
-
 function buildEl(tag,cls,txt){ const e=document.createElement(tag); if(cls) e.className=cls; if(txt) e.textContent=txt; return e; }
 
-/* Generatore Tabelle Ordinabili Cliccabili */
 function buildTable(csvRows, tableId, imgType){
   if(!csvRows||!csvRows.length) return buildEl('div','empty','Nessun dato.');
   const headers=csvRows[0].map(x=>String(x||'').trim());
   let dataRows=csvRows.slice(1).filter(r=>r.some(x=>String(x).trim()!==''));
-
   dataRows=filterRows(dataRows);
-  if(!dataRows.length) return buildEl('div','empty','Nessun risultato corrispondente alla ricerca.');
+  if(!dataRows.length) return buildEl('div','empty','Nessun risultato.');
 
   const st=state.sortState[tableId];
   if(st && st.col<headers.length){
     const ci=st.col; const dir=st.dir==='asc'?1:-1;
     dataRows.sort((a,b)=>{
-      const va=a[ci]??'', vb=b[ci]??'';
-      const na=parseFloat(va.replace(',','.')), nb=parseFloat(vb.replace(',','.'));
+      const va=a[ci]??'', vb=b[ci]??''; const na=parseFloat(va.replace(',','.')), nb=parseFloat(vb.replace(',','.'));
       if(!isNaN(na)&&!isNaN(nb)) return (na-nb)*dir;
       return String(va).localeCompare(String(vb),'it',{numeric:true})*dir;
     });
   }
 
   const wrap=document.createElement('div'); wrap.className='tableWrap';
-  const table=document.createElement('table');
-  const thead=document.createElement('thead');
-  const trH=document.createElement('tr');
-
-  // Identifica colonne speciali per l'avatar o l'allineamento
+  const table=document.createElement('table'); const thead=document.createElement('thead'); const trH=document.createElement('tr');
   const nameColIndex=headers.findIndex(h=>['squadra','team','giocatore','nome','player','portiere'].includes(norm(h)));
 
   headers.forEach((h,i)=>{
-    const th=document.createElement('th');
-    th.textContent=prettyColumnName(h);
+    const th=document.createElement('th'); th.textContent=prettyColumnName(h);
     const span=document.createElement('span'); span.className='sort-arrow'; th.appendChild(span);
-    if(st && st.col===i) th.className=st.dir==='asc'?'sort-asc':'sort-desc';
     th.onclick=()=>{
       const currentDir=(state.sortState[tableId] && state.sortState[tableId].col===i)?state.sortState[tableId].dir:'';
-      const nextDir=currentDir==='asc'?'desc':'asc';
-      state.sortState[tableId]={col:i,dir:nextDir};
-      renderActiveSection();
+      state.sortState[tableId]={col:i,dir:currentDir==='asc'?'desc':'asc'}; renderActiveSection();
     };
     trH.appendChild(th);
   });
@@ -683,115 +526,62 @@ function buildTable(csvRows, tableId, imgType){
   dataRows.forEach(r=>{
     const tr=document.createElement('tr');
     r.forEach((cell,i)=>{
-      const td=document.createElement('td');
-      const val=fixItalianAccents(cell);
-      
+      const td=document.createElement('td'); const val=fixItalianAccents(cell);
       if(i===nameColIndex){
         td.className='name-cell';
         const isTeam=['classifica_squadre','squadre'].some(x=>tableId.includes(x)) || imgType==='team';
-        const type=isTeam?'team':'player';
-        td.appendChild(imgOrInitialEl(type,val,isTeam?'tbl-logo':'tbl-avatar'));
+        td.appendChild(imgOrInitialEl(isTeam?'team':'player',val,isTeam?'tbl-logo':'tbl-avatar'));
         const b=document.createElement('b'); b.textContent=val; td.appendChild(b);
       } else {
-        const n=parseFloat(val.replace(',','.'));
-        if(!isNaN(n) && norm(headers[i])==='punti'){
+        if(!isNaN(parseFloat(val)) && norm(headers[i])==='punti'){
           const pill=document.createElement('span'); pill.className='pill'; pill.textContent=val; td.appendChild(pill);
-        } else {
-          td.textContent=val;
-        }
+        } else td.textContent=val;
       }
       tr.appendChild(td);
     });
     tbody.appendChild(tr);
   });
-  table.appendChild(tbody); wrap.appendChild(table);
-  return wrap;
+  table.appendChild(tbody); wrap.appendChild(table); return wrap;
 }
 
 /* ══════════════════════════════════
-   LOGICA GRAFICI CHART.JS (HOME)
+   GRAFICI CHART.JS (TOP 5 IN HOME)
    ══════════════════════════════════ */
 let _chartJsPromise=null;
 function drawBarChart(canvasId,labels,values,labelDataset,imgType,titleText){
   loadChartJs().then(()=>{
     const ctx=document.getElementById(canvasId); if(!ctx) return;
-    if(ctx._chart){ ctx._chart.destroy(); }
+    if(ctx._chart) ctx._chart.destroy();
     const isDark=document.documentElement.getAttribute('data-theme')==='dark';
     const textColor=isDark?'#e2eaf5':'#142033';
-    const lineColor=isDark?'rgba(255,255,255,.08)':'rgba(7,29,58,.06)';
-
     ctx._chart = new Chart(ctx,{
       type:'bar',
       data:{
         labels:labels,
         datasets:[{
-          label:labelDataset,
-          data:values,
-          backgroundColor:isDark?'rgba(59,130,246,.75)':'rgba(15,90,168,.82)',
-          borderColor:isDark?'#3b82f6':'#0f5aa8',
-          borderWidth:1,
-          borderRadius:8,
-          barThickness:canvasId.toLowerCase().includes('marcatori')?28:20
+          data:values, backgroundColor:isDark?'rgba(59,130,246,.75)':'rgba(15,90,168,.82)',
+          borderColor:isDark?'#3b82f6':'#0f5aa8', borderWidth:1, borderRadius:8, barThickness:24
         }]
       },
       options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        plugins:{
-          legend:{display:false},
-          title:{display:true,text:titleText,color:textColor,font:{size:14,weight:'bold'}}
-        },
+        responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, title:{display:true,text:titleText,color:textColor,font:{size:14,weight:'bold'}} },
         scales:{
-          y:{
-            grid:{color:lineColor},
-            ticks:{color:textColor,stepSize:1,font:{family:'Arial'}},
-            border:{dash:[4,4]}
-          },
-          x:{
-            grid:{display:false},
-            ticks:{
-              color:textColor,
-              maxRotation:45,
-              minRotation:0,
-              font:{size:11,weight:'600'},
-              callback:function(value){
-                const lbl=labels[value]||'';
-                return lbl.length>12?lbl.substring(0,10)+'…':lbl;
-              }
-            }
-          }
+          y:{ grid:{color:isDark?'rgba(255,255,255,.08)':'rgba(7,29,58,.06)'}, ticks:{color:textColor,stepSize:1} },
+          x:{ grid:{display:false}, ticks:{color:textColor,font:{size:11}} }
         },
-        animation:{
-          duration:350,
-          onComplete:function(){
-            renderChartImageLabels(canvasId,labels,imgType,this);
-          }
-        }
+        animation:{ onComplete:function(){ renderChartImageLabels(canvasId,labels,imgType,this); } }
       }
     });
-    if(!window._chartList) window._chartList=[];
-    if(!window._chartList.includes(ctx)) window._chartList.push(ctx);
   }).catch(()=>{});
 }
 
-function redrawCharts(){
-  if(state.activeTab==='home'){
-    drawScorersChart();
-    drawPointsChart();
-  }
-}
-
-/* RIDUZIONE GRAFICO IN HOME AI TOP 5 PER MOBILE/COMPATTEZZA */
 function drawScorersChart() {
   if (!window.Chart) return;
   const f = sectionFiles('marcatori')[0]; if (!f) return;
-  
-  // Taglio immediato ai primi 5 per rendere il canvas leggibile e reattivo in verticale
   const data = rowsToObjects(state.rows[f]).slice(0, 5); if (!data.length) return;
-  
-  const labels = data.map(r => col(r, ['giocatore', 'nome', 'player']) || Object.values(r)[0] || '');
+  const labels = data.map(r => col(r, ['giocatore', 'nome', 'player']) || '');
   const values = data.map(r => num(col(r, ['gol', 'reti', 'goal'])));
-  
   drawBarChart('chartMarcatori', labels, values, 'Gol', 'player', 'Top 5 Marcatori');
 }
 
@@ -799,58 +589,32 @@ function drawPointsChart(){
   if(!window.Chart) return;
   const f=sectionFiles('classifica_squadre')[0]; if(!f) return;
   const data=rowsToObjects(state.rows[f]); if(!data.length) return;
-  const labels=data.map(r=>col(r(['squadra','team','nome'])||Object.values(r)[0]||'');
-  const values=data.map(r=>num(col(r,['punti','pts','points'])));
+  const labels=data.map(r=>col(r,['squadra','team','nome'])||'');
+  const values=data.map(r=>num(col(r,['punti','pts'])));
   drawBarChart('chartPunti',labels,values,'Punti','team','Punti per squadra');
 }
 
-function chartImageCandidates(type,name){
-  const key=norm(name);
-  const prefixes=type==='team'?['immagini/squadre/','data/immagini/squadre/']:['immagini/giocatori/','data/immagini/giocatori/'];
-  const candidates=[]; const add=src=>{ if(src && !candidates.includes(src)) candidates.push(src); };
-  add(imageFor(type,name)); prefixes.forEach(pref=>imageExts().forEach(ext=>add(pref+key+'.'+ext)));
-  return candidates;
-}
-
 function renderChartImageLabels(canvasId,labels,type,chart){
-  const wrap=document.getElementById(canvasId+'Labels'); if(!wrap) return;
-  wrap.innerHTML='';
-  // Nasconde su schermi piccoli per evitare sovrapposizioni
+  const wrap=document.getElementById(canvasId+'Labels'); if(!wrap) return; wrap.innerHTML='';
   if(window.innerWidth<=600) return;
-
-  const xScale=chart && chart.scales ? chart.scales.x : null;
-  const canvas=chart ? chart.canvas : document.getElementById(canvasId);
-  const canvasWidth=canvas ? canvas.clientWidth : 0;
-
+  const xScale=chart?.scales?.x;
   labels.forEach((label,index)=>{
     const item=document.createElement('div'); item.className='chart-label-item';
-    const x=xScale ? xScale.getPixelForValue(index) : ((index+.5)*(canvasWidth/Math.max(labels.length,1)));
-    item.style.left=Math.round(x)+'px';
-    const candidates=chartImageCandidates(type,label); let i=0;
-    const img=document.createElement('img'); img.className='chart-label-img '+(type==='team'?'team':'player');
-    img.alt=label; img.title=label; img.style.visibility='hidden';
-    img.onload=function(){ this.style.visibility='visible'; };
-    img.onerror=function(){ if(i<candidates.length){ this.src=candidates[i++]; return; } const d=document.createElement('div'); d.className='chart-label-img '+(type==='team'?'team':'player'); d.textContent=initials(label); this.replaceWith(d); };
-    img.src=candidates[i++]||'';
+    const x=xScale ? xScale.getPixelForValue(index) : 0; item.style.left=Math.round(x)+'px';
+    const img=imgOrInitialEl(type,label,'chart-label-img '+(type==='team'?'team':'player'));
     item.appendChild(img);
     const txt=document.createElement('div'); txt.className='chart-label-text'; txt.textContent=label; item.appendChild(txt);
     wrap.appendChild(item);
   });
 }
 
-function scheduleHomeChartsRender(){
-  setTimeout(drawScorersChart,60); setTimeout(drawPointsChart,120);
-}
-
+function redrawCharts(){ drawScorersChart(); drawPointsChart(); }
 function loadChartJs(){
   if(window.Chart) return Promise.resolve(); if(_chartJsPromise) return _chartJsPromise;
-  _chartJsPromise=new Promise((resolve,reject)=>{
+  return _chartJsPromise=new Promise((res,rej)=>{
     const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
-    s.onload=()=>resolve();
-    s.onerror=()=>{ _chartJsPromise=null; reject(new Error('Chart.js non caricato')); };
-    document.head.appendChild(s);
+    s.onload=()=>res(); s.onerror=()=>rej(); document.head.appendChild(s);
   });
-  return _chartJsPromise;
 }
 
 /* ══════════════════════════════════
@@ -870,495 +634,124 @@ function renderActiveSection(){
 function renderHome(){
   const el=document.getElementById('home'); el.innerHTML='';
   const grid=document.createElement('div'); grid.className='grid';
-
-  // Card KPI statici
   const kpis=[
     ['classifica_squadre','punti','🏆 Capolista','squadra'],
     ['marcatori','gol','⚽ Capocannoniere','giocatore'],
     ['mvp','punti','⭐ Miglior MVP','giocatore'],
     ['portieri','punti','🧤 Miglior Portiere','portiere']
   ];
-
   kpis.forEach(([kind,field,label,nameField])=>{
     const card=document.createElement('div'); card.className='card stat';
-    const lbl=document.createElement('div'); lbl.className='l'; lbl.textContent=label; card.appendChild(lbl);
+    card.innerHTML=`<div class="l">${label}</div>`;
     const f=sectionFiles(kind)[0];
-    if(f && state.rows[f] && state.rows[f].length>1){
+    if(f && state.rows[f]?.length>1){
       const topRow=rowsToObjects(state.rows[f])[0];
-      const name=col(topRow,[nameField,'nome','team','player']);
-      const val=col(topRow,[field,'pts','gol','reti']);
-      const n=document.createElement('div'); n.className='n'; n.textContent=name?fixItalianAccents(name):'-'; card.appendChild(n);
-      const sub=document.createElement('div'); sub.className='small'; sub.textContent=val?`${val} totali`:''; card.appendChild(sub);
-    } else {
-      const n=document.createElement('div'); n.className='n'; n.textContent='-'; card.appendChild(n);
-    }
+      card.innerHTML+=`<div class="n">${fixItalianAccents(col(topRow,[nameField,'nome']))||'-'}</div><div class="small">${col(topRow,[field])||''} totali</div>`;
+    } else card.innerHTML+=`<div class="n">-</div>`;
     grid.appendChild(card);
   });
   el.appendChild(grid);
 
-  // Box Grafici in Home
-  const chartsGrid=document.createElement('div'); chartsGrid.className='grid'; chartsGrid.style.gridTemplateColumns='repeat(2,1fr)'; chartsGrid.style.marginTop='14px';
-  
-  const c1=document.createElement('div'); c1.className='card chart-card';
-  c1.innerHTML='<h2>Classifica Marcatori</h2><div class="chart-container"><canvas id="chartMarcatori"></canvas></div><div class="chart-label-strip" id="chartMarcatoriLabels"></div>';
-  chartsGrid.appendChild(c1);
-
-  const c2=document.createElement('div'); c2.className='card chart-card';
-  c2.innerHTML='<h2>Punti Campionato</h2><div class="chart-container"><canvas id="chartPunti"></canvas></div><div class="chart-label-strip" id="chartPuntiLabels"></div>';
-  chartsGrid.appendChild(c2);
-
-  el.appendChild(chartsGrid);
-  scheduleHomeChartsRender();
+  const cg=document.createElement('div'); cg.className='grid'; cg.style.gridTemplateColumns='repeat(2,1fr)'; cg.style.marginTop='14px';
+  cg.innerHTML=`<div class="card chart-card"><h2>Classifica Marcatori</h2><div class="chart-container"><canvas id="chartMarcatori"></canvas></div><div class="chart-label-strip" id="chartMarcatoriLabels"></div></div>
+                <div class="card chart-card"><h2>Punti Campionato</h2><div class="chart-container"><canvas id="chartPunti"></canvas></div><div class="chart-label-strip" id="chartPuntiLabels"></div></div>`;
+  el.appendChild(cg); setTimeout(redrawCharts,100);
 }
 
 function renderClassifiche(){
   const el=document.getElementById('classifiche'); el.innerHTML='';
-  const sections=[
-    ['classifica_squadre','CLASSIFICA SQUADRE','team'],
-    ['marcatori','CLASSIFICA MARCATORI','player'],
-    ['mvp','CLASSIFICA MVP','player'],
-    ['portieri','CLASSIFICA PORTIERI','player']
-  ];
-  let found=false;
+  const sections=[['classifica_squadre','CLASSIFICA SQUADRE','team'],['marcatori','CLASSIFICA MARCATORI','player'],['mvp','CLASSIFICA MVP','player'],['portieri','CLASSIFICA PORTIERI','player']];
   sections.forEach(([kind,title,imgType])=>{
     sectionFiles(kind).forEach(f=>{
-      found=true; const card=document.createElement('div'); card.className='card'; card.style.marginBottom='14px';
-      const h=document.createElement('h2'); h.className='upper'; h.textContent=title; card.appendChild(h);
+      const card=buildEl('div','card'); card.innerHTML=`<h2>${title}</h2>`;
       card.appendChild(buildTable(state.rows[f],norm(f),imgType)); el.appendChild(card);
     });
   });
-  if(!found) el.appendChild(buildEl('div','empty','Nessuna classifica trovata. Carica i file CSV dedicati.'));
 }
 
-/* TAB STATISTICHE OTTIMIZZATO: Giocatore e Media Gol in primo piano su Mobile */
 function renderStatistiche(){
   const el=document.getElementById('statistiche'); el.innerHTML='';
-  const ms=teamMatchCounts(); let rows=[];
-  
-  for(const r of scorers()){
-    const giocatore=col(r,['giocatore','nome','calciatore','player'])||Object.values(r)[0];
-    const squadra=col(r,['squadra','team']);
-    const gol=num(col(r,['gol','reti','goal','g']));
-    const partite=num(col(r,['partite','presenze','pg']))||ms[norm(squadra)]||0;
-    const media=partite?(gol/partite).toFixed(2).replace('.',',') : '0,00';
-    
-    if(giocatore){
-      rows.push({
-        'Giocatore': giocatore,
-        'Media gol': media,
-        'Squadra': squadra,
-        'Gol totali': gol,
-        'Partite': partite
-      });
-    }
-  }
-
-  if(!rows.length){
-    el.appendChild(buildEl('div','empty','Nessuna statistica disponibile. Controlla il file marcatori o i file delle singole squadre.'));
-    return;
-  }
-
-  const headers=Object.keys(rows[0]);
-  const tableData=[headers,...rows.map(r=>Object.values(r))];
-  
-  const card=document.createElement('div'); card.className='card';
-  const h=document.createElement('h2'); h.textContent='STATISTICHE GIOCATORI'; card.appendChild(h);
-  card.appendChild(buildTable(tableData,'tabella_statistiche','player')); el.appendChild(card);
-}
-
-function teamMatchCounts(){
-  const map={};
-  sectionFiles('risultati').forEach(f=>{
-    rowsToObjects(state.rows[f]).forEach(r=>{
-      const c=norm(col(r,['squadracasa','casa','squadra1']));
-      const t=norm(col(r,['squadratrasferta','trasferta','squadra2']));
-      if(c){ map[c]=(map[c]||0)+1; } if(t){ map[t]=(map[t]||0)+1; }
-    });
+  let rows=[];
+  const f=sectionFiles('marcatori')[0]; if(!f) return;
+  rowsToObjects(state.rows[f]).forEach(r=>{
+    const g=col(r,['giocatore','nome']); const s=col(r,['squadra','team']); const gol=num(col(r,['gol','reti']));
+    if(g) rows.push({'Giocatore':g, 'Squadra':s, 'Gol totali':gol});
   });
-  return map;
+  const card=buildEl('div','card'); card.innerHTML='<h2>STATISTICHE GIOCATORI</h2>';
+  card.appendChild(buildTable([['Giocatore','Squadra','Gol totali'],...rows.map(x=>Object.values(x))],'tab_stat','player'));
+  el.appendChild(card);
 }
-function scorers(){
-  const f=sectionFiles('marcatori')[0]; if(f) return rowsToObjects(state.rows[f]);
-  const out=[];
-  sectionFiles('squadra').forEach(sf=>{
-    rowsToObjects(state.rows[sf]).forEach(r=>{
-      const g=col(r,['giocatore','nome']); const gol=num(col(r,['gol','reti']));
-      if(g&&gol) out.push(r);
-    });
-  });
-  return out.sort((a,b)=>num(col(b,['gol','reti']))-num(col(a,['gol','reti'])));
-}
-
-function teamNameFromFile(f){ return prettyFileName(f); }
 
 function renderSquadre(){
   const el=document.getElementById('squadre'); el.innerHTML='';
   const files=sectionFiles('squadra');
-  if(!files.length){ el.appendChild(buildEl('div','empty','Nessun file squadra caricato (i file devono iniziare con la parola "squadra").')); return; }
-
-  const div=document.createElement('div'); div.className='teams';
+  const div=buildEl('div','teams');
   files.forEach(f=>{
-    const tName=teamNameFromFile(f); const card=document.createElement('div'); card.className='teamCard card';
-    const head=document.createElement('div'); head.className='teamHead';
-    head.appendChild(imgOrInitialEl('team',tName,'logo'));
-    const h=document.createElement('h3'); h.style.margin='0'; h.textContent=tName; head.appendChild(h);
-    card.appendChild(head);
-
-    const rows=rowsToObjects(state.rows[f]);
-    const filtered=filterRows(rows);
-    filtered.forEach(r=>{
-      const pName=playerDisplayName(r); if(!pName) return;
-      const role=col(r,['ruolo','posizione','role']);
-      const numVal=col(r,['numero','maglia']);
-      const isCap=String(col(r,['capitano','cap'])).toLowerCase().includes('si')||String(col(r,['ruolo'])).toLowerCase().includes('capitano');
-
-      const pDiv=document.createElement('div'); pDiv.className='player'+(isCap?' captain':'');
-      const namesCombo=playerImageNames(r);
-      pDiv.appendChild(imgOrInitialEl('player',namesCombo,'avatar'));
-      const info=document.createElement('div'); info.style.minWidth='0';
-      const b=document.createElement('b'); b.className='player-name'; b.textContent=pName;
-      if(isCap){ const span=document.createElement('span'); span.className='captain-armband'; b.appendChild(span); }
-      info.appendChild(b);
-      const s=document.createElement('span'); s.className='small'; s.textContent=[numVal?`N. ${numVal}`:'',role||''].filter(Boolean).join(' - ');
-      info.appendChild(s); pDiv.appendChild(info); card.appendChild(pDiv);
+    const card=buildEl('div','teamCard card');
+    const head=buildEl('div','teamHead'); head.appendChild(imgOrInitialEl('team',prettyFileName(f),'logo'));
+    head.innerHTML+=`<h3 style="margin:0">${prettyFileName(f)}</h3>`; card.appendChild(head);
+    
+    filterRows(rowsToObjects(state.rows[f])).forEach(r=>{
+      const pName=col(r,['giocatore','nome']); if(!pName) return;
+      const isCap=String(col(r,['capitano'])).toLowerCase().includes('si');
+      const pDiv=buildEl('div','player'+(isCap?' captain':''));
+      pDiv.appendChild(imgOrInitialEl('player',pName,'avatar'));
+      pDiv.innerHTML+=`<div style="min-width:0"><b class="player-name">${pName}${isCap?'<span class="captain-armband"></span>':''}</b><span class="small">${col(r,['ruolo'])||''}</span></div>`;
+      card.appendChild(pDiv);
     });
-    if(filtered.length||!state.search) div.appendChild(card);
+    div.appendChild(card);
   });
   el.appendChild(div);
 }
 
+function isBlockCalendar(t){ return /GIORNATA\s+\d+/i.test(t); }
+function parseBlockCalendar(text){
+  const sep=sepFor(text.split('\n')[0]||''); const lines=text.split(/\r?\n/);
+  const giornate=[]; let cur=null;
+  lines.forEach(l=>{
+    const cells=l.split(sep).map(c=>c.trim()); const f=cells[0]||'';
+    const m=f.match(/GIORNATA\s+(\d+)/i);
+    if(m){ cur={ label:'Giornata '+m[1], partite:[] }; giornate.push(cur); }
+    else if(cur && f && !/casa/i.test(f)){ cur.partite.push({casa:cells[0], trasferta:cells[1], riposa:cells[2]}); }
+  });
+  return giornate;
+}
+
 function renderCalendario(){
   const el=document.getElementById('calendario'); el.innerHTML='';
-  const files=sectionFiles('calendario');
-  if(!files.length){ el.appendChild(buildEl('div','empty','Nessun calendario trovato. Carica file contenenti la parola "calendario".')); return; }
-  renderCalendarioBlock(el, files);
+  sectionFiles('calendario').forEach(f=>{
+    const txt=state.files[f]||'';
+    if(isBlockCalendar(txt)){
+      parseBlockCalendar(txt).forEach(g=>{
+        const card=buildEl('div','card'); card.innerHTML=`<h2>${g.label}</h2>`;
+        const wrap=buildEl('div','tableWrap'); const t=buildEl('table'); const tb=buildEl('tbody');
+        g.partite.forEach(p=>{
+          tb.innerHTML+=`<tr><td class="name-cell"><b>${p.casa}</b></td><td class="match-vs">vs</td><td class="name-cell"><b>${p.trasferta}</b></td></tr>`;
+        });
+        t.appendChild(tb); wrap.appendChild(t); card.appendChild(wrap); el.appendChild(card);
+      });
+    } else {
+      const card=buildEl('div','card'); card.innerHTML=`<h2>${prettyFileName(f)}</h2>`;
+      card.appendChild(buildTable(state.rows[f],norm(f),'team')); el.appendChild(card);
+    }
+  });
 }
 
 function renderRisultati(){
   const el=document.getElementById('risultati'); el.innerHTML='';
-  const files=sectionFiles('risultati');
-  if(!files.length){ el.appendChild(buildEl('div','empty','Nessun file risultati trovato. Carica file contenenti la parola "risultati" o "partite".')); return; }
-  files.forEach(f=>{
-    const card=document.createElement('div'); card.className='card'; card.style.marginBottom='14px';
-    const h=document.createElement('h2'); h.textContent=prettyFileName(f); card.appendChild(h);
+  sectionFiles('risultati').forEach(f=>{
+    const card=buildEl('div','card'); card.innerHTML=`<h2>${prettyFileName(f)}</h2>`;
     card.appendChild(buildTable(state.rows[f],norm(f),'team')); el.appendChild(card);
   });
 }
 
 function renderRiepilogo(){
   const el=document.getElementById('riepilogo'); el.innerHTML='';
-  const files=sectionFiles('riepilogo');
-  if(!files.length){ el.appendChild(buildEl('div','empty','Nessun file di riepilogo o referto giornata trovato.')); return; }
-
-  renderRiepilogoFilter(el, files);
-  const content=document.createElement('div'); content.id='riepilogoContent'; el.appendChild(content);
-
-  files.forEach(f=>{
-    const parsed=parseRiepilogoFile(f);
-    const matches=filteredRiepilogoRows(parsed.partite,f);
-    let marcatori=filteredRiepilogoRows(parsed.marcatori,f);
-    const totaliMarcatori=filteredRiepilogoRows(parsed.totaliMarcatori,f);
-    if(!marcatori.length && totaliMarcatori.length) marcatori=totaliMarcatori;
-    const mvp=filteredRiepilogoRows(parsed.mvp,f);
-    const portiere=filteredRiepilogoRows(parsed.portiere,f);
-    const autogoalRaw=filteredRiepilogoRows(parsed.autogoal,f);
-    const autogoal=autogoalRowsForDisplay(autogoalRaw,matches);
-    const statistiche=filteredRiepilogoRows(parsed.statistiche,f);
-
-    if(!matches.length && !marcatori.length && !totaliMarcatori.length && !mvp.length && !portiere.length && !autogoal.length && !statistiche.length) return;
-
-    const allRows=[...matches,...marcatori,...totaliMarcatori,...mvp,...portiere,...autogoal,...statistiche];
-    const labels=[...new Set(allRows.map(r=>rowGiornataLabel(r,f)).filter(Boolean))];
-    const title=labels.length===1 ? labels[0] : giornataLabelFromFile(f);
-
-    const card=document.createElement('div'); card.className='card riepilogo-card'; card.style.marginBottom='14px';
-    const h=document.createElement('h2'); h.textContent=title; card.appendChild(h);
-
-    renderKpiGrid(card,deriveStats(matches,marcatori,statistiche));
-
-    const ph=document.createElement('h3'); ph.style.cssText='margin:14px 0 0;color:var(--blue);font-size:18px;text-transform:uppercase'; ph.textContent='Partite della giornata'; card.appendChild(ph);
-    renderPartiteRiepilogo(card,matches,f,[...marcatori,...totaliMarcatori,...mvp,...portiere,...autogoal]);
-    content.appendChild(card);
-
-    const tablePrefix='riepilogo_'+norm(f)+'_'+rowGiornataKey(allRows[0]||{},f);
-    renderMiniSection(content,'Marcatori della giornata',marcatori,'player','Nessun marcatore indicato.',tablePrefix+'_marcatori');
-    renderMiniSection(content,'MVP della giornata',mvp,'player','Nessun MVP indicato.',tablePrefix+'_mvp');
-    renderMiniSection(content,'Classifica Portieri della giornata',portiere,'player','Nessun dato portieri.',tablePrefix+'_portieri');
-    renderMiniSection(content,'Autogol',autogoal,'player','',tablePrefix+'_autogol');
-    renderMiniSection(content,'Statistiche Generali',statistiche,'altro','',tablePrefix+'_statistiche');
+  sectionFiles('riepilogo').forEach(f=>{
+    const card=buildEl('div','card riepilogo-card'); card.innerHTML=`<h2>${prettyFileName(f)}</h2>`;
+    card.appendChild(buildTable(state.rows[f],norm(f),'team')); el.appendChild(card);
   });
 }
-
-/* ══════════════════════════════════
-   PARSING REPERTI E RIEPILOGHI INTERNI
-   ══════════════════════════════════ */
-function isBlockCalendar(rawText){ return /GIORNATA\s+\d+/i.test(rawText); }
-function parseBlockCalendar(rawText){
-  const sep=sepFor(rawText.split('\n')[0]||''); const lines=rawText.replace(/^\uFEFF/,'').split(/\r?\n/);
-  const giornate=[]; let current=null;
-  for(let i=0;i<lines.length;i++){
-    const raw=lines[i]; const cells=raw.split(sep).map(c=>c.trim()); const first=cells[0]||'';
-    const gMatch=first.match(/GIORNATA\s+(\d+)/i);
-    if(gMatch){ current={ label:'Giornata '+gMatch[1], partite:[] }; giornate.push(current); continue; }
-    if(/^casa$/i.test(first)||/^squadra\s*(casa|1)/i.test(first)) continue;
-    if(cells.every(c=>!c)) continue;
-    if(current){
-      const casa=cells[0]||''; const trasferta=cells[1]||''; const note=cells[2]||'';
-      const riposaCells=cells.join(' '); const riposaMat=riposaCells.match(/riposa[:\s]+(.+)/i);
-      const riposa=riposaMat?riposaMat[1].trim():'';
-      if(casa||trasferta||riposa) current.partite.push({casa,trasferta,note,riposa});
-    }
-  }
-  return giornate;
-}
-
-function renderCalendarioBlock(el, files) {
-  try {
-    const combined = [];
-    files.forEach(f => {
-      const txt = state.files[f] || '';
-      if (isBlockCalendar(txt)) combined.push(...parseBlockCalendar(txt));
-    });
-    if (!combined.length) { el.appendChild(buildEl('div', 'empty', 'Nessun turno strutturato trovato nei calendari.')); return; }
-    
-    combined.forEach(g => {
-      const card = document.createElement('div'); card.className = 'card'; card.style.marginBottom = '14px';
-      const h = document.createElement('h2'); h.textContent = g.label; card.appendChild(h);
-      const w = document.createElement('div'); w.className = 'tableWrap';
-      const t = document.createElement('table'); const tb = document.createElement('tbody');
-      
-      g.partite.forEach(p => {
-        const tr = document.createElement('tr');
-        if (p.riposa) {
-          const td = document.createElement('td'); td.colSpan = 3; td.style.fontStyle = 'italic'; td.style.color = 'var(--muted)';
-          td.textContent = `Riposa: ${fixItalianAccents(p.riposa)}`; tr.appendChild(td);
-        } else {
-          const tdC = document.createElement('td'); tdC.className = 'name-cell';
-          tdC.appendChild(imgOrInitialEl('team', p.casa, 'mini-logo'));
-          const bC = document.createElement('b'); bC.textContent = fixItalianAccents(p.casa); tdC.appendChild(bC);
-          tr.appendChild(tdC);
-          
-          const tdV = document.createElement('td'); tdV.className = 'match-vs'; tdV.textContent = 'vs'; tr.appendChild(tdV);
-          
-          const tdT = document.createElement('td'); tdT.className = 'name-cell';
-          tdT.appendChild(imgOrInitialEl('team', p.trasferta, 'mini-logo'));
-          const bT = document.createElement('b'); bT.textContent = fixItalianAccents(p.trasferta); tdT.appendChild(bT);
-          tr.appendChild(tdT);
-        }
-        tb.appendChild(tr);
-      });
-      t.appendChild(tb); w.appendChild(t); card.appendChild(w); el.appendChild(card);
-    });
-  } catch (e) {
-    el.appendChild(buildEl('div', 'empty', 'Errore nel processamento del calendario a blocchi.'));
-  }
-}
-
-function fieldExact(obj,names){ const keys=Object.keys(obj||{}); for(const n of names){ const k=keys.find(x=>norm(x)===norm(n)); if(k && String(obj[k]||'').trim()) return obj[k]; } return ''; }
-function fieldLoose(obj,names){ const keys=Object.keys(obj||{}); for(const n of names){ const k=keys.find(x=>norm(x).includes(norm(n))); if(k && String(obj[k]||'').trim()) return obj[k]; } return ''; }
-function uniqueNameParts(arr){ return [...new Set(arr.filter(Boolean).map(x=>String(x).trim()))].join(' '); }
-
-function playerFullName(obj){
-  const nome = fieldExact(obj,['nome','first name','firstname']);
-  const cognome = fieldExact(obj,['cognome','last name','lastname']);
-  if(nome || cognome) return uniqueNameParts([nome,cognome]);
-  const direct = fieldLoose(obj,['giocatore','nome giocatore','nome completo','calciatore','player','atleta','cognome e nome']);
-  if(direct) return smartSpace(direct);
-  return smartSpace(Object.values(obj||{})[0] || '');
-}
-function playerDisplayName(obj){
-  const nome = fieldExact(obj,['nome','first name','firstname']);
-  const cognome = fieldExact(obj,['cognome','last name','lastname']);
-  if(nome || cognome) return uniqueNameParts([cognome,nome]);
-  const direct = fieldLoose(obj,['cognome e nome','giocatore','nome giocatore','nome completo','calciatore','player','atleta']);
-  if(direct) return smartSpace(direct);
-  return playerFullName(obj);
-}
-function playerImageNames(obj){
-  const nome = fieldExact(obj,['nome','first name','firstname']);
-  const cognome = fieldExact(obj,['cognome','last name','lastname']);
-  const candidates=[playerFullName(obj), playerDisplayName(obj), uniqueNameParts([nome,cognome]), uniqueNameParts([cognome,nome])];
-  return candidates.filter(Boolean).filter((v,i,a)=>a.findIndex(x=>norm(x)===norm(v))===i);
-}
-
-function firstPresent(obj, alternatives){ for(const alts of alternatives){ const v=fieldExact(obj,alts); if(v) return v; } return ''; }
-function giornataKeyFromFile(f){ const m=norm(f).match(/\d+/); return m?m[0]:norm(f); }
-function giornataLabelFromFile(f){ const m=norm(f).match(/\d+/); return m?'Giornata '+m[0]:prettyFileName(f); }
-function giornataNumberFromText(txt){ const m=String(txt||'').match(/\d+/); return m?m[0]:''; }
-
-function parseRiepilogoFile(f) {
-  const flat = rowsToObjects(state.rows[f]);
-  const empty = { partite:[], marcatori:[], totaliMarcatori:[], mvp:[], portiere:[], autogoal:[], statistiche:[] };
-  let currentKey = 'partite';
-  
-  // Rilevamento automatico sezioni in file multi-tabella
-  flat.forEach(r => {
-    const keys = Object.keys(r); if(!keys.length) return;
-    const firstVal = String(r[keys[0]]||'').trim();
-    if(/^\[(.*)\]$/.test(firstVal) || (firstVal.toUpperCase() === firstVal && firstVal.length > 3 && !firstVal.includes(';') && isNaN(firstVal))){
-      const cleanSection = firstVal.replace(/[\[\]]/g,'');
-      const sk = sectionKeyFromText(cleanSection);
-      if(sk){ currentKey = sk; return; }
-    }
-    const inlineSection = col(r,['sezione','categoria','tabella']);
-    if(inlineSection){
-      const sk = sectionKeyFromText(inlineSection);
-      if(sk){ empty[sk].push(r); return; }
-    }
-    empty[currentKey].push(r);
-  });
-  
-  if(!Object.values(empty).some(arr=>arr.length) && flat.length){ flat.forEach(r=>empty.partite.push(r)); }
-  return empty;
-}
-
-function sectionKeyFromText(value){
-  const n=norm(value); if(!n) return '';
-  if(n==='partita'||n.includes('partite')||n.includes('risultati')) return 'partite';
-  if(n.includes('totalemarcatore')||n.includes('totalimarcatori')||n.includes('classificagiornatamarcatori')) return 'totaliMarcatori';
-  if(n==='marcatore'||n.includes('marcatore')||n.includes('marcatori')||n.includes('classificamarcatori')) return 'marcatori';
-  if(n==='mvp'||n.includes('mvpgiornata')||n.includes('miglioreincampo')) return 'mvp';
-  if(n.includes('migliorportiere')||n.includes('portiere')||n.includes('clean')) return 'portiere';
-  if(n.includes('autogoal')||n.includes('autogol')||n.includes('autoreti')) return 'autogoal';
-  if(n.includes('statistiche')||n.includes('generali')||n.includes('kpi')||n.includes('riepilogo')) return 'statistiche';
-  return '';
-}
-
-function rowGiornataKey(row,file){ const g=firstPresent(row,[['giornata','turno','round']]); const gn=giornataNumberFromText(g); return gn||giornataKeyFromFile(file); }
-function rowGiornataLabel(row,file){ const g=firstPresent(row,[['giornata','turno','round']]); const gn=giornataNumberFromText(g); return gn?'Giornata '+gn:giornataLabelFromFile(file); }
-
-function filteredRiepilogoRows(rows,file){
-  if(!rows||!rows.length) return [];
-  let filtered=rows.filter(r=>Object.values(r).some(v=>String(v).trim()!==''));
-  filtered=filtered.filter(r=>{
-    const k=rowGiornataKey(r,file);
-    return !state.selectedRiepilogoGiornata || k===state.selectedRiepilogoGiornata;
-  });
-  return filterRows(filtered);
-}
-
-function autogoalRowsForDisplay(rawRows,partiteObj){
-  if(!rawRows||!rawRows.length) return [];
-  return rawRows.map(r=>{
-    const out={...r}; const favored=firstPresent(r,[['squadra favorità','squadrafavorita','squadra','team']]);
-    const ownTeam=opponentForFavoredTeam(favored,r,partiteObj);
-    if(ownTeam){ const key=Object.keys(out).find(k=>['squadra','team'].includes(norm(k))) || 'Squadra'; out[key]=ownTeam; }
-    return out;
-  });
-}
-function opponentForFavoredTeam(favored,row,partite){
-  if(!favored||!partite||!partite.length) return '';
-  const f=norm(favored);
-  const match=partite.find(p=>{
-    const c=norm(firstPresent(p,[['squadra casa','casa','home','squadra 1']]));
-    const t=norm(firstPresent(p,[['squadra trasferta','trasferta','ospite','away','squadra 2']]));
-    return c===f || t===f;
-  });
-  if(!match) return '';
-  const cName=firstPresent(match,[['squadra casa','casa','home','squadra 1']]);
-  const tName=firstPresent(match,[['squadra trasferta','trasferta','ospite','away','squadra 2']]);
-  return norm(cName)===f ? tName : cName;
-}
-
-function riepilogoGiornateOptions(files){
-  const map=new Map();
-  files.forEach(f=>{
-    const data=parseRiepilogoFile(f);
-    const all=[...data.partite,...data.marcatori,...data.totaliMarcatori,...data.mvp,...data.portiere,...data.autogoal,...data.statistiche];
-    if(!all.length){ map.set(giornataKeyFromFile(f),giornataLabelFromFile(f)); return; }
-    all.forEach(r=>{
-      const key=rowGiornataKey(r,f); const label=rowGiornataLabel(r,f);
-      if(key && label && !map.has(key)) map.set(key,label);
-    });
-  });
-  return [...map.entries()].sort((a,b)=>String(a[1]).localeCompare(String(b[1]),'it',{numeric:true}));
-}
-
-function renderRiepilogoFilter(parent, files){
-  const options=riepilogoGiornateOptions(files);
-  const bar=document.createElement('div'); bar.className='card'; bar.style.cssText='margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap';
-  const label=document.createElement('label'); label.className='small'; label.style.fontWeight='800'; label.setAttribute('for','riepilogoGiornataFilter'); label.textContent='Filtra giornata'; bar.appendChild(label);
-  const sel=document.createElement('select'); sel.id='riepilogoGiornataFilter'; sel.style.cssText='padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);font-weight:700';
-  const all=document.createElement('option'); all.value=''; all.textContent='Tutte le giornate'; sel.appendChild(all);
-  
-  options.forEach(([k,v])=>{ const o=document.createElement('option'); o.value=k; o.textContent=v; if(k===state.selectedRiepilogoGiornata) o.selected=true; sel.appendChild(o); });
-  sel.onchange=(e)=>{ state.selectedRiepilogoGiornata=e.target.value; renderRiepilogo(); };
-  bar.appendChild(sel); parent.appendChild(bar);
-}
-
-function resultText(r){ return firstPresent(r,[['risultato','score','esito']]) || [firstPresent(r,[['gol casa','gc']]),firstPresent(r,[['gol trasferta','gt']])].filter(x=>x!=='').join('-'); }
-function goalsFromResult(txt){ return (String(txt).match(/\d+/g)||[]).reduce((s,x)=>s+parseInt(x,10),0); }
-function statValue(rows,names){ for(const r of rows){ const v=col(r,['statistica','voce','valore']); if(names.some(n=>norm(v).includes(norm(n)))) return col(r,['valore','totale','dato']); } return ''; }
-
-function deriveStats(partite,marcatori,stats){
-  const partiteGiocate=statValue(stats,['partite giocate','giocate']) || partite.length;
-  const golTotali=statValue(stats,['gol totali','reti totali','goal']) || partite.reduce((s,r)=>s+goalsFromResult(resultText(r)),0);
-  const media=statValue(stats,['media gol','media goal']) || (partiteGiocate? (Number(golTotali)/Number(partiteGiocate)).toFixed(2).replace('.',',') : '');
-  const clean=statValue(stats,['clean sheet','cleansheet']) || partite.reduce((s,r)=>{ const nums=String(resultText(r)).match(/\d+/g)||[]; return s + (nums.slice(0,2).filter(x=>parseInt(x,10)===0).length); },0);
-  
-  let maxMatch=statValue(stats,['partita con più gol','partita con piu gol']);
-  if(!maxMatch && partite.length){
-    const best=[...partite].sort((a,b)=>goalsFromResult(resultText(b))-goalsFromResult(resultText(a)))[0];
-    const casa=firstPresent(best,[['squadra casa','casa','home','squadra 1']]);
-    const trasferta=firstPresent(best,[['squadra trasferta','trasferta','ospite','away','squadra 2']]);
-    maxMatch=[casa,trasferta].filter(Boolean).join(' - ')+' ('+resultText(best)+')';
-  }
-  return [ ['Partite giocate',partiteGiocate], ['Gol totali',golTotali], ['Media gol',media], ['Clean sheet',clean], ['Match top gol',maxMatch] ].filter(x=>String(x[1]||'').trim()!=='' && x[1]!==0);
-}
-
-function renderKpiGrid(parent, items){
-  if(!items.length) return;
-  const grid=document.createElement('div'); grid.className='riepilogo-kpi-grid';
-  items.forEach(([l,n])=>{
-    const card=document.createElement('div'); card.className='card riepilogo-kpi stat';
-    if(String(l).toLowerCase().includes('match')||String(l).toLowerCase().includes('partita')) card.className+=' is-match-max';
-    const numDiv=document.createElement('div'); numDiv.className='n'; numDiv.textContent=fixItalianAccents(n); card.appendChild(numDiv);
-    const lblDiv=document.createElement('div'); lblDiv.className='l'; lblDiv.textContent=l; card.appendChild(lblDiv);
-    grid.appendChild(card);
-  });
-  parent.appendChild(grid);
-}
-
-function renderPartiteRiepilogo(parent,rows,file,contextRows){
-  if(!rows.length) return;
-  const wrap=document.createElement('div'); wrap.className='tableWrap riepilogo-matches'; wrap.style.marginTop='10px';
-  rows.forEach(r=>{
-    const casa=firstPresent(r,[['squadra casa','casa','home','squadra 1']]) || Object.values(r)[0] || '';
-    const trasferta=firstPresent(r,[['squadra trasferta','trasferta','ospite','away','squadra 2']]) || Object.values(r)[1] || '';
-    const note=firstPresent(r,[['note','commento','descrizione']]);
-    const res=resultText(r);
-
-    const matchDiv=document.createElement('div'); matchDiv.className='riepilogo-match match';
-    const teamsDiv=document.createElement('div'); teamsDiv.className='match-teams';
-    
-    const tCasa=document.createElement('div'); tCasa.className='match-team';
-    tCasa.appendChild(imgOrInitialEl('team',casa,'mini-logo'));
-    const nC=document.createElement('span'); nC.className='match-name'; nC.textContent=fixItalianAccents(casa); tCasa.appendChild(nC);
-    teamsDiv.appendChild(tCasa);
-
-    const vs=document.createElement('span'); vs.className='match-vs'; vs.textContent='vs'; teamsDiv.appendChild(vs);
-
-    const tTrasf=document.createElement('div'); tTrasf.className='match-team';
-    tTrasf.appendChild(imgOrInitialEl('team',trasferta,'mini-logo'));
-    const nT=document.createElement('span'); nT.className='match-name'; nT.textContent=fixItalianAccents(trasferta); tTrasf.appendChild(nT);
-    teamsDiv.appendChild(tTrasf);
-
-    matchDiv.appendChild(teamsDiv);
-    if(res){ const sc=document.createElement('div'); sc.className='score'; sc.textContent=res; matchDiv.appendChild(sc); }
-    wrap.appendChild(matchDiv);
-  });
-  parent.appendChild(wrap);
-}
-
-function renderMiniSection(parent,title,rows,imgType,emptyText,tableId){
-  if(!rows.length && !emptyText) return;
-  const card=document.createElement('div'); card.className='card'; card.style.marginTop='14px';
-  const h=document.createElement('h3'); h.style.cssText='margin:0 0 10px;color:var(--blue);font-size:18px;text-transform:uppercase'; h.textContent=fixItalianAccents(title); card.appendChild(h);
-  if(rows.length){ const tableRows=objectsToRows(rows); if(tableRows.length) card.appendChild(buildTable(tableRows,tableId||norm(title),imgType)); }
-  else if(emptyText){ card.appendChild(buildEl('div','empty',emptyText)); }
-  parent.appendChild(card);
-}
-function objectsToRows(arr){ if(!arr||!arr.length) return []; const h=Object.keys(arr[0]); return [h,...arr.map(obj=>h.map(k=>obj[k]??''))]; }
 
 /* ══════════════════════════════════
    LOGICA CARICAMENTO FILES / AUTOMATICO
@@ -1367,117 +760,65 @@ async function scanDirRecursive(dirHandle, pathPrefix=''){
   for await(const [name,handle] of dirHandle.entries()){
     const relPath = pathPrefix ? pathPrefix+'/'+name : name;
     if(handle.kind==='file'){
-      try{ const file=await handle.getFile(); await ingestPickedFile(file, relPath, name); }
-      catch(e){ loadErrors.push({file:name,icon:'❌',msg:'Errore di lettura sul dispositivo locale.'}); }
-    } else if(handle.kind==='directory'){
-      try{ await scanDirRecursive(handle, relPath); }catch(e){}
-    }
+      const file=await handle.getFile();
+      const ext=name.split('.').pop().toLowerCase();
+      if(ext==='csv' && fileKind(name)!=='ignora'){
+        const txt=await file.text(); state.files[name]=txt; state.rows[name]=parseCsv(txt);
+      } else if(imageExts().includes(ext)){ rememberImage(relPath,file); }
+    } else if(handle.kind==='directory') await scanDirRecursive(handle, relPath);
   }
 }
 
-async function ingestPickedFile(file, relPath, name){
-  const ext=String(name.split('.').pop()||'').toLowerCase();
-  if(ext==='csv'){
-    try{
-      const txt=await safeFileText(file, relPath); const parsed=parseCsv(txt);
-      state.files[name]=txt; state.rows[name]=parsed; state._csvCount++;
-      const fileProblems=checkCsvErrors(name,txt,parsed);
-      fileProblems.forEach(p=>loadErrors.push({file:name,...p}));
-    }catch(e){
-      loadErrors.push({file:name,icon:'🔥',msg:'Impossibile leggere la codifica del file CSV.',fix:'Assicurati che sia salvato in formato UTF-8 o ANSI standard.'});
-    }
-  } else if(imageExts().includes(ext)){
-    rememberImage(relPath,file); state._imgCount++;
-  }
-}
-
-function safeFileText(file, relPath){
-  return new Promise((resolve,reject)=>{
-    const r=new FileReader();
-    r.onload=()=>{
-      let t=r.result; if(t.includes('')){
-        const r2=new FileReader(); r2.onload=()=>resolve(r2.result); r2.onerror=()=>reject(r2.error); r2.readAsText(file,'windows-1252');
-      } else resolve(t);
-    };
-    r.onerror=()=>reject(r.error); r.readAsText(file,'utf-8');
-  });
-}
-
-function refreshAfterManualLoad(csv,img){
-  applyConfig(); showErrors(); renderTabs(); renderActiveSection(); tryLoadLogo();
-  if(csv) setStatus(`Caricati con successo ${csv} CSV e ${img} immagini`,true);
-  const forcePass=()=>{ document.body.offsetHeight; renderActiveSection(); tryLoadLogo(); if(document.getElementById('chartMarcatori')){ scheduleHomeChartsRender(); } };
-  requestAnimationFrame(()=>requestAnimationFrame(forcePass));
-}
-
-async function loadFromDirectoryHandle(dir){
-  manualLoadActive = true; state.files={}; state.rows={}; state.imageURLs={}; state.imageAliases={}; loadErrors=[]; state._csvCount=0; state._imgCount=0;
-  setStatus('Caricamento cartella…'); await scanDirRecursive(dir); refreshAfterManualLoad(state._csvCount,state._imgCount);
+function refreshAfterManualLoad(){
+  applyConfig(); renderTabs(); renderActiveSection(); tryLoadLogo();
+  setStatus('Cartella sincronizzata con successo',true);
 }
 
 async function tryDirectoryPicker(){
   if('showDirectoryPicker' in window){
-    try{ const dir=await window.showDirectoryPicker({mode:'read'}); await loadFromDirectoryHandle(dir); return true; }
-    catch(e){ if(e.name==='AbortError') return true; }
+    try{ const dir=await window.showDirectoryPicker(); await scanDirRecursive(dir); refreshAfterManualLoad(); return true; }
+    catch(e){ return false; }
   } return false;
 }
 
-/* Fallback automatico / manuale via Input */
 async function fallbackDirectoryPicker(e){
-  manualLoadActive=true; state.files={}; state.rows={}; state.imageURLs={}; state.imageAliases={}; loadErrors=[];
-  let csv=0,img=0; setStatus('Lettura file selezionati…');
   const files=e.target.files;
   for(let i=0;i<files.length;i++){
-    const f=files[i]; const rel=f.webkitRelativePath||f.name;
-    const ext=String(f.name.split('.').pop()||'').toLowerCase();
-    if(ext==='csv'){
-      try{
-        const txt=await safeFileText(f,rel); const parsed=parseCsv(txt);
-        state.files[f.name]=txt; state.rows[f.name]=parsed; csv++;
-        const probs=checkCsvErrors(f.name,txt,parsed); probs.forEach(p=>loadErrors.push({file:f.name,...p}));
-      } catch(err){ loadErrors.push({file:f.name,icon:'❌',msg:'Errore strutturale nel file.'}); }
-    } else if(imageExts().includes(ext)){ rememberImage(rel,f); img++; }
+    const f=files[i]; const ext=f.name.split('.').pop().toLowerCase();
+    if(ext==='csv' && fileKind(f.name)!=='ignora'){
+      const txt=await f.text(); state.files[f.name]=txt; state.rows[f.name]=parseCsv(txt);
+    } else if(imageExts().includes(ext)){ rememberImage(f.webkitRelativePath,f); }
   }
-  refreshAfterManualLoad(csv,img);
+  refreshAfterManualLoad();
 }
 
-/* Autoload nativo AJAX */
 async function autoLoadTorneo(){
-  let ok=0; setStatus('Controllo file locali per autocaricamento…');
+  let ok=0;
   for(const f of DEFAULT_FILES){
     try{
       const res=await fetch('data/'+f); if(!res.ok) continue;
-      const txt=await res.text(); const parsed=parseCsv(txt);
-      state.files[f]=txt; state.rows[f]=parsed; ok++;
-      const probs=checkCsvErrors(f,txt,parsed); probs.forEach(p=>loadErrors.push({file:f,...p}));
+      const txt=await res.text(); state.files[f]=txt; state.rows[f]=parseCsv(txt); ok++;
     }catch(e){}
   }
-  if(manualLoadActive) return;
-  applyConfig(); showErrors(); renderTabs(); renderActiveSection(); tryLoadLogo();
-  if(ok) setStatus(`Autocaricati ${ok} file CSV da /data`,true);
-  else setStatus('Nessun file trovato in /data. Usa "Sfoglia Cartella Torneo".');
+  applyConfig(); renderTabs(); renderActiveSection(); tryLoadLogo();
+  if(ok) setStatus(`Autocaricati ${ok} file CSV`,true);
 }
 
-/* ══════════════════════════════════
-   PROCESSO DI INIZIALIZZAZIONE
-   ══════════════════════════════════ */
 document.addEventListener('DOMContentLoaded',()=>{
-  const savedTheme=localStorage.getItem('cral_theme')||'light'; applyTheme(savedTheme==='dark',false);
+  applyTheme(localStorage.getItem('cral_theme')==='dark',false);
   renderTabs(); renderActiveSection(); autoLoadTorneo();
   
-  // Aggiunge la barra di caricamento manuale se non presente nativamente
   const bar=document.querySelector('.toolbar');
   if(bar){
-    const lbl=document.createElement('label'); lbl.className='fileLabel btn'; lbl.style.background='var(--gold)'; lbl.style.color='#071d3a'; lbl.textContent='📂 Carica Cartella Torneo';
+    const lbl=document.createElement('label'); lbl.className='fileLabel btn'; lbl.style.background='var(--gold)'; lbl.style.color='#071d3a'; lbl.textContent='📂 Sfoglia Cartella Torneo';
     const inp=document.createElement('input'); inp.type='file'; inp.webkitdirectory=true; inp.multiple=true;
     inp.addEventListener('change',fallbackDirectoryPicker); lbl.appendChild(inp);
     lbl.addEventListener('click',async (e)=>{ if(await tryDirectoryPicker()){ e.preventDefault(); } });
     bar.insertBefore(lbl,bar.firstChild);
   }
-
   document.getElementById('search').addEventListener('input',(e)=>{ state.search=e.target.value; renderActiveSection(); });
 });
-window.addEventListener('resize',()=>{ if(window._chartList) redrawCharts(); });
+window.addEventListener('resize', redrawCharts);
 </script>
 </body>
 </html>
