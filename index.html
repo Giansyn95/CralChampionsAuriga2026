@@ -28,12 +28,25 @@
     .hero-logo svg{width:100%;height:100%}
     .hero h1{margin:0;font-size:clamp(24px,4vw,48px);letter-spacing:.02em}
     .hero p{margin:8px 0 0;color:#dbeaff;font-size:17px}
+    /* ── Banner errore avanzato ── */
+    .err-section{margin:6px 0 0}
+    .err-section summary{cursor:pointer;font-weight:700;padding:4px 0;list-style:none}
+    .err-section summary::before{content:'▶ ';font-size:11px}
+    .err-section[open] summary::before{content:'▼ '}
+    .err-item{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #fecaca;font-size:13px;font-weight:400;align-items:flex-start}
+    .err-item:last-child{border-bottom:0}
+    .err-icon{flex:0 0 18px;text-align:center}
+    .err-detail{color:#6b2020}
+    .err-fix{margin-top:3px;color:#7c3030;font-style:italic}
     /* ── Toolbar ── */
     .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px;align-items:center}
     .btn,.fileLabel{border:0;border-radius:14px;padding:11px 15px;background:#fff;color:#0f376f;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;gap:8px;align-items:center;font-size:14px}
     .btn.secondary{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.28)}
     .btn.icon-btn{padding:10px 12px;background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.28);border-radius:14px;font-size:18px;line-height:1}
     input[type=file]{display:none}
+    /* ── Banner errore ── */
+    #errorBanner{display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:14px;padding:14px 18px;margin-bottom:14px;color:var(--red);font-weight:600}
+    #errorBanner ul{margin:6px 0 0 18px;font-weight:400;font-size:13px}
     /* ── Status ── */
     .status{font-size:13px;color:#dbeaff;margin-left:auto}
     /* ── Tabs ── */
@@ -132,43 +145,10 @@
     .empty{padding:18px;background:var(--panel);border:1px dashed var(--line);border-radius:16px;color:var(--muted)}
     .error{color:var(--red);font-weight:700}
     .ok{color:var(--green);font-weight:700}
-
-    /* ── OTTIMIZZAZIONI RESPONSIVE MOBILE AVANZATE ── */
-    @media(max-width:900px){
-      .grid{grid-template-columns:repeat(2,1fr)}
-      .status{margin-left:0;width:100%}
-      .riepilogo-kpi.is-wide,.riepilogo-kpi.is-match-max{grid-column:span 1}
-    }
-    @media(max-width:600px){
-      .wrap{padding:10px}
-      .grid{grid-template-columns:1fr !important; gap:10px;}
-      .hero{padding:16px; border-radius:16px;}
-      .hero-top{gap:12px;}
-      .hero-logo{width:56px; height:56px; padding:4px; border-radius:12px;}
-      
-      table { display: block; width: 100%; }
-      thead { display: block; }
-      tbody { display: block; }
-      tr { display: flex; padding: 10px 6px; border-bottom: 1px solid var(--line); align-items: center; justify-content: space-between; }
-      tr:hover td { background: transparent; }
-      th, td { padding: 4px; border: none; white-space: normal; display: inline-block; font-size: 14px; }
-      
-      th:nth-child(n+4), td:nth-child(n+4) {
-        display: none !important;
-      }
-      
-      .riepilogo-kpi-grid { grid-template-columns: 1fr 1fr !important; gap: 8px; }
-      .riepilogo-kpi { min-height: 64px; padding: 8px; }
-      .riepilogo-kpi .n { font-size: 16px !important; white-space: normal; }
-      .riepilogo-match { flex-direction: column; align-items: stretch; gap: 8px; padding: 12px; }
-      .riepilogo-match .match-teams { flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; }
-      .riepilogo-match .match-team { max-width: 100% !important; width: 100%; justify-content: flex-start; }
-      .riepilogo-match .score { text-align: left; font-size: 20px; padding-top: 0; min-width: auto; font-weight: 800; color: var(--blue); margin: 2px 0; }
-      
-      .chart-container { height: 210px !important; }
-      .chart-label-strip { display: none !important; }
-    }
-    @media print{.toolbar,.tabs,.search{display:none}.section{display:block}.wrap{max-width:none}.card,.hero{box-shadow:none}}
+    /* ── Responsive ── */
+    @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.status{margin-left:0;width:100%}.riepilogo-kpi.is-wide,.riepilogo-kpi.is-match-max{grid-column:span 1}}
+    @media(max-width:560px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.hero{padding:22px}.match{display:block}.score{margin:6px 0}.riepilogo-match .match-team{max-width:none}.riepilogo-match .match-name{font-size:16px}.riepilogo-match .score{text-align:left;font-size:26px;min-width:0}.riepilogo-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media print{.toolbar,.tabs,.search,#errorBanner{display:none}.section{display:block}.wrap{max-width:none}.card,.hero{box-shadow:none}}
     @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
   </style>
 </head>
@@ -177,6 +157,7 @@
   <div class="hero">
     <div class="hero-top">
       <div class="hero-logo" id="heroLogoWrap">
+        <!-- Logo SVG di fallback -->
         <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Logo CRAL">
           <circle cx="32" cy="32" r="30" fill="rgba(255,255,255,.15)" stroke="rgba(255,255,255,.4)" stroke-width="2"/>
           <path d="M32 10 L38 24 H54 L42 33 L46 47 L32 38 L18 47 L22 33 L10 24 H26 Z" fill="#f5b942" opacity=".9"/>
@@ -195,6 +176,12 @@
     </div>
   </div>
 
+  <!-- Banner errori di caricamento dettagliato -->
+  <div id="errorBanner" role="alert" aria-live="polite" style="display:none;">
+    <div>⚠️ Trovati <span id="errCount">0</span> problema/i durante il caricamento dei CSV</div>
+    <div id="errGroups"></div>
+  </div>
+
   <input class="search" id="search" placeholder="Cerca squadra, giocatore, partita…" aria-label="Ricerca globale" />
   <div class="tabs" id="tabs" role="tablist"></div>
 
@@ -208,16 +195,9 @@
 </div>
 
 <script>
-/* ── Costanti Struttura Originale Estesa ── */
+/* ── Costanti ── */
 const DEFAULT_TITLE    = 'CRAL Champions - Auriga 2026';
 const DEFAULT_SUBTITLE = 'Classifiche, calendario, risultati e statistiche giocatori';
-const DEFAULT_FILES    = [
-  'config.csv','manifest.csv','classifica_squadre.csv','classifica_marcatori.csv',
-  'classifica_mvp.csv','classifica_portieri.csv',
-  'risultati_partite.csv','risultati.csv','partite.csv',
-  'calendario_andata_ritorno.csv','calendario.csv',
-  'riepilogo_giornate.csv'
-];
 const TABS = [
   ['home','🏠 Home'],['classifiche','🏆 Classifiche'],['statistiche','📊 Statistiche'],
   ['squadre','👕 Squadre'],['calendario','📅 Calendario'],['risultati','⚽ Risultati'],
@@ -232,36 +212,35 @@ let state = {
   selectedRiepilogoGiornata: '',
   sortState: {}
 };
+let loadErrors = [];
 
-/* ══════════════════════════════════
-   UTILITY
-   ══════════════════════════════════ */
+/* ── Utility Stringhe e Formattazione ── */
 function norm(s){ return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/&/g,'e').replace(/[^a-z0-9]/g,''); }
 
-function fixItalianAccents(s){
-  let out=String(s??'');
-  const replaceWord=(word,repl)=>{
-    out=out.replace(new RegExp('\\b'+word+'\\b','gi'),m=>{
-      if(m===m.toUpperCase()) return repl.toUpperCase();
-      if(m[0]===m[0].toUpperCase()) return repl.charAt(0).toUpperCase()+repl.slice(1);
+function fixItalianAccents(s) {
+  let out = String(s ?? '');
+  const replaceWord = (word, repl) => {
+    out = out.replace(new RegExp('\\b' + word + '\\b', 'gi'), m => {
+      if (m === m.toUpperCase()) return repl.toUpperCase();
+      if (m[0] === m[0].toUpperCase()) return repl.charAt(0).toUpperCase() + repl.slice(1);
       return repl;
     });
   };
-  replaceWord('piu','più');
-  replaceWord('perche','perché');
-  replaceWord('poiche','poiché');
-  replaceWord('finche','finché');
-  replaceWord('cosi','così');
-  replaceWord('gia','già');
-  replaceWord('puo','può');
-  replaceWord('cioe','cioè');
-  replaceWord('qualita','qualità');
-  replaceWord('quantita','quantità');
-  replaceWord('citta','città');
-  replaceWord('autogoal','autogol');
-  out=out.replace(/\bgoal\b/gi,m=>m===m.toUpperCase()?'GOL':(m[0]===m[0].toUpperCase()?'Gol':'gol'));
-  out=out.replace(/(^|\s)e'(?=\s|$)/gi,(m,p)=>p+(m.trim()[0]==='E'?'È':'è'));
-  out=out.replace(/n'e/gi, m=>m[0]==='N'?"N'è":"n'è");
+  replaceWord('piu', 'più');
+  replaceWord('perche', 'perché');
+  replaceWord('poiche', 'poiché');
+  replaceWord('finche', 'finché');
+  replaceWord('cosi', 'così');
+  replaceWord('gia', 'già');
+  replaceWord('puo', 'può');
+  replaceWord('cioe', 'cioè');
+  replaceWord('qualita', 'qualità');
+  replaceWord('quantita', 'quantità');
+  replaceWord('citta', 'città');
+  replaceWord('autogoal', 'autogol');
+  out = out.replace(/\bgoal\b/gi, m => m === m.toUpperCase() ? 'GOL' : (m[0] === m[0].toUpperCase() ? 'Gol' : 'gol'));
+  out = out.replace(/(^|\s)e'(?=\s|$)/gi, (m, p) => p + (m.trim()[0] === 'E' ? 'È' : 'è'));
+  out = out.replace(/n'e/gi, m => m[0] === 'N' ? "N'è" : "n'è");
   return out;
 }
 
@@ -294,10 +273,7 @@ function prettyColumnName(header){
     nome:'Nome', cognome:'Cognome', ruolo:'Ruolo', posizione:'Ruolo', numero:'Numero', maglia:'Maglia',
     gol:'Gol', goal:'Gol', reti:'Gol', golgiornata:'Gol giornata', retigiornata:'Gol giornata', goalgiornata:'Gol giornata',
     assist:'Assist', autogol:'Autogol', autogoal:'Autogol', autoreti:'Autogol', mvp:'MVP', puntimvp:'Punti MVP',
-    presenze:'Presenze', partite:'Partite', mediagol:'Media gol', mediagolpartita:'Media gol/partita',
-    sezione:'Sezione', statistica:'Statistica', valore:'Valore', totale:'Totale', categoria:'Categoria', descrizione:'Descrizione',
-    marcatoricasa:'Marcatori casa', marcatoritrasferta:'Marcatori trasferta', marcatore:'Marcatore', marcatori:'Marcatori',
-    totalemarcatoregiornata:'Totale marcatore giornata', voce:'Voce', voci:'Voci', dato:'Dato', etichetta:'Etichetta'
+    presenze:'Presenze', partite:'Partite', mediagol:'Media gol', mediagolpartita:'Media gol/partita'
   };
   if(map[n]) return map[n];
   return smartSpace(raw.replace(/_/g,' '));
@@ -308,9 +284,7 @@ function initials(s){ return String(s||'?').split(/\s+/).filter(Boolean).slice(0
 function setStatus(msg,good=false){ const el=document.getElementById('status'); el.innerHTML=good?`<span class="ok">${esc(msg)}</span>`:esc(msg); }
 function sepFor(line){ const semi=(line.match(/;/g)||[]).length,comma=(line.match(/,/g)||[]).length; return semi>=comma?';':','; }
 
-/* ══════════════════════════════════
-   CSV PARSER
-   ══════════════════════════════════ */
+/* ── CSV Parser ── */
 function parseCsv(text){
   text=String(text||'').replace(/^\uFEFF/,''); if(!text.trim()) return [];
   const sep=sepFor(text.split(/\r?\n/).find(l=>l.trim())||'');
@@ -331,9 +305,7 @@ function rowsToObjects(rows){ if(!rows||!rows.length) return []; const h=rows[0]
 function col(obj,names){ const keys=Object.keys(obj||{}); for(const n of names){ const nk=norm(n); const k=keys.find(x=>norm(x)===nk||norm(x).includes(nk)); if(k) return obj[k]; } return ''; }
 function num(x){ const n=parseFloat(String(x||'0').replace(',','.').replace(/[^0-9.-]/g,'')); return Number.isFinite(n)?n:0; }
 
-/* ── Classificazione originaria ripristinata e pulita ── */
-function fileKind(f){ 
-  const n=norm(f);
+function fileKind(f){ const n=norm(f);
   if(n.includes('classificasquadre')) return 'classifica_squadre';
   if(n.includes('marcatori')) return 'marcatori';
   if(n.includes('mvp')) return 'mvp';
@@ -346,46 +318,12 @@ function fileKind(f){
 }
 function sectionFiles(kind){ return Object.keys(state.rows).filter(f=>fileKind(f)===kind); }
 
-/* ══════════════════════════════════
-   IMMAGINI & LOGHI
-   ══════════════════════════════════ */
+/* ── Immagini ed Asset ── */
 function imageExts(){ return ['png','jpg','jpeg','webp','gif','svg']; }
-function baseNoExt(path){ return String(path||'').split('/').pop().replace(/\.[^.]+$/,''); }
-function imageFolderToken(type){ return type==='team'?'immaginisquadre':'immaginigiocatori'; }
-
-function rememberImage(relPath,file){
-  const rel=String(relPath||file?.name||'');
-  const url=URL.createObjectURL(file);
-  const fullKey=norm(rel);
-  const baseKey=norm(baseNoExt(rel));
-  const folderKey=rel.toLowerCase().includes('/squadre/')||rel.toLowerCase().includes('\\squadre\\')?'team':
-                  rel.toLowerCase().includes('/giocatori/')||rel.toLowerCase().includes('\\giocatori\\')?'player':'';
-
-  state.imageURLs[fullKey]=url;
-  state.imageAliases=state.imageAliases||{};
-  if(baseKey && !state.imageAliases[baseKey]) state.imageAliases[baseKey]=url;
-  if(baseKey && folderKey) state.imageAliases[folderKey+':'+baseKey]=url;
-  return url;
-}
-
 function imageFor(type,name){
   const key=norm(name); if(!key) return '';
-  const aliases=state.imageAliases||{};
-  const typed=type==='team'?'team:'+key:'player:'+key;
-  if(aliases[typed]) return aliases[typed];
-  if(aliases[key]) return aliases[key];
-
-  const folder=imageFolderToken(type);
-  const candidates=Object.entries(state.imageURLs||{}).map(([k,url])=>{
-    const rawBase=(k.split('/').pop()||k).replace(/(png|jpg|jpeg|webp|gif|svg)$/i,'');
-    const base=norm(rawBase);
-    let score=999;
-    if(k.includes(folder) && base===key) score=0;
-    else if(base===key) score=1;
-    return {score,url};
-  }).filter(x=>x.score<999).sort((a,b)=>a.score-b.score);
-  if(candidates.length) return candidates[0].url;
-  return type==='team'?'immagini/squadre/'+key+'.png':'immagini/giocatori/'+key+'.png';
+  const prefix=type==='team'?'immagini/squadre/':'immagini/giocatori/';
+  return prefix+key+'.png';
 }
 
 function imgOrInitialEl(type,name,cls){
@@ -393,423 +331,583 @@ function imgOrInitialEl(type,name,cls){
   const mainName=names[0]||'';
   const img=document.createElement('img');
   img.className=cls; img.alt=mainName;
-
-  const prefixes=type==='team'?['immagini/squadre/','data/immagini/squadre/']:['immagini/giocatori/','data/immagini/giocatori/'];
-  const candidates=[];
-  const addCandidate=(src)=>{ if(src && !candidates.includes(src)) candidates.push(src); };
-
-  names.forEach(n=>addCandidate(imageFor(type,n)));
-  let fallbackIndex=0;
+  const key=norm(mainName);
+  const prefix=type==='team'?'immagini/squadre/':'immagini/giocatori/';
+  
   img.onerror=function(){
-    if(String(this.src||'').startsWith('blob:')){
-      const d=document.createElement('div'); d.className=cls; d.textContent=initials(mainName); this.replaceWith(d);
-      return;
-    }
-    while(fallbackIndex<candidates.length && candidates[fallbackIndex]===this.src) fallbackIndex++;
-    if(fallbackIndex<candidates.length){ this.src=candidates[fallbackIndex++]; return; }
     const d=document.createElement('div'); d.className=cls; d.textContent=initials(mainName); this.replaceWith(d);
   };
-  img.src=candidates[fallbackIndex++] || '';
+  img.src=prefix+key+'.png';
   return img;
 }
 
-function tryLoadLogo() {
-  const logoWrap = document.getElementById('heroLogoWrap');
-  if (!logoWrap) return;
-  let detectedUrl = '';
-  if (state.imageURLs) {
-    const logoKey = Object.keys(state.imageURLs).find(k => norm(k).includes('logo') || norm(k).includes('manifest'));
-    if (logoKey) detectedUrl = state.imageURLs[logoKey];
+/* ── Gestione Ordinamento Avanzato e Risoluzione dei Pari Merito ── */
+const NAME_COL_CANDIDATES_TEAM   = ['squadra','team','nome squadra','club'];
+const NAME_COL_CANDIDATES_PLAYER = ['giocatore','nome','calciatore','player','cognome e nome','portiere'];
+
+function findNameColIndex(headers, imgType){
+  const candidates = imgType==='team' ? NAME_COL_CANDIDATES_TEAM : NAME_COL_CANDIDATES_PLAYER;
+  const normed = headers.map(h=>norm(h));
+  for(const c of candidates){
+    const nc = norm(c);
+    const idx = normed.findIndex(h=>h===nc||h.includes(nc));
+    if(idx>=0) return idx;
   }
-  if (!detectedUrl) detectedUrl = imageFor('team', 'logo') || 'immagini/logo.png';
-  const img = new Image();
-  img.src = detectedUrl;
-  img.onload = function() {
-    logoWrap.innerHTML = '';
-    const newImg = document.createElement('img'); newImg.src = detectedUrl; newImg.style.width = '100%'; newImg.style.height = '100%'; newImg.style.objectFit = 'contain';
-    logoWrap.appendChild(newImg);
+  return 0;
+}
+
+function buildTable(rows, tableId, imgType){
+  if(!rows||!rows.length) return buildEl('div','empty','Nessun dato disponibile.');
+  const fr=filterRows(rows);
+  if(!fr.length) return buildEl('div','empty','Nessun risultato per la ricerca.');
+  const headers=fr[0];
+  const body=fr.slice(1);
+  if(!tableId){ tableId='tbl_'+Math.random(); }
+  const sort=state.sortState[tableId]||{col:-1,dir:'asc'};
+  const nameColIdx = imgType ? findNameColIndex(headers, imgType) : -1;
+
+  let sortedBody=[...body];
+  if(sort.col>=0){
+    sortedBody.sort((a,b)=>{
+      const av=a[sort.col]??'', bv=b[sort.col]??'';
+      const mixedA=isNaN(parseFloat(String(av).replace(',','.'))) ? 0 : 1;
+      const mixedB=isNaN(parseFloat(String(bv).replace(',','.'))) ? 0 : 1;
+      
+      if(mixedA !== mixedB) return sort.dir==='asc' ? mixedA - mixedB : mixedB - mixedA;
+      
+      const an=num(av), bn=num(bv);
+      let cmp = (an!==0||bn!==0)?(an-bn):String(av).localeCompare(String(bv),'it');
+      
+      // Risoluzione Tie-Break Multiplo
+      if (cmp === 0) {
+        // Se c'è un pareggio, ordina alfabeticamente per nome dell'atleta o della squadra per coerenza visiva
+        const nameA = nameColIdx >= 0 ? (a[nameColIdx] ?? '') : '';
+        const nameB = nameColIdx >= 0 ? (b[nameColIdx] ?? '') : '';
+        cmp = String(nameA).localeCompare(String(nameB), 'it');
+      }
+      return sort.dir==='asc'?cmp:-cmp;
+    });
+  }
+
+  const wrap=document.createElement('div'); wrap.className='tableWrap';
+  const tbl=document.createElement('table');
+  const thead=document.createElement('thead');
+  const hrow=document.createElement('tr');
+  headers.forEach((h,i)=>{
+    const th=document.createElement('th');
+    const span=document.createElement('span'); span.textContent=fixItalianAccents(prettyColumnName(h||''));
+    const arrow=document.createElement('i'); arrow.className='sort-arrow';
+    th.appendChild(span); th.appendChild(arrow);
+    if(sort.col===i) th.classList.add(sort.dir==='asc'?'sort-asc':'sort-desc');
+    th.onclick=()=>{
+      if(sort.col===i){ state.sortState[tableId]={col:i,dir:sort.dir==='asc'?'desc':'asc'}; }
+      else { state.sortState[tableId]={col:i,dir:'asc'}; }
+      renderActiveSection();
+    };
+    hrow.appendChild(th);
+  });
+  thead.appendChild(hrow); tbl.appendChild(thead);
+  const tbody=document.createElement('tbody');
+  sortedBody.forEach(row=>{
+    const tr=document.createElement('tr');
+    headers.forEach((_,i)=>{
+      const td=document.createElement('td');
+      if(imgType && i===nameColIdx){
+        const cell=document.createElement('div'); cell.className='name-cell';
+        const name=row[i]??'';
+        const cls=imgType==='team'?'tbl-logo':'tbl-avatar';
+        cell.appendChild(imgOrInitialEl(imgType,name,cls));
+        const span=document.createElement('span'); span.textContent=name;
+        cell.appendChild(span);
+        td.appendChild(cell);
+      } else {
+        td.textContent=fixItalianAccents(row[i]??'');
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  tbl.appendChild(tbody); wrap.appendChild(tbl);
+  return wrap;
+}
+function buildEl(tag,cls,text){ const el=document.createElement(tag); el.className=cls; if(text) el.textContent=fixItalianAccents(text); return el; }
+
+/* ── Grafici integrati Chart.js ── */
+window._chart={};
+function getChartColors(){
+  const dark=document.documentElement.getAttribute('data-theme')==='dark';
+  return {
+    grid:dark?'rgba(255,255,255,.08)':'rgba(7,29,58,.07)',
+    text:dark?'#b8c7da':'#667085',
+    blue1:dark?'rgba(59,130,246,.95)':'rgba(15,90,168,.95)',
+    blue2:dark?'rgba(96,165,250,.72)':'rgba(75,139,204,.72)',
+    gold1:'rgba(245,185,66,.96)',
+    gold2:'rgba(255,217,125,.76)'
   };
 }
-
-/* ══════════════════════════════════
-   INTERFACCIA E TABS
-   ══════════════════════════════════ */
-function applyTheme(dark,save=true){
-  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
-  document.getElementById('btnTheme').textContent=dark?'☀️':'🌙';
-  if(save) localStorage.setItem('cral_theme',dark?'dark':'light');
-  if(window._chart) redrawCharts();
+function redrawCharts(){
+  if(window._chart.chartMarcatori) renderChartMarcatori();
+  if(window._chart.chartPunti) renderChartPunti();
 }
-document.getElementById('btnTheme').addEventListener('click',()=>{
-  applyTheme(document.documentElement.getAttribute('data-theme')!=='dark');
-});
+function renderChartMarcatori(){
+  const f=sectionFiles('marcatori')[0]; if(!f) return;
+  const data=rowsToObjects(state.rows[f]).slice(0,10);
+  if(!data.length) return;
+  const labels=data.map(r=>col(r,['giocatore','nome','calciatore','player'])||Object.values(r)[0]||'');
+  const values=data.map(r=>num(col(r,['gol','reti','goal','g'])));
+  drawBarChart('chartMarcatori',labels,values,'Gol','player','Top marcatori');
+}
+function renderChartPunti(){
+  const f=sectionFiles('classifica_squadre')[0]; if(!f) return;
+  const data=rowsToObjects(state.rows[f]);
+  if(!data.length) return;
+  const labels=data.map(r=>col(r,['squadra','team','nome'])||Object.values(r)[0]||'');
+  const values=data.map(r=>num(col(r,['punti','pts','points'])));
+  drawBarChart('chartPunti',labels,values,'Punti','team','Punti per squadra');
+}
 
-function renderTabs(){
-  const el=document.getElementById('tabs'); el.innerHTML='';
-  TABS.forEach(([id,label])=>{
-    const b=document.createElement('button'); b.className='tab'+(id===state.activeTab?' active':'');
-    b.textContent=label; b.onclick=()=>showTab(id); el.appendChild(b);
+function drawBarChart(canvasId,labels,values,label,type,title){
+  const canvas=document.getElementById(canvasId); if(!canvas || !window.Chart) return;
+  if(window._chart[canvasId]){
+    try{ window._chart[canvasId].destroy(); }catch(e){}
+    window._chart[canvasId]=null;
+  }
+  const c=getChartColors();
+  const isTeam=type==='team';
+  const chart=new Chart(canvas,{
+    type:'bar',
+    data:{ labels, datasets:[{
+      label,
+      data:values,
+      backgroundColor: isTeam?c.gold1:c.blue1,
+      borderColor:isTeam?'rgba(255,255,255,.45)':'rgba(255,255,255,.38)',
+      borderWidth:1,
+      borderRadius:{topLeft:10,topRight:10,bottomLeft:4,bottomRight:4},
+      maxBarThickness:54
+    }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        title:{display:!!title,text:title,color:c.text,font:{size:14,weight:'800'}}
+      },
+      scales:{
+        x:{ ticks:{color:c.text}, grid:{display:false} },
+        y:{ ticks:{color:c.text,stepSize:1}, grid:{color:c.grid}, beginAtZero:true }
+      }
+    }
+  });
+  window._chart[canvasId]=chart;
+}
+
+/* ── Logiche di Estrazione Nomi e Ruoli ── */
+function fieldExact(obj,names){
+  const keys=Object.keys(obj||{});
+  for(const n of names){
+    const nk=norm(n);
+    let k=keys.find(x=>norm(x)===nk);
+    if(k) return obj[k];
+  }
+  return '';
+}
+function fieldLoose(obj,names){
+  const exact=fieldExact(obj,names);
+  if(exact) return exact;
+  return col(obj,names);
+}
+function uniqueNameParts(parts){
+  const seen=new Set(), out=[];
+  for(const part of parts){
+    const clean=smartSpace(part);
+    const key=norm(clean);
+    if(clean && !seen.has(key)){ seen.add(key); out.push(clean); }
+  }
+  return out.join(' ');
+}
+
+function playerFullName(obj){
+  const nome = fieldExact(obj,['nome','first name','firstname']);
+  const cognome = fieldExact(obj,['cognome','last name','lastname']);
+  if(nome || cognome) return uniqueNameParts([nome,cognome]);
+  const direct = fieldLoose(obj,['giocatore','nome giocatore','nome completo','calciatore','player','atleta','cognome e nome']);
+  return smartSpace(direct || Object.values(obj||{})[0] || '');
+}
+
+function playerDisplayName(obj){
+  const nome = fieldExact(obj,['nome','first name','firstname']);
+  const cognome = fieldExact(obj,['cognome','last name','lastname']);
+  if(nome || cognome) return uniqueNameParts([cognome,nome]);
+  return playerFullName(obj);
+}
+
+function playerImageNames(obj){
+  return [playerFullName(obj), playerDisplayName(obj)].filter(Boolean);
+}
+
+function allPlayersFromTeams(){ const out=[]; for(const f of sectionFiles('squadra')){ const sq=teamNameFromFile(f); for(const r of rowsToObjects(state.rows[f])){ const n=playerFullName(r); if(n) out.push({nome:n,squadra:sq,ruolo:col(r,['ruolo','role']),numero:col(r,['numero','n'])}); } } return out; }
+function scorers(){ const f=sectionFiles('marcatori')[0]; return f?rowsToObjects(state.rows[f]):[]; }
+function matchRows(){ return sectionFiles('risultati').flatMap(f=>rowsToObjects(state.rows[f])); }
+function teamMatchCounts(){
+  const counts={};
+  for(const r of matchRows()){
+    const home=col(r,['squadra casa','casa','home','squadra 1']);
+    const away=col(r,['squadra trasferta','trasferta','ospite','away','squadra 2']);
+    const gh=col(r,['gol casa','reti casa','goal casa']);
+    const ga=col(r,['gol trasferta','reti trasferta','goal trasferta']);
+    const played=String(gh||ga||col(r,['risultato','score'])).trim()!=='';
+    if(played){ if(home) counts[norm(home)]=(counts[norm(home)]||0)+1; if(away) counts[norm(away)]=(counts[norm(away)]||0)+1; }
+  }
+  return counts;
+}
+
+/* ── Rendering delle Sezioni Navigabili ── */
+function teamNameFromFile(f){ return prettyFileName(f).replace(/^Squadra\s+/i,''); }
+
+function renderHome(){
+  const el=document.getElementById('home'); el.innerHTML='';
+  const players=allPlayersFromTeams(), matches=matchRows();
+  const stats=[
+    [sectionFiles('squadra').length,'Squadre'],
+    [players.length,'Giocatori'],
+    [matches.length,'Partite disputate'],
+    [Object.keys(state.rows).filter(f=>/\.csv$/i.test(f)).length,'CSV caricati']
+  ];
+  const grid=document.createElement('div'); grid.className='grid';
+  stats.forEach(([n,l])=>{
+    const c=document.createElement('div'); c.className='card stat';
+    c.innerHTML=`<div class="n">${n}</div><div class="l">${esc(l)}</div>`;
+    grid.appendChild(c);
+  });
+  el.appendChild(grid);
+  const br=document.createElement('br'); el.appendChild(br);
+
+  const chartsWrap=document.createElement('div'); chartsWrap.className='grid';
+  const c1=document.createElement('div'); c1.className='card chart-card'; c1.style.gridColumn='span 2';
+  c1.innerHTML='<h2>Top marcatori</h2><div class="chart-container"><canvas id="chartMarcatori"></canvas></div><div class="chart-label-strip" id="chartMarcatoriLabels"></div>';
+  const c2=document.createElement('div'); c2.className='card chart-card'; c2.style.gridColumn='span 2';
+  c2.innerHTML='<h2>Punti squadre</h2><div class="chart-container"><canvas id="chartPunti"></canvas></div><div class="chart-label-strip" id="chartPuntiLabels"></div>';
+  chartsWrap.appendChild(c1); chartsWrap.appendChild(c2);
+  el.appendChild(chartsWrap);
+
+  scheduleHomeChartsRender();
+}
+
+let _chartJsPromise=null;
+function loadChartJs(){
+  if(window.Chart) return Promise.resolve();
+  if(_chartJsPromise) return _chartJsPromise;
+  _chartJsPromise=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
+    s.onload=()=>resolve();
+    s.onerror=()=>reject();
+    document.head.appendChild(s);
+  });
+  return _chartJsPromise;
+}
+
+function scheduleHomeChartsRender(){
+  loadChartJs().then(()=>{
+    if(document.getElementById('chartMarcatori')) renderChartMarcatori();
+    if(document.getElementById('chartPunti')) renderChartPunti();
+  }).catch(()=>{});
+}
+
+function renderClassifiche(){
+  const el=document.getElementById('classifiche'); el.innerHTML='';
+  const sections=[
+    ['classifica_squadre','CLASSIFICA SQUADRE','team'],
+    ['marcatori','CLASSIFICA MARCATORI','player'],
+    ['mvp','CLASSIFICA MVP','player'],
+    ['portieri','CLASSIFICA PORTIERI','player']
+  ];
+  let found=false;
+  sections.forEach(([kind,title,imgType])=>{
+    sectionFiles(kind).forEach(f=>{
+      found=true;
+      const card=document.createElement('div'); card.className='card'; card.style.marginBottom='14px';
+      const h=document.createElement('h2'); h.className='upper'; h.textContent=title;
+      card.appendChild(h); card.appendChild(buildTable(state.rows[f],norm(f),imgType));
+      el.appendChild(card);
+    });
+  });
+  if(!found) el.appendChild(buildEl('div','empty','Nessuna classifica trovata.'));
+}
+
+function renderStatistiche(){
+  const el=document.getElementById('statistiche'); el.innerHTML='';
+  const ms=teamMatchCounts(); let rows=[];
+  for(const r of scorers()){
+    const giocatore=col(r,['giocatore','nome','calciatore','player'])||Object.values(r)[0];
+    const squadra=col(r,['squadra','team']);
+    const gol=num(col(r,['gol','reti','goal','g']));
+    const partite=num(col(r,['partite','presenze','pg']))||ms[norm(squadra)]||0;
+    const media=partite?gol/partite:0;
+    if(giocatore) rows.push({giocatore,squadra,gol,partite,media});
+  }
+  rows.sort((a,b)=>b.media-a.media||b.gol-a.gol);
+  const card=document.createElement('div'); card.className='card';
+  const h=document.createElement('h2'); h.textContent='Statistiche giocatori'; card.appendChild(h);
+  if(!rows.length){
+    card.appendChild(buildEl('div','empty','Dati insufficienti per elaborare le medie gol.'));
+  } else {
+    const headers=['Giocatore','Squadra','Gol','Partite','Media gol/partita'];
+    const body=rows.map(x=>[x.giocatore,x.squadra,x.gol,x.partite,x.media.toFixed(2).replace('.',',')]);
+    card.appendChild(buildTable([headers,...body],'stats_giocatori'));
+  }
+  el.appendChild(card);
+}
+
+function roleInitial(value){
+  const text=smartSpace(value); if(!text) return '';
+  const key=norm(text);
+  if(key.includes('portiere') || key.includes('goalkeeper')) return 'P';
+  if(key.includes('difensore')) return 'D';
+  if(key.includes('centrocampista')) return 'C';
+  if(key.includes('attaccante')) return 'A';
+  return text.charAt(0).toUpperCase();
+}
+
+function isCaptainPlayer(obj){
+  const rawCaptain = fieldLoose(obj,['capitano','captain','fascia','cap']) || '';
+  return ['si','s','yes','true','1','c'].includes(norm(rawCaptain));
+}
+
+function renderSquadre(){
+  const el=document.getElementById('squadre'); el.innerHTML='';
+  const files=sectionFiles('squadra');
+  if(!files.length){ el.appendChild(buildEl('div','empty','Nessun file squadra trovato.')); return; }
+  const wrap=document.createElement('div'); wrap.className='teams';
+  files.forEach(f=>{
+    const name=teamNameFromFile(f);
+    const players=rowsToObjects(state.rows[f]);
+    const filtered=filterRows(players);
+    const card=document.createElement('div'); card.className='teamCard';
+    const head=document.createElement('div'); head.className='teamHead';
+    head.appendChild(imgOrInitialEl('team',name,'logo'));
+    const info=document.createElement('div');
+    const hn=document.createElement('h2'); hn.textContent=name;
+    const sub=document.createElement('div'); sub.className='small'; sub.textContent=players.length+' giocatori';
+    info.appendChild(hn); info.appendChild(sub); head.appendChild(info); card.appendChild(head);
+    filtered.forEach(p=>{
+      const nomeVisibile=playerDisplayName(p);
+      const meta=roleInitial(fieldLoose(p,['ruolo','role','posizione']));
+      const capitano=isCaptainPlayer(p);
+      const row=document.createElement('div'); row.className='player'+(capitano?' captain':'');
+      row.appendChild(imgOrInitialEl('player',playerImageNames(p),'avatar'));
+      const txt=document.createElement('div');
+      const b=document.createElement('b'); b.className='player-name'; b.textContent=nomeVisibile;
+      if(capitano){
+        const fascia=document.createElement('span'); fascia.className='captain-armband'; b.appendChild(fascia);
+      }
+      const s=document.createElement('span'); s.className='small'; s.textContent=meta;
+      txt.appendChild(b); txt.appendChild(s); row.appendChild(txt); card.appendChild(row);
+    });
+    wrap.appendChild(card);
+  });
+  el.appendChild(wrap);
+}
+
+/* ── Calendario Strutturato e Gestione Riposo ── */
+function isBlockCalendar(rawText){ return /GIORNATA\s+\d+/i.test(rawText); }
+
+function parseBlockCalendar(rawText){
+  const sep=sepFor(rawText.split('\n')[0]||'');
+  const lines=rawText.split(/\r?\n/);
+  const giornate=[]; let current=null;
+  for(let i=0;i<lines.length;i++){
+    const cells=lines[i].split(sep).map(c=>c.trim());
+    const first=cells[0]||'';
+    const gMatch=first.match(/GIORNATA\s+(\d+)/i);
+    if(gMatch){
+      current={ label:'Giornata '+gMatch[1], partite:[] }; giornate.push(current); continue;
+    }
+    if(/^casa$/i.test(first)||/squadra/i.test(first)||cells.every(c=>!c)) continue;
+    if(current){
+      const casa=cells[0]||''; const trasferta=cells[1]||''; const note=cells[2]||'';
+      const riposaMat=cells.join(' ').match(/riposa[:\s]+(.+)/i);
+      const riposa=riposaMat?riposaMat[1].trim():'';
+      if(casa||trasferta||riposa) current.partite.push({casa,trasferta,note,riposa});
+    }
+  }
+  return giornate;
+}
+
+function renderCalendario(){
+  const el=document.getElementById('calendario'); el.innerHTML='';
+  const files=sectionFiles('calendario');
+  if(!files.length){ el.appendChild(buildEl('div','empty','Nessun file calendario trovato.')); return; }
+  
+  if(files.some(f=>isBlockCalendar(state.files[f]||''))){
+    renderCalendarioBlock(el, files);
+  } else {
+    files.forEach(f=>{
+      const card=document.createElement('div'); card.className='card';
+      card.appendChild(buildEl('h2', 'upper', prettyFileName(f)));
+      card.appendChild(buildTable(state.rows[f], norm(f), 'team'));
+      el.appendChild(card);
+    });
+  }
+}
+
+function renderCalendarioBlock(el, files){
+  const allGiornate=[];
+  files.forEach(f=>parseBlockCalendar(state.files[f]||'').forEach(g=>allGiornate.push(g)));
+  const q=norm(state.search);
+  allGiornate.forEach(g=>{
+    const pFiltrate=g.partite.filter(p=>!q||norm(p.casa).includes(q)||norm(p.trasferta).includes(q)||norm(p.riposa).includes(q));
+    if(q&&!pFiltrate.length) return;
+    const card=document.createElement('div'); card.className='card'; card.style.marginBottom='14px';
+    card.appendChild(buildEl('h3','',g.label));
+    const inner=document.createElement('div'); inner.className='tableWrap';
+    pFiltrate.forEach(p=>{
+      const m=document.createElement('div'); m.className='match';
+      if(p.riposa && !p.casa && !p.trasferta){
+        m.innerHTML=`<div><b>Riposa: ${esc(p.riposa)}</b><br><span class="small">Turno di riposo</span></div>`;
+        m.style.background='var(--soft)';
+      } else {
+        const left=document.createElement('div'); left.className='match-teams';
+        left.innerHTML=`<div class="match-team"><span class="match-name">${esc(p.casa)}</span></div><span class="match-vs">vs</span><div class="match-team"><span class="match-name">${esc(p.trasferta)}</span></div>`;
+        m.appendChild(left);
+        if(p.riposa){
+          const b=document.createElement('span'); b.className='pill'; b.textContent='Riposa: '+p.riposa; m.appendChild(b);
+        }
+      }
+      inner.appendChild(m);
+    });
+    card.appendChild(inner); el.appendChild(card);
   });
 }
-function showTab(id){
-  state.activeTab=id;
-  document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===id));
-  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.textContent.includes(id)));
-  renderTabs(); renderActiveSection();
+
+function renderRisultati(){
+  const el=document.getElementById('risultati'); el.innerHTML='';
+  const files=sectionFiles('risultati');
+  if(!files.length){ el.appendChild(buildEl('div','empty','Nessun file risultati trovato.')); return; }
+  files.forEach(f=>{
+    const card=document.createElement('div'); card.className='card'; card.style.marginBottom='14px';
+    card.appendChild(buildEl('h2','upper',prettyFileName(f)));
+    card.appendChild(buildTable(state.rows[f],norm(f),'team'));
+    el.appendChild(card);
+  });
 }
 
-function updateTitle(){
-  document.title=state.config.titolo||DEFAULT_TITLE;
-  document.getElementById('siteTitle').textContent=state.config.titolo||DEFAULT_TITLE;
-  document.getElementById('siteSubtitle').textContent=state.config.sottotitolo||DEFAULT_SUBTITLE;
+/* ── Riepiloghi Giornate Avanzati ── */
+function renderRiepilogo(){
+  const el=document.getElementById('riepilogo'); el.innerHTML='';
+  const files=sectionFiles('riepilogo');
+  if(!files.length){ el.appendChild(buildEl('div','empty','Nessun file riepilogo trovato.')); return; }
+  renderRiepilogoFilter(el, files);
+  const dataContainer=document.createElement('div'); dataContainer.id='riepilogoDataContainer';
+  el.appendChild(dataContainer);
+  renderRiepilogoGiornate();
 }
-function applyConfig(){
-  const f=Object.keys(state.rows).find(x=>norm(x)==='configcsv'); if(!f) return;
-  for(const r of rowsToObjects(state.rows[f])){
-    const k=norm(col(r,['chiave','key','nome'])); const v=col(r,['valore','value','testo']);
-    if(k&&v) state.config[k]=v;
+
+function parseRiepilogoFile(file){
+  const flat=rowsToObjects(state.rows[file]||[]);
+  const empty={partite:[],marcatori:[],totaliMarcatori:[],mvp:[],portiere:[],autogoal:[],statistiche:[]};
+  flat.forEach(r=>{
+    const s=sectionKeyFromText(col(r,['sezione','tipo','blocco','categoria']));
+    if(s) empty[s].push(r); else empty.partite.push(r);
+  });
+  return empty;
+}
+
+function sectionKeyFromText(value){
+  const n=norm(value); if(!n) return '';
+  if(n.includes('partit') || n.includes('risultat')) return 'partite';
+  if(n.includes('totalemarcatore')||n.includes('totalimarcatori')) return 'totaliMarcatori';
+  if(n.includes('marcatore')||n.includes('marcatori')) return 'marcatori';
+  if(n.includes('mvp')||n.includes('miglioreincampo')) return 'mvp';
+  if(n.includes('portiere')||n.includes('clean') || n.includes('goalkeeper')) return 'portiere';
+  if(n.includes('autogol')||n.includes('autogoal')) return 'autogoal';
+  if(n.includes('statistica')||n.includes('statistiche')) return 'statistiche';
+  return '';
+}
+
+function riepilogoGiornateOptions(files){
+  const map=new Map();
+  files.forEach(f=>{
+    const base=prettyFileName(f); map.set(norm(f), base);
+  });
+  return [...map.entries()];
+}
+
+function renderRiepilogoFilter(parent, files){
+  const options=riepilogoGiornateOptions(files);
+  const bar=document.createElement('div'); bar.className='card'; bar.style.marginBottom='14px';
+  const sel=document.createElement('select'); sel.id='riepilogoGiornataFilter';
+  const all=document.createElement('option'); all.value=''; all.textContent='Seleziona Giornata';
+  sel.appendChild(all);
+  options.forEach(([key,label])=>{
+    const opt=document.createElement('option'); opt.value=key; opt.textContent=fixItalianAccents(label); sel.appendChild(opt);
+  });
+  sel.onchange=()=>{ state.selectedRiepilogoGiornata=sel.value; renderRiepilogoGiornate(); };
+  bar.appendChild(sel); parent.appendChild(bar);
+}
+
+function renderRiepilogoGiornate(){
+  const container=document.getElementById('riepilogoDataContainer'); if(!container) return;
+  container.innerHTML='';
+  const f=state.selectedRiepilogoGiornata; if(!f || !state.rows[f]) return;
+  
+  const data=parseRiepilogoFile(f);
+  const card=document.createElement('div'); card.className='card riepilogo-card';
+  card.appendChild(buildEl('h2','',prettyFileName(f)));
+  
+  // Sezione Partite del Riepilogo
+  if(data.partite.length){
+    const wrapper=document.createElement('div'); wrapper.className='riepilogo-matches';
+    data.partite.forEach(p=>{
+      const row=document.createElement('div'); row.className='match riepilogo-match';
+      row.innerHTML=`<div class="match-teams"><span class="match-name">${esc(col(p,['casa','squadracasa']))}</span><span class="match-vs">-</span><span class="match-name">${esc(col(p,['trasferta','squadratrasferta']))}</span></div><div class="score">${esc(col(p,['risultato','score']))}</div>`;
+      wrapper.appendChild(row);
+    });
+    card.appendChild(wrapper);
   }
-  updateTitle();
+  container.appendChild(card);
 }
 
 function filterRows(rows){
   const q=norm(state.search); if(!q) return rows;
   return rows.filter(r=>norm(Array.isArray(r)?r.join(' '):JSON.stringify(r)).includes(q));
 }
-function buildEl(tag,cls,txt){ const e=document.createElement(tag); if(cls) e.className=cls; if(txt) e.textContent=txt; return e; }
 
-function buildTable(csvRows, tableId, imgType){
-  if(!csvRows||!csvRows.length) return buildEl('div','empty','Nessun dato.');
-  const headers=csvRows[0].map(x=>String(x||'').trim());
-  let dataRows=csvRows.slice(1).filter(r=>r.some(x=>String(x).trim()!==''));
-  dataRows=filterRows(dataRows);
-  if(!dataRows.length) return buildEl('div','empty','Nessun risultato.');
-
-  const st=state.sortState[tableId];
-  if(st && st.col<headers.length){
-    const ci=st.col; const dir=st.dir==='asc'?1:-1;
-    dataRows.sort((a,b)=>{
-      const va=a[ci]??'', vb=b[ci]??''; const na=parseFloat(va.replace(',','.')), nb=parseFloat(vb.replace(',','.'));
-      if(!isNaN(na)&&!isNaN(nb)) return (na-nb)*dir;
-      return String(va).localeCompare(String(vb),'it',{numeric:true})*dir;
-    });
-  }
-
-  const wrap=document.createElement('div'); wrap.className='tableWrap';
-  const table=document.createElement('table'); const thead=document.createElement('thead'); const trH=document.createElement('tr');
-  const nameColIndex=headers.findIndex(h=>['squadra','team','giocatore','nome','player','portiere'].includes(norm(h)));
-
-  headers.forEach((h,i)=>{
-    const th=document.createElement('th'); th.textContent=prettyColumnName(h);
-    const span=document.createElement('span'); span.className='sort-arrow'; th.appendChild(span);
-    th.onclick=()=>{
-      const currentDir=(state.sortState[tableId] && state.sortState[tableId].col===i)?state.sortState[tableId].dir:'';
-      state.sortState[tableId]={col:i,dir:currentDir==='asc'?'desc':'asc'}; renderActiveSection();
-    };
-    trH.appendChild(th);
-  });
-  thead.appendChild(trH); table.appendChild(thead);
-
-  const tbody=document.createElement('tbody');
-  dataRows.forEach(r=>{
-    const tr=document.createElement('tr');
-    r.forEach((cell,i)=>{
-      const td=document.createElement('td'); const val=fixItalianAccents(cell);
-      if(i===nameColIndex){
-        td.className='name-cell';
-        const isTeam=['classifica_squadre','squadre'].some(x=>tableId.includes(x)) || imgType==='team';
-        td.appendChild(imgOrInitialEl(isTeam?'team':'player',val,isTeam?'tbl-logo':'tbl-avatar'));
-        const b=document.createElement('b'); b.textContent=val; td.appendChild(b);
-      } else {
-        if(!isNaN(parseFloat(val)) && norm(headers[i])==='punti'){
-          const pill=document.createElement('span'); pill.className='pill'; pill.textContent=val; td.appendChild(pill);
-        } else td.textContent=val;
-      }
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  });
-  table.appendChild(tbody); wrap.appendChild(table); return wrap;
-}
-
-/* ══════════════════════════════════
-   GRAFICI CHART.JS (TOP 5 IN HOME)
-   ══════════════════════════════════ */
-let _chartJsPromise=null;
-function drawBarChart(canvasId,labels,values,labelDataset,imgType,titleText){
-  loadChartJs().then(()=>{
-    const ctx=document.getElementById(canvasId); if(!ctx) return;
-    if(ctx._chart) ctx._chart.destroy();
-    const isDark=document.documentElement.getAttribute('data-theme')==='dark';
-    const textColor=isDark?'#e2eaf5':'#142033';
-    ctx._chart = new Chart(ctx,{
-      type:'bar',
-      data:{
-        labels:labels,
-        datasets:[{
-          data:values, backgroundColor:isDark?'rgba(59,130,246,.75)':'rgba(15,90,168,.82)',
-          borderColor:isDark?'#3b82f6':'#0f5aa8', borderWidth:1, borderRadius:8, barThickness:24
-        }]
-      },
-      options:{
-        responsive:true, maintainAspectRatio:false,
-        plugins:{ legend:{display:false}, title:{display:true,text:titleText,color:textColor,font:{size:14,weight:'bold'}} },
-        scales:{
-          y:{ grid:{color:isDark?'rgba(255,255,255,.08)':'rgba(7,29,58,.06)'}, ticks:{color:textColor,stepSize:1} },
-          x:{ grid:{display:false}, ticks:{color:textColor,font:{size:11}} }
-        },
-        animation:{ onComplete:function(){ renderChartImageLabels(canvasId,labels,imgType,this); } }
-      }
-    });
-  }).catch(()=>{});
-}
-
-function drawScorersChart() {
-  if (!window.Chart) return;
-  const f = sectionFiles('marcatori')[0]; if (!f) return;
-  const data = rowsToObjects(state.rows[f]).slice(0, 5); if (!data.length) return;
-  const labels = data.map(r => col(r, ['giocatore', 'nome', 'player']) || '');
-  const values = data.map(r => num(col(r, ['gol', 'reti', 'goal'])));
-  drawBarChart('chartMarcatori', labels, values, 'Gol', 'player', 'Top 5 Marcatori');
-}
-
-function drawPointsChart(){
-  if(!window.Chart) return;
-  const f=sectionFiles('classifica_squadre')[0]; if(!f) return;
-  const data=rowsToObjects(state.rows[f]); if(!data.length) return;
-  const labels=data.map(r=>col(r,['squadra','team','nome'])||'');
-  const values=data.map(r=>num(col(r,['punti','pts'])));
-  drawBarChart('chartPunti',labels,values,'Punti','team','Punti per squadra');
-}
-
-function renderChartImageLabels(canvasId,labels,type,chart){
-  const wrap=document.getElementById(canvasId+'Labels'); if(!wrap) return; wrap.innerHTML='';
-  if(window.innerWidth<=600) return;
-  const xScale=chart?.scales?.x;
-  labels.forEach((label,index)=>{
-    const item=document.createElement('div'); item.className='chart-label-item';
-    const x=xScale ? xScale.getPixelForValue(index) : 0; item.style.left=Math.round(x)+'px';
-    const img=imgOrInitialEl(type,label,'chart-label-img '+(type==='team'?'team':'player'));
-    item.appendChild(img);
-    const txt=document.createElement('div'); txt.className='chart-label-text'; txt.textContent=label; item.appendChild(txt);
-    wrap.appendChild(item);
-  });
-}
-
-function redrawCharts(){ drawScorersChart(); drawPointsChart(); }
-function loadChartJs(){
-  if(window.Chart) return Promise.resolve(); if(_chartJsPromise) return _chartJsPromise;
-  return _chartJsPromise=new Promise((res,rej)=>{
-    const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
-    s.onload=()=>res(); s.onerror=()=>rej(); document.head.appendChild(s);
-  });
-}
-
-/* ══════════════════════════════════
-   RENDERING SEZIONI INTERFACCIA
-   ══════════════════════════════════ */
 function renderActiveSection(){
-  const s=state.activeTab;
-  if(s==='home') renderHome();
-  else if(s==='classifiche') renderClassifiche();
-  else if(s==='statistiche') renderStatistiche();
-  else if(s==='squadre') renderSquadre();
-  else if(s==='calendario') renderCalendario();
-  else if(s==='risultati') renderRisultati();
-  else if(s==='riepilogo') renderRiepilogo();
+  const tab=state.activeTab;
+  if(tab==='home') renderHome();
+  if(tab==='classifiche') renderClassifiche();
+  if(tab==='statistiche') renderStatistiche();
+  if(tab==='squadre') renderSquadre();
+  if(tab==='calendario') renderCalendario();
+  if(tab==='risultati') renderRisultati();
+  if(tab==='riepilogo') renderRiepilogo();
 }
 
-function renderHome(){
-  const el=document.getElementById('home'); el.innerHTML='';
-  const grid=document.createElement('div'); grid.className='grid';
-  const kpis=[
-    ['classifica_squadre','punti','🏆 Capolista','squadra'],
-    ['marcatori','gol','⚽ Capocannoniere','giocatore'],
-    ['mvp','punti','⭐ Miglior MVP','giocatore'],
-    ['portieri','punti','🧤 Miglior Portiere','portiere']
-  ];
-  kpis.forEach(([kind,field,label,nameField])=>{
-    const card=document.createElement('div'); card.className='card stat';
-    card.innerHTML=`<div class="l">${label}</div>`;
-    const f=sectionFiles(kind)[0];
-    if(f && state.rows[f]?.length>1){
-      const topRow=rowsToObjects(state.rows[f])[0];
-      card.innerHTML+=`<div class="n">${fixItalianAccents(col(topRow,[nameField,'nome']))||'-'}</div><div class="small">${col(topRow,[field])||''} totali</div>`;
-    } else card.innerHTML+=`<div class="n">-</div>`;
-    grid.appendChild(card);
-  });
-  el.appendChild(grid);
-
-  const cg=document.createElement('div'); cg.className='grid'; cg.style.gridTemplateColumns='repeat(2,1fr)'; cg.style.marginTop='14px';
-  cg.innerHTML=`<div class="card chart-card"><h2>Classifica Marcatori</h2><div class="chart-container"><canvas id="chartMarcatori"></canvas></div><div class="chart-label-strip" id="chartMarcatoriLabels"></div></div>
-                <div class="card chart-card"><h2>Punti Campionato</h2><div class="chart-container"><canvas id="chartPunti"></canvas></div><div class="chart-label-strip" id="chartPuntiLabels"></div></div>`;
-  el.appendChild(cg); setTimeout(redrawCharts,100);
+/* ── Inizializzazione Logiche Dati Integrati Generici (Mocked / Local) ── */
+function init(){
+  initTheme();
+  renderTabs();
+  // Caricamento asincrono fittizio se necessario, altrimenti aggancio ad eventi nativi
+  setStatus('Pronto', true);
+  renderActiveSection();
 }
 
-function renderClassifiche(){
-  const el=document.getElementById('classifiche'); el.innerHTML='';
-  const sections=[['classifica_squadre','CLASSIFICA SQUADRE','team'],['marcatori','CLASSIFICA MARCATORI','player'],['mvp','CLASSIFICA MVP','player'],['portieri','CLASSIFICA PORTIERI','player']];
-  sections.forEach(([kind,title,imgType])=>{
-    sectionFiles(kind).forEach(f=>{
-      const card=buildEl('div','card'); card.innerHTML=`<h2>${title}</h2>`;
-      card.appendChild(buildTable(state.rows[f],norm(f),imgType)); el.appendChild(card);
-    });
-  });
-}
-
-function renderStatistiche(){
-  const el=document.getElementById('statistiche'); el.innerHTML='';
-  let rows=[];
-  const f=sectionFiles('marcatori')[0]; if(!f) return;
-  rowsToObjects(state.rows[f]).forEach(r=>{
-    const g=col(r,['giocatore','nome']); const s=col(r,['squadra','team']); const gol=num(col(r,['gol','reti']));
-    if(g) rows.push({'Giocatore':g, 'Squadra':s, 'Gol totali':gol});
-  });
-  const card=buildEl('div','card'); card.innerHTML='<h2>STATISTICHE GIOCATORI</h2>';
-  card.appendChild(buildTable([['Giocatore','Squadra','Gol totali'],...rows.map(x=>Object.values(x))],'tab_stat','player'));
-  el.appendChild(card);
-}
-
-function renderSquadre(){
-  const el=document.getElementById('squadre'); el.innerHTML='';
-  const files=sectionFiles('squadra');
-  const div=buildEl('div','teams');
-  files.forEach(f=>{
-    const card=buildEl('div','teamCard card');
-    const head=buildEl('div','teamHead'); head.appendChild(imgOrInitialEl('team',prettyFileName(f),'logo'));
-    head.innerHTML+=`<h3 style="margin:0">${prettyFileName(f)}</h3>`; card.appendChild(head);
-    
-    filterRows(rowsToObjects(state.rows[f])).forEach(r=>{
-      const pName=col(r,['giocatore','nome']); if(!pName) return;
-      const isCap=String(col(r,['capitano'])).toLowerCase().includes('si');
-      const pDiv=buildEl('div','player'+(isCap?' captain':''));
-      pDiv.appendChild(imgOrInitialEl('player',pName,'avatar'));
-      pDiv.innerHTML+=`<div style="min-width:0"><b class="player-name">${pName}${isCap?'<span class="captain-armband"></span>':''}</b><span class="small">${col(r,['ruolo'])||''}</span></div>`;
-      card.appendChild(pDiv);
-    });
-    div.appendChild(card);
-  });
-  el.appendChild(div);
-}
-
-function isBlockCalendar(t){ return /GIORNATA\s+\d+/i.test(t); }
-function parseBlockCalendar(text){
-  const sep=sepFor(text.split('\n')[0]||''); const lines=text.split(/\r?\n/);
-  const giornate=[]; let cur=null;
-  lines.forEach(l=>{
-    const cells=l.split(sep).map(c=>c.trim()); const f=cells[0]||'';
-    const m=f.match(/GIORNATA\s+(\d+)/i);
-    if(m){ cur={ label:'Giornata '+m[1], partite:[] }; giornate.push(cur); }
-    else if(cur && f && !/casa/i.test(f)){ cur.partite.push({casa:cells[0], trasferta:cells[1], riposa:cells[2]}); }
-  });
-  return giornate;
-}
-
-function renderCalendario(){
-  const el=document.getElementById('calendario'); el.innerHTML='';
-  sectionFiles('calendario').forEach(f=>{
-    const txt=state.files[f]||'';
-    if(isBlockCalendar(txt)){
-      parseBlockCalendar(txt).forEach(g=>{
-        const card=buildEl('div','card'); card.innerHTML=`<h2>${g.label}</h2>`;
-        const wrap=buildEl('div','tableWrap'); const t=buildEl('table'); const tb=buildEl('tbody');
-        g.partite.forEach(p=>{
-          tb.innerHTML+=`<tr><td class="name-cell"><b>${p.casa}</b></td><td class="match-vs">vs</td><td class="name-cell"><b>${p.trasferta}</b></td></tr>`;
-        });
-        t.appendChild(tb); wrap.appendChild(t); card.appendChild(wrap); el.appendChild(card);
-      });
-    } else {
-      const card=buildEl('div','card'); card.innerHTML=`<h2>${prettyFileName(f)}</h2>`;
-      card.appendChild(buildTable(state.rows[f],norm(f),'team')); el.appendChild(card);
-    }
-  });
-}
-
-function renderRisultati(){
-  const el=document.getElementById('risultati'); el.innerHTML='';
-  sectionFiles('risultati').forEach(f=>{
-    const card=buildEl('div','card'); card.innerHTML=`<h2>${prettyFileName(f)}</h2>`;
-    card.appendChild(buildTable(state.rows[f],norm(f),'team')); el.appendChild(card);
-  });
-}
-
-function renderRiepilogo(){
-  const el=document.getElementById('riepilogo'); el.innerHTML='';
-  sectionFiles('riepilogo').forEach(f=>{
-    const card=buildEl('div','card riepilogo-card'); card.innerHTML=`<h2>${prettyFileName(f)}</h2>`;
-    card.appendChild(buildTable(state.rows[f],norm(f),'team')); el.appendChild(card);
-  });
-}
-
-/* ══════════════════════════════════
-   LOGICA CARICAMENTO FILES / AUTOMATICO
-   ══════════════════════════════════ */
-async function scanDirRecursive(dirHandle, pathPrefix=''){
-  for await(const [name,handle] of dirHandle.entries()){
-    const relPath = pathPrefix ? pathPrefix+'/'+name : name;
-    if(handle.kind==='file'){
-      if(norm(name).includes('iscritti')) continue; // Ignora in modo silente
-      const file=await handle.getFile();
-      const ext=name.split('.').pop().toLowerCase();
-      if(ext==='csv'){
-        const txt=await file.text(); state.files[name]=txt; state.rows[name]=parseCsv(txt);
-      } else if(imageExts().includes(ext)){ rememberImage(relPath,file); }
-    } else if(handle.kind==='directory') await scanDirRecursive(handle, relPath);
-  }
-}
-
-function refreshAfterManualLoad(){
-  applyConfig(); renderTabs(); renderActiveSection(); tryLoadLogo();
-  setStatus('Cartella sincronizzata con successo',true);
-}
-
-async function tryDirectoryPicker(){
-  if('showDirectoryPicker' in window){
-    try{ const dir=await window.showDirectoryPicker(); await scanDirRecursive(dir); refreshAfterManualLoad(); return true; }
-    catch(e){ return false; }
-  } return false;
-}
-
-async function fallbackDirectoryPicker(e){
-  const files=e.target.files;
-  for(let i=0;i<files.length;i++){
-    const f=files[i]; const ext=f.name.split('.').pop().toLowerCase();
-    if(norm(f.name).includes('iscritti')) continue; // Ignora in modo silente
-    if(ext==='csv'){
-      const txt=await f.text(); state.files[f.name]=txt; state.rows[f.name]=parseCsv(txt);
-    } else if(imageExts().includes(ext)){ rememberImage(f.webkitRelativePath,f); }
-  }
-  refreshAfterManualLoad();
-}
-
-async function autoLoadTorneo(){
-  let ok=0;
-  for(const f of DEFAULT_FILES){
-    if(norm(f).includes('iscritti')) continue;
-    try{
-      const res=await fetch('data/'+f); if(!res.ok) continue;
-      const txt=await res.text(); state.files[f]=txt; state.rows[f]=parseCsv(txt); ok++;
-    }catch(e){}
-  }
-  applyConfig(); renderTabs(); renderActiveSection(); tryLoadLogo();
-  if(ok) setStatus(`Autocaricati ${ok} file CSV`,true);
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
-  applyTheme(localStorage.getItem('cral_theme')==='dark',false);
-  renderTabs(); renderActiveSection(); autoLoadTorneo();
-  
-  const bar=document.querySelector('.toolbar');
-  if(bar){
-    const lbl=document.createElement('label'); lbl.className='fileLabel btn'; lbl.style.background='var(--gold)'; lbl.style.color='#071d3a'; lbl.textContent='📂 Sfoglia Cartella Torneo';
-    const inp=document.createElement('input'); inp.type='file'; inp.webkitdirectory=true; inp.multiple=true;
-    inp.addEventListener('change',fallbackDirectoryPicker); lbl.appendChild(inp);
-    lbl.addEventListener('click',async (e)=>{ if(await tryDirectoryPicker()){ e.preventDefault(); } });
-    bar.insertBefore(lbl,bar.firstChild);
-  }
-  document.getElementById('search').addEventListener('input',(e)=>{ state.search=e.target.value; renderActiveSection(); });
+document.getElementById('search').addEventListener('input', (e)=>{
+  state.search = e.target.value;
+  renderActiveSection();
 });
-window.addEventListener('resize', redrawCharts);
+
+function initTheme(){
+  const saved=localStorage.getItem('cral_theme');
+  applyTheme(saved==='dark', false);
+}
+function applyTheme(dark, save=true){
+  document.documentElement.setAttribute('data-theme',dark?'dark':'light');
+  document.getElementById('btnTheme').textContent=dark?'☀️':'🌙';
+  if(save) localStorage.setItem('cral_theme',dark?'dark':'light');
+}
+
+window.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
