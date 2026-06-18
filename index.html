@@ -1028,7 +1028,10 @@ function searchTermsForCurrentQuery(){
     collectKnownPlayerSearchGroups().forEach(group=>{
       if(group.some(v=>v.includes(q)||q.includes(v))){
         playerMatched=true;
-        group.forEach(v=>terms.add(v));
+        // Aggiunge solo le varianti che contengono o sono contenute nella query:
+        // evita di aggiungere frammenti isolati (es. "giovanni") che causerebbero
+        // il match di altri giocatori con lo stesso nome quando si cerca per cognome.
+        group.forEach(v=>{ if(v.includes(q)||q.includes(v)) terms.add(v); });
       }
     });
   }
@@ -1108,7 +1111,10 @@ function rowMatchesPersonSearch(row){
   personValuesFromRow(row).forEach(v=>{
     nameSearchVariants(v).forEach(x=>{ if(x && !variants.includes(x)) variants.push(x); });
   });
-  return variants.some(v=>terms.some(t=>v.includes(t)||t.includes(v)));
+  // Solo v.includes(t): la variante della riga deve contenere il termine cercato.
+  // Rimosso t.includes(v): il termine composto "giovannicamposeo" contiene "giovanni",
+  // facendo matchare per errore "Giovanni Bianchi" quando si cerca "Camposeo".
+  return variants.some(v=>terms.some(t=>v.includes(t)));
 }
 function isRiepilogoPlayerSearch(parsed,file){
   const q=norm(state.search);
