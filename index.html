@@ -1429,10 +1429,18 @@ function renderChartPunti(){
   drawBarChart('chartPunti',labels,values,'Punti','team','Punti per squadra');
 }
 
+function teamDisplayNameForChart(value){
+  // Nel grafico Home il nome deve essere quello esatto della classifica.
+  // Non applicare smartSpace: nomi ufficiali come "BlackJack" non devono diventare "Black Jack".
+  return String(value||'').trim().replace(/\s+/g,' ');
+}
 function teamNamesForCharts(){
   const names=[];
-  const add=name=>{ const clean=smartSpace(name); if(clean && !names.some(x=>norm(x)===norm(clean))) names.push(clean); };
-  sectionFiles('classifica_squadre').forEach(f=>rowsToObjects(state.rows[f]).forEach(r=>add(firstPresent(r,[['squadra','team','nome','club']])||Object.values(r)[0]||'')));
+  const add=(name,preserveExact=false)=>{
+    const clean=preserveExact ? teamDisplayNameForChart(name) : smartSpace(name);
+    if(clean && !names.some(x=>norm(x)===norm(clean))) names.push(clean);
+  };
+  sectionFiles('classifica_squadre').forEach(f=>rowsToObjects(state.rows[f]).forEach(r=>add(firstPresent(r,[['squadra','team','nome','club']])||Object.values(r)[0]||'',true)));
   // Fonte principale: classifica squadre. Fallback solo se manca la classifica.
   if(names.length) return names;
   sectionFiles('squadra').forEach(f=>add(teamNameFromFile(f)));
@@ -1534,9 +1542,11 @@ function teamTrendProjectionData(){
   return {labels,teams:perTeam,currentRound,finalRound,hasMatches:matches.length>0};
 }
 const _teamLogoColorCache=new Map();
-function fallbackTeamTrendColor(index,total){
-  const hue=Math.round((210 + (index*360/Math.max(total,1)))%360);
-  return 'hsl('+hue+' 82% 46%)';
+const _teamLogoPaletteCache=new Map();
+function fallbackTeamTrendColor(index,total,step=0){
+  const golden=137.508;
+  const hue=Math.round((214 + ((index+step)*golden))%360);
+  return 'hsl('+hue+' 78% 45%)';
 }
 function teamTrendColor(team,index,total){
   const key=norm(team);
@@ -1560,7 +1570,7 @@ function rgbToHsl(r,g,b){
 }
 function hslToRgb(h,s,l){
   h=((h%360)+360)%360/360;
-  let r,lq,g,b;
+  let r,g,b;
   if(s===0){ r=g=b=l; }
   else {
     const hue2rgb=(p,q,t)=>{
@@ -1576,63 +1586,129 @@ function hslToRgb(h,s,l){
   }
   return [Math.round(r*255),Math.round(g*255),Math.round(b*255)];
 }
+function parseCssColorToRgb(color){
+  const text=String(color||'').trim();
+  let m=text.match(/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/i);
+  if(m) return [parseInt(m[1],10),parseInt(m[2],10),parseInt(m[3],10)];
+  m=text.match(/^hsl\s*\(\s*([\d.]+)\s+([\d.]+)%\s+([\d.]+)%\s*\)$/i) || text.match(/^hsl\s*\(\s*([\d.]+)\s*,\s*([\d.]+)%\s*,\s*([\d.]+)%\s*\)$/i);
+  if(m) return hslToRgb(parseFloat(m[1]),parseFloat(m[2])/100,parseFloat(m[3])/100);
+  return null;
+}
+function colorDistance(a,b){
+  const ar=parseCssColorToRgb(a), br=parseCssColorToRgb(b);
+  if(!ar || !br) return 999;
+  const ah=rgbToHsl(ar[0],ar[1],ar[2]);
+  const bh=rgbToHsl(br[0],br[1],br[2]);
+  const dh=Math.min(Math.abs(ah[0]-bh[0]),360-Math.abs(ah[0]-bh[0]))/180;
+  const ds=Math.abs(ah[1]-bh[1]);
+  const dl=Math.abs(ah[2]-bh[2]);
+  return dh*2.15 + ds*.70 + dl*.95;
+}
 function readableLogoColor(r,g,b){
   let [h,s,l]=rgbToHsl(r,g,b);
   if(s<.34) s=.62;
-  l=Math.min(.58,Math.max(.38,l));
+  // Mantieni il colore riconoscibile ma abbastanza scuro per linee sottili su sfondo chiaro.
+  l=Math.min(.54,Math.max(.34,l));
   const [rr,gg,bb]=hslToRgb(h,s,l);
   return 'rgb('+rr+','+gg+','+bb+')';
 }
-function extractLogoColorFromSrc(src){
+function addDistinctPaletteColor(list,r,g,b){
+  const color=readableLogoColor(r,g,b);
+  const rgb=parseCssColorToRgb(color);
+  if(!rgb) return;
+  const [h,s,l]=rgbToHsl(rgb[0],rgb[1],rgb[2]);
+  if(l>.72 || l<.20 || s<.28) return;
+  if(list.some(existing=>colorDistance(existing.color,color)<.20)){
+    const found=list.find(existing=>colorDistance(existing.color,color)<.20);
+    const score=s*(1-Math.abs(l-.44));
+    if(found && score>found.score){ found.color=color; found.score=score; }
+    return;
+  }
+  list.push({color,score:s*(1-Math.abs(l-.44))});
+}
+function extractLogoPaletteFromSrc(src){
   return new Promise(resolve=>{
     const img=new Image();
     if(/^https?:/i.test(src)) img.crossOrigin='anonymous';
     img.onload=()=>{
       try{
         const canvas=document.createElement('canvas');
-        const size=36;
+        const size=44;
         canvas.width=size; canvas.height=size;
         const ctx=canvas.getContext('2d',{willReadFrequently:true});
         ctx.drawImage(img,0,0,size,size);
         const data=ctx.getImageData(0,0,size,size).data;
-        let best=null, bestScore=-1;
+        const buckets=new Map();
         for(let i=0;i<data.length;i+=4){
           const a=data[i+3]; if(a<80) continue;
           const r=data[i], g=data[i+1], b=data[i+2];
           const [h,s,l]=rgbToHsl(r,g,b);
-          // Scarta quasi bianco/nero/grigio: scegli il colore più identificativo del logo.
-          if(l>.92 || l<.10 || s<.18) continue;
-          const score=s*(1-Math.abs(l-.48));
-          if(score>bestScore){ bestScore=score; best=[r,g,b]; }
+          // Scarta trasparenze, quasi bianco/nero/grigio: non sono buoni come linee del grafico.
+          if(l>.93 || l<.09 || s<.16) continue;
+          const bucket=Math.round(h/18)*18+'|'+Math.round(s*5)/5+'|'+Math.round(l*5)/5;
+          const current=buckets.get(bucket) || {r:0,g:0,b:0,count:0,score:0};
+          const score=s*(1-Math.abs(l-.46));
+          current.r+=r; current.g+=g; current.b+=b; current.count++; current.score+=score;
+          buckets.set(bucket,current);
         }
-        resolve(best ? readableLogoColor(best[0],best[1],best[2]) : null);
-      }catch(e){ resolve(null); }
+        const palette=[];
+        [...buckets.values()]
+          .sort((a,b)=>(b.score*b.count)-(a.score*a.count))
+          .slice(0,14)
+          .forEach(x=>addDistinctPaletteColor(palette,Math.round(x.r/x.count),Math.round(x.g/x.count),Math.round(x.b/x.count)));
+        resolve(palette.sort((a,b)=>b.score-a.score).map(x=>x.color).slice(0,5));
+      }catch(e){ resolve([]); }
     };
-    img.onerror=()=>resolve(null);
+    img.onerror=()=>resolve([]);
     img.src=src;
   });
 }
-function resolveTeamLogoColor(team,index,total){
+function resolveTeamLogoPalette(team,index,total){
   const key=norm(team);
-  if(!key) return Promise.resolve(fallbackTeamTrendColor(index,total));
-  if(_teamLogoColorCache.has(key)) return Promise.resolve(_teamLogoColorCache.get(key));
+  if(!key) return Promise.resolve([fallbackTeamTrendColor(index,total)]);
+  if(_teamLogoPaletteCache.has(key)) return Promise.resolve(_teamLogoPaletteCache.get(key));
   return probeFirstWorkingImage(chartImageCandidates('team',team)).then(src=>{
     if(!src){
-      const fallback=fallbackTeamTrendColor(index,total);
-      _teamLogoColorCache.set(key,fallback);
-      return fallback;
+      const palette=[fallbackTeamTrendColor(index,total),fallbackTeamTrendColor(index,total,1),fallbackTeamTrendColor(index,total,2)];
+      _teamLogoPaletteCache.set(key,palette);
+      return palette;
     }
-    return extractLogoColorFromSrc(src).then(color=>{
-      const finalColor=color || fallbackTeamTrendColor(index,total);
-      _teamLogoColorCache.set(key,finalColor);
-      return finalColor;
+    return extractLogoPaletteFromSrc(src).then(palette=>{
+      const out=[...palette, fallbackTeamTrendColor(index,total), fallbackTeamTrendColor(index,total,1), fallbackTeamTrendColor(index,total,2)];
+      _teamLogoPaletteCache.set(key,out);
+      return out;
     });
   });
 }
+function pickReadableTeamColors(teams,palettes){
+  const assigned=[];
+  const total=teams.length;
+  teams.forEach((team,index)=>{
+    const candidates=[...(palettes[index]||[]), fallbackTeamTrendColor(index,total), fallbackTeamTrendColor(index,total,1), fallbackTeamTrendColor(index,total,2)];
+    let best='', bestScore=-Infinity;
+    candidates.forEach((candidate,candidateIndex)=>{
+      if(!candidate) return;
+      const minDistance=assigned.length ? Math.min(...assigned.map(c=>colorDistance(candidate,c))) : 999;
+      const rgb=parseCssColorToRgb(candidate);
+      const hsl=rgb ? rgbToHsl(rgb[0],rgb[1],rgb[2]) : [0,.5,.45];
+      const logoPriority=candidateIndex<3 ? .46-candidateIndex*.07 : 0;
+      const readability=(hsl[1]*.55) + (1-Math.abs(hsl[2]-.42))*.45;
+      // Soglia: se il colore principale è troppo simile a uno già usato, vince un secondario o fallback.
+      const contrastBonus=Math.min(minDistance,1.05)*1.65;
+      const score=contrastBonus + readability + logoPriority;
+      if(score>bestScore){ bestScore=score; best=candidate; }
+    });
+    assigned.push(best || fallbackTeamTrendColor(index,total));
+  });
+  return assigned;
+}
 function applyLogoColorsToTrendChart(chart,data){
-  Promise.all(data.teams.map((item,index)=>resolveTeamLogoColor(item.team,index,data.teams.length))).then(colors=>{
+  Promise.all(data.teams.map((item,index)=>resolveTeamLogoPalette(item.team,index,data.teams.length))).then(palettes=>{
     if(!chart || !chart.canvas || !chart.canvas.isConnected) return;
+    const colors=pickReadableTeamColors(data.teams.map(x=>x.team),palettes);
     colors.forEach((color,index)=>{
+      const item=data.teams[index];
+      if(item && norm(item.team)) _teamLogoColorCache.set(norm(item.team),color);
       const ds=chart.data.datasets[index];
       if(!ds) return;
       ds.borderColor=color;
@@ -2224,16 +2300,62 @@ function sortProfileEntries(entries){
     return String(a.giornata).localeCompare(String(b.giornata),'it',{numeric:true});
   });
 }
+function profileScoreForCandidate(scoreData,name,candidates){
+  const keys=(candidates||[]).map(x=>norm(cleanPersonTokenForTeamLookup(x))).filter(Boolean);
+  const mainKey=norm(cleanPersonTokenForTeamLookup(name));
+  if(mainKey && !keys.includes(mainKey)) keys.push(mainKey);
+  const values=[...(scoreData?.totals||new Map()).values()];
+  for(const item of values){
+    const itemKey=norm(cleanPersonTokenForTeamLookup(item.name));
+    if(!itemKey) continue;
+    if(keys.some(k=>itemKey===k || (k.length>=4 && itemKey.includes(k)) || (itemKey.length>=4 && k.includes(itemKey)))){
+      return Number(item.goals||0);
+    }
+  }
+  return 0;
+}
 function playerGoalProfile(name,candidates){
   const entries=[];
   sectionFiles('riepilogo').forEach(f=>{
     const parsed=parseRiepilogoFile(f);
-    const isMine=r=>rowMatchesAnyPlayerCandidate(r,candidates) || matchPersonTokenToRow(name,r);
-    const detailRows=(parsed.marcatori||[]).filter(isMine);
-    const fallbackRows=(parsed.totaliMarcatori||[]).filter(isMine);
-    const rows=detailRows.length ? detailRows : fallbackRows;
-    rows.forEach(r=>{
-      entries.push({giornata:rowGiornataLabel(r,f),value:profileGoalsFromRow(r),label:'gol'});
+    const allRows=[...(parsed.totaliMarcatori||[]),...(parsed.marcatori||[]),...(parsed.partite||[])];
+    const groups=new Map();
+    if(allRows.length){
+      allRows.forEach(r=>{
+        const key=rowGiornataKey(r,f) || giornataKeyFromFile(f);
+        if(!groups.has(key)) groups.set(key,{label:rowGiornataLabel(r,f),totali:[],marcatori:[],partite:[]});
+      });
+    }else{
+      groups.set(giornataKeyFromFile(f),{label:giornataLabelFromFile(f),totali:[],marcatori:[],partite:[]});
+    }
+    const addRows=(target,rows)=>{
+      (rows||[]).forEach(r=>{
+        const key=rowGiornataKey(r,f) || giornataKeyFromFile(f);
+        if(!groups.has(key)) groups.set(key,{label:rowGiornataLabel(r,f),totali:[],marcatori:[],partite:[]});
+        groups.get(key)[target].push(r);
+      });
+    };
+    addRows('totali',parsed.totaliMarcatori||[]);
+    addRows('marcatori',parsed.marcatori||[]);
+    addRows('partite',parsed.partite||[]);
+
+    groups.forEach(group=>{
+      // Priorità corretta:
+      // 1) Totale marcatore giornata, se presente (es. Saracino Gianvito = 3).
+      // 2) Righe marcatori aggregate: nomi ripetuti o token con x2/x3 vengono sommati.
+      // 3) Marcatori scritti nelle note/partite.
+      const sources=[
+        riepilogoScoresFromRows(group.totali,'totali'),
+        riepilogoScoresFromRows(group.marcatori,'marcatori'),
+        riepilogoScoresFromPartite(group.partite)
+      ];
+      for(const source of sources){
+        const goals=profileScoreForCandidate(source,name,candidates);
+        if(goals>0){
+          entries.push({giornata:group.label,value:goals,label:'gol'});
+          break;
+        }
+      }
     });
   });
   const totalFromEntries=entries.reduce((s,e)=>s+num(e.value),0);
