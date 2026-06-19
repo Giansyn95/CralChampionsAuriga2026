@@ -1007,6 +1007,26 @@ function showTab(id){
   state.activeTab=id;
   document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===id));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===id));
+
+  // Il tab Riepilogo è il più pesante: costruisce molte card, partite, KPI,
+  // tabelle e immagini. Rimandiamo il render di due frame per permettere al
+  // browser di mostrare subito lo switch visivo del tab prima del lavoro pesante.
+  if(id==='riepilogo'){
+    const token = showTab._renderToken = (showTab._renderToken || 0) + 1;
+    const el=document.getElementById('riepilogo');
+    if(el && !el.children.length){
+      el.innerHTML='<div class="empty">Caricamento riepilogo…</div>';
+    }
+    requestAnimationFrame(()=>{
+      requestAnimationFrame(()=>{
+        if(showTab._renderToken!==token || state.activeTab!==id) return;
+        renderActiveSection();
+      });
+    });
+    return;
+  }
+
+  showTab._renderToken = (showTab._renderToken || 0) + 1;
   renderActiveSection();
 }
 
