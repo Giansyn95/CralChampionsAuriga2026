@@ -270,8 +270,16 @@
     /* ── Responsive ── */
     @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}.status{margin-left:0;width:100%}.riepilogo-kpi.is-wide,.riepilogo-kpi.is-match-max{grid-column:span 1}}
 
-    @media(max-width:720px){.player-profile-backdrop{padding:10px;align-items:flex-end}.player-profile-card{max-height:96vh;border-radius:24px 24px 0 0}.player-profile-hero{grid-template-columns:96px minmax(0,1fr);gap:13px;padding:18px;border-radius:24px 24px 0 0}.player-profile-photo{width:92px;height:92px;border-radius:22px;font-size:28px}.player-profile-title h2{font-size:30px}.player-profile-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.player-profile-stat{min-height:82px;padding:12px}.player-profile-stat .n{font-size:25px}.player-profile-panels{grid-template-columns:1fr}.player-profile-close{top:10px;right:10px;width:38px;height:38px}.chart-container.is-tall{height:330px}}
-    @media(max-width:560px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.hero{padding:22px}.match{display:block}.score{margin:6px 0}.riepilogo-match .match-team{max-width:none}.riepilogo-match .match-name{font-size:16px}.riepilogo-match .score{text-align:left;font-size:26px;min-width:0}.riepilogo-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.riepilogo-kpi.is-wide,.riepilogo-kpi.is-match-max,.riepilogo-kpi.is-scorer{grid-column:1/-1}.tableWrap{font-size:13px}th,td{padding:9px 9px}table.tbl-aligned th[data-col-role=rank],table.tbl-aligned td[data-col-role=rank]{min-width:40px;max-width:54px}table.tbl-aligned th[data-col-role=section],table.tbl-aligned td[data-col-role=section]{min-width:70px;max-width:110px}table.tbl-aligned th[data-col-role=team],table.tbl-aligned td[data-col-role=team],table.tbl-aligned th[data-col-role=person],table.tbl-aligned td[data-col-role=person]{min-width:118px;max-width:150px}table.tbl-aligned th[data-col-role=metric],table.tbl-aligned td[data-col-role=metric]{min-width:48px;max-width:68px}.tbl-logo,.tbl-avatar{width:24px;height:24px}.mini-logo{width:22px;height:22px}.name-cell{gap:7px}}
+    .player>div{min-width:0;display:flex;flex-direction:column;gap:2px}
+    .player .small{display:block;line-height:1.2;margin-top:2px}
+    .player-profile-card{max-width:calc(100vw - 24px);overflow-x:hidden;overscroll-behavior:contain}
+    .player-profile-hero,.player-profile-title,.player-profile-sub,.player-profile-stat,.player-profile-section{min-width:0}
+    .player-profile-title h2,.player-profile-stat .n{overflow-wrap:anywhere;word-break:normal}
+    .player-profile-team-badge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:4px 8px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);max-width:100%;min-width:0}
+    .player-profile-team-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:min(240px,48vw)}
+    .player-profile-role-badge{min-width:32px;justify-content:center}
+    @media(max-width:720px){.player-profile-backdrop{padding:7px;align-items:center}.player-profile-card{width:calc(100vw - 14px);max-width:calc(100vw - 14px);max-height:calc(100svh - 14px);border-radius:22px}.player-profile-hero{grid-template-columns:74px minmax(0,1fr);gap:11px;padding:16px 14px 14px;border-radius:22px 22px 0 0}.player-profile-photo{width:72px;height:72px;border-radius:18px;font-size:23px}.player-profile-title{padding-right:38px;gap:8px}.player-profile-title h2{font-size:clamp(22px,7vw,30px);line-height:1.02}.player-profile-sub{gap:6px;font-size:12px}.player-profile-team-badge{padding:4px 7px}.player-profile-team-name{max-width:34vw}.player-profile-badge{font-size:11px;padding:5px 8px}.player-profile-body{padding:13px 12px 16px}.player-profile-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.player-profile-stat{min-height:78px;padding:10px;border-radius:16px}.player-profile-stat .n{font-size:23px}.player-profile-stat .l{font-size:10px}.player-profile-panels{grid-template-columns:1fr;gap:10px}.player-profile-section{border-radius:18px;padding:12px}.player-profile-entry{align-items:flex-start;padding:9px 10px}.player-profile-close{top:9px;right:9px;width:36px;height:36px;border-radius:12px}.chart-container.is-tall{height:340px}}
+    @media(max-width:560px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.hero{padding:22px}.match{display:block}.score{margin:6px 0}.riepilogo-match .match-team{max-width:none}.riepilogo-match .match-name{font-size:16px}.riepilogo-match .score{text-align:left;font-size:26px;min-width:0}.riepilogo-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.riepilogo-kpi.is-wide,.riepilogo-kpi.is-match-max,.riepilogo-kpi.is-scorer{grid-column:1/-1}.tableWrap{font-size:13px}th,td{padding:9px 9px}table.tbl-aligned th[data-col-role=rank],table.tbl-aligned td[data-col-role=rank]{min-width:40px;max-width:54px}table.tbl-aligned th[data-col-role=section],table.tbl-aligned td[data-col-role=section]{min-width:70px;max-width:110px}table.tbl-aligned th[data-col-role=team],table.tbl-aligned td[data-col-role=team],table.tbl-aligned th[data-col-role=person],table.tbl-aligned td[data-col-role=person]{min-width:118px;max-width:150px}table.tbl-aligned th[data-col-role=metric],table.tbl-aligned td[data-col-role=metric]{min-width:48px;max-width:68px}.tbl-logo,.tbl-avatar{width:24px;height:24px}.mini-logo{width:22px;height:22px}.name-cell{gap:7px}.player{gap:9px}.player-link-inline{display:inline-block;line-height:1.18}.chart-container.is-tall{height:380px}}
     @media print{.toolbar,.tabs,.search,#errorBanner{display:none}.section{display:block}.wrap{max-width:none}.card,.hero{box-shadow:none}}
     @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
   </style>
@@ -1425,6 +1433,8 @@ function teamNamesForCharts(){
   const names=[];
   const add=name=>{ const clean=smartSpace(name); if(clean && !names.some(x=>norm(x)===norm(clean))) names.push(clean); };
   sectionFiles('classifica_squadre').forEach(f=>rowsToObjects(state.rows[f]).forEach(r=>add(firstPresent(r,[['squadra','team','nome','club']])||Object.values(r)[0]||'')));
+  // Fonte principale: classifica squadre. Fallback solo se manca la classifica.
+  if(names.length) return names;
   sectionFiles('squadra').forEach(f=>add(teamNameFromFile(f)));
   collectPlayedMatchesForTrend().forEach(m=>{ add(m.home); add(m.away); });
   return names;
@@ -1502,13 +1512,8 @@ function teamTrendProjectionData(){
     }
     const standingPoints=teamCurrentPointsFromStandings(team);
     if(standingPoints!==null && standingPoints>=0 && currentRound>0){
-      const delta=standingPoints-total;
       total=standingPoints;
       byRound.set(currentRound,total);
-      if(Math.abs(delta)>0.001){
-        // Allinea l'ultimo dato alla classifica ufficiale, mantenendo lo storico calcolato dalle partite.
-        byRound.set(currentRound,total);
-      }
     }
     if(!currentRound && standingPoints!==null){
       total=standingPoints;
@@ -1528,9 +1533,115 @@ function teamTrendProjectionData(){
   });
   return {labels,teams:perTeam,currentRound,finalRound,hasMatches:matches.length>0};
 }
-function teamTrendColor(index,total){
-  const hue=Math.round((214 + (index*360/Math.max(total,1)))%360);
-  return 'hsl('+hue+' 76% 48%)';
+const _teamLogoColorCache=new Map();
+function fallbackTeamTrendColor(index,total){
+  const hue=Math.round((210 + (index*360/Math.max(total,1)))%360);
+  return 'hsl('+hue+' 82% 46%)';
+}
+function teamTrendColor(team,index,total){
+  const key=norm(team);
+  return _teamLogoColorCache.get(key) || fallbackTeamTrendColor(index,total);
+}
+function rgbToHsl(r,g,b){
+  r/=255; g/=255; b/=255;
+  const max=Math.max(r,g,b), min=Math.min(r,g,b);
+  let h=0,s=0,l=(max+min)/2;
+  if(max!==min){
+    const d=max-min;
+    s=l>.5 ? d/(2-max-min) : d/(max+min);
+    switch(max){
+      case r: h=(g-b)/d+(g<b?6:0); break;
+      case g: h=(b-r)/d+2; break;
+      case b: h=(r-g)/d+4; break;
+    }
+    h/=6;
+  }
+  return [h*360,s,l];
+}
+function hslToRgb(h,s,l){
+  h=((h%360)+360)%360/360;
+  let r,lq,g,b;
+  if(s===0){ r=g=b=l; }
+  else {
+    const hue2rgb=(p,q,t)=>{
+      if(t<0) t+=1; if(t>1) t-=1;
+      if(t<1/6) return p+(q-p)*6*t;
+      if(t<1/2) return q;
+      if(t<2/3) return p+(q-p)*(2/3-t)*6;
+      return p;
+    };
+    const q=l<.5 ? l*(1+s) : l+s-l*s;
+    const p=2*l-q;
+    r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);
+  }
+  return [Math.round(r*255),Math.round(g*255),Math.round(b*255)];
+}
+function readableLogoColor(r,g,b){
+  let [h,s,l]=rgbToHsl(r,g,b);
+  if(s<.34) s=.62;
+  l=Math.min(.58,Math.max(.38,l));
+  const [rr,gg,bb]=hslToRgb(h,s,l);
+  return 'rgb('+rr+','+gg+','+bb+')';
+}
+function extractLogoColorFromSrc(src){
+  return new Promise(resolve=>{
+    const img=new Image();
+    if(/^https?:/i.test(src)) img.crossOrigin='anonymous';
+    img.onload=()=>{
+      try{
+        const canvas=document.createElement('canvas');
+        const size=36;
+        canvas.width=size; canvas.height=size;
+        const ctx=canvas.getContext('2d',{willReadFrequently:true});
+        ctx.drawImage(img,0,0,size,size);
+        const data=ctx.getImageData(0,0,size,size).data;
+        let best=null, bestScore=-1;
+        for(let i=0;i<data.length;i+=4){
+          const a=data[i+3]; if(a<80) continue;
+          const r=data[i], g=data[i+1], b=data[i+2];
+          const [h,s,l]=rgbToHsl(r,g,b);
+          // Scarta quasi bianco/nero/grigio: scegli il colore più identificativo del logo.
+          if(l>.92 || l<.10 || s<.18) continue;
+          const score=s*(1-Math.abs(l-.48));
+          if(score>bestScore){ bestScore=score; best=[r,g,b]; }
+        }
+        resolve(best ? readableLogoColor(best[0],best[1],best[2]) : null);
+      }catch(e){ resolve(null); }
+    };
+    img.onerror=()=>resolve(null);
+    img.src=src;
+  });
+}
+function resolveTeamLogoColor(team,index,total){
+  const key=norm(team);
+  if(!key) return Promise.resolve(fallbackTeamTrendColor(index,total));
+  if(_teamLogoColorCache.has(key)) return Promise.resolve(_teamLogoColorCache.get(key));
+  return probeFirstWorkingImage(chartImageCandidates('team',team)).then(src=>{
+    if(!src){
+      const fallback=fallbackTeamTrendColor(index,total);
+      _teamLogoColorCache.set(key,fallback);
+      return fallback;
+    }
+    return extractLogoColorFromSrc(src).then(color=>{
+      const finalColor=color || fallbackTeamTrendColor(index,total);
+      _teamLogoColorCache.set(key,finalColor);
+      return finalColor;
+    });
+  });
+}
+function applyLogoColorsToTrendChart(chart,data){
+  Promise.all(data.teams.map((item,index)=>resolveTeamLogoColor(item.team,index,data.teams.length))).then(colors=>{
+    if(!chart || !chart.canvas || !chart.canvas.isConnected) return;
+    colors.forEach((color,index)=>{
+      const ds=chart.data.datasets[index];
+      if(!ds) return;
+      ds.borderColor=color;
+      ds.backgroundColor=color;
+      ds.pointBorderColor='#fff';
+      ds.pointBackgroundColor=color;
+    });
+    chart.update('none');
+  });
 }
 function renderChartAndamentoSquadre(){
   const canvas=document.getElementById('chartAndamentoSquadre');
@@ -1546,21 +1657,27 @@ function renderChartAndamentoSquadre(){
     window._chart.chartAndamentoSquadre=null;
   }
   const c=getChartColors();
-  const datasets=data.teams.map((item,index)=>({
-    label:item.team,
-    data:item.data,
-    tension:.34,
-    spanGaps:true,
-    borderColor:teamTrendColor(index,data.teams.length),
-    backgroundColor:teamTrendColor(index,data.teams.length),
-    borderWidth:3,
-    pointRadius:(ctx)=> ctx.dataIndex===(data.currentRound-1) || ctx.dataIndex===(data.finalRound-1) ? 4 : 2,
-    pointHoverRadius:6,
-    fill:false,
-    segment:{
-      borderDash:(ctx)=> data.currentRound && ctx.p0DataIndex>=data.currentRound-1 ? [7,6] : undefined
-    }
-  }));
+  const datasets=data.teams.map((item,index)=>{
+    const color=teamTrendColor(item.team,index,data.teams.length);
+    return {
+      label:item.team,
+      data:item.data,
+      tension:.34,
+      spanGaps:true,
+      borderColor:color,
+      backgroundColor:color,
+      pointBackgroundColor:color,
+      pointBorderColor:'#fff',
+      pointBorderWidth:2,
+      borderWidth:3.25,
+      pointRadius:(ctx)=> ctx.dataIndex===(data.currentRound-1) || ctx.dataIndex===(data.finalRound-1) ? 4.5 : 2.5,
+      pointHoverRadius:6,
+      fill:false,
+      segment:{
+        borderDash:(ctx)=> data.currentRound && ctx.p0DataIndex>=data.currentRound-1 ? [7,6] : undefined
+      }
+    };
+  });
   const chart=new Chart(canvas,{
     type:'line',
     data:{labels:data.labels,datasets},
@@ -1569,7 +1686,7 @@ function renderChartAndamentoSquadre(){
       animation:{duration:700,easing:'easeOutQuart'},
       interaction:{mode:'nearest',intersect:false},
       plugins:{
-        legend:{position:'bottom',labels:{color:c.text,boxWidth:10,boxHeight:10,usePointStyle:true,font:{weight:'800'}}},
+        legend:{position:'bottom',labels:{color:c.text,boxWidth:10,boxHeight:10,usePointStyle:true,font:{weight:'800'},padding:12}},
         title:{display:true,text:data.hasMatches?'Andamento punti e proiezione a fine campionato':'Proiezione da classifica attuale',color:c.text,font:{size:14,weight:'800'},padding:{bottom:8}},
         tooltip:{
           backgroundColor:'rgba(7,29,58,.94)',displayColors:true,titleFont:{weight:'800'},
@@ -1582,7 +1699,7 @@ function renderChartAndamentoSquadre(){
           }
         }
       },
-      layout:{padding:{top:4,right:10,left:4,bottom:0}},
+      layout:{padding:{top:6,right:14,left:6,bottom:0}},
       scales:{
         x:{ticks:{color:c.text,font:{weight:'800'},maxRotation:0,autoSkip:true},grid:{display:false},border:{display:false}},
         y:{beginAtZero:true,ticks:{color:c.text,font:{weight:'700'}},grid:{color:c.grid,drawBorder:false},border:{display:false}}
@@ -1590,6 +1707,7 @@ function renderChartAndamentoSquadre(){
     }
   });
   window._chart.chartAndamentoSquadre=chart;
+  applyLogoColorsToTrendChart(chart,data);
   requestAnimationFrame(()=>{ try{ chart.resize(); chart.update('none'); }catch(e){} });
 }
 
@@ -2013,6 +2131,16 @@ function roleInitial(value){
   return text.charAt(0).toUpperCase();
 }
 
+function roleDisplayLabel(value){
+  const initial=roleInitial(value);
+  let text=smartSpace(value);
+  if(!text) return initial || '';
+  text=text.replace(new RegExp('^'+initial+'(?:\\s*[-·.]\\s*|\\s+)','i'),'').trim() || text;
+  if(!initial) return text;
+  if(norm(text)===norm(initial) || text.length<=2) return initial;
+  return initial+' · '+text;
+}
+
 function isCaptainPlayer(obj){
   const visible=playerDisplayName(obj);
   const full=playerFullName(obj);
@@ -2242,8 +2370,13 @@ function openPlayerProfile(name,contextRow){
   const h=document.createElement('h2'); h.textContent=data.name;
   title.appendChild(h);
   const sub=document.createElement('div'); sub.className='player-profile-sub';
-  if(data.team){ sub.appendChild(imgOrInitialEl('team',data.team,'mini-logo')); const teamSpan=document.createElement('span'); teamSpan.textContent=data.team; sub.appendChild(teamSpan); }
-  if(data.role){ const role=document.createElement('span'); role.className='player-profile-badge'; role.textContent=roleInitial(data.role)+' · '+data.role; sub.appendChild(role); }
+  if(data.team){
+    const teamBadge=document.createElement('span'); teamBadge.className='player-profile-team-badge'; teamBadge.title=data.team;
+    teamBadge.appendChild(imgOrInitialEl('team',data.team,'mini-logo'));
+    const teamSpan=document.createElement('span'); teamSpan.className='player-profile-team-name'; teamSpan.textContent=data.team;
+    teamBadge.appendChild(teamSpan); sub.appendChild(teamBadge);
+  }
+  if(data.role){ const role=document.createElement('span'); role.className='player-profile-badge player-profile-role-badge'; role.textContent=roleDisplayLabel(data.role); sub.appendChild(role); }
   if(data.isKeeper){ const badge=document.createElement('span'); badge.className='player-profile-badge'; badge.textContent='🧤 Portiere'; sub.appendChild(badge); }
   title.appendChild(sub); hero.appendChild(title); card.appendChild(hero);
 
@@ -2254,8 +2387,6 @@ function openPlayerProfile(name,contextRow){
   if(data.isKeeper){
     stats.appendChild(profileStatTile('Punti miglior portiere',formatProfileNumber(data.keeper.total),data.keeper.entries.length ? data.keeper.entries.length+' giornate' : 'Totale portieri',true));
     stats.appendChild(profileStatTile('Gol subiti squadra',data.conceded===null?'—':formatProfileNumber(data.conceded),data.team||'Squadra non indicata',false));
-  } else {
-    stats.appendChild(profileStatTile('Squadra',data.team||'—',data.role||'Ruolo non indicato',false));
   }
   body.appendChild(stats);
 
@@ -2264,9 +2395,6 @@ function openPlayerProfile(name,contextRow){
   panels.appendChild(profileTimelineSection('MVP per giornata','⭐',data.mvp.entries,'punti MVP','Nessun MVP registrato nelle giornate.'));
   if(data.isKeeper) panels.appendChild(profileTimelineSection('Miglior portiere','🧤',data.keeper.entries,'punti miglior portiere','Nessuna giornata da miglior portiere registrata.'));
   body.appendChild(panels);
-  const note=document.createElement('div'); note.className='player-profile-note';
-  note.textContent='I dati sono letti dai CSV caricati: classifiche generali per i totali e riepiloghi giornata per il dettaglio delle giornate.';
-  body.appendChild(note);
   card.appendChild(body);
   backdrop.appendChild(card);
   document.body.appendChild(backdrop);
@@ -2301,7 +2429,7 @@ function renderSquadre(){
     filtered.forEach(p=>{
       const nome=playerFullName(p);             // usato per trovare l'immagine
       const nomeVisibile=playerDisplayName(p); // mostrato nel tab Squadre
-      const meta=roleInitial(fieldLoose(p,['ruolo','role','posizione','position']));
+      const meta=roleDisplayLabel(fieldLoose(p,['ruolo','role','posizione','position']));
       const capitano=isCaptainPlayer(p);
       const row=document.createElement('div'); row.className='player'+(capitano?' captain':'');
       row.appendChild(imgOrInitialEl('player',playerImageNames(p),'avatar'));
@@ -2804,6 +2932,17 @@ function stripInlineField(text,label){
     .replace(/\\s*\\|\\s*\\|\\s*/g,' | ')
     .trim();
 }
+
+function cleanRiepilogoNote(value){
+  let out=stripInlineField(value,'Riposa');
+  out=String(out||'')
+    .replace(/(?:^|[|·,;-]\s*)riposa\s*:?\s*[^|·,;.-]+/ig,'')
+    .replace(/\s*[|·,;-]\s*$/,'')
+    .replace(/^\s*[|·,;-]\s*/,'')
+    .replace(/\s{2,}/g,' ')
+    .trim();
+  return out;
+}
 function splitInlinePeople(value){
   return String(value||'')
     .split(/\s*(?:\n|\r|,|;|\+)\s*/)
@@ -3261,7 +3400,6 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
     const note=firstPresent(r,[['note','commento','descrizione']]);
     const inlineMarcatori=extractInlineField(note,'Marcatori');
     const inlineMvp=extractInlineField(note,'MVP');
-    const inlineRiposa=extractInlineField(note,'Riposa');
     const marcatoriCasa=splitPeopleList(firstPresent(r,[['marcatori casa','marcatori squadra casa','gol casa marcatori','scorer casa']]) || firstPresent(r,[['marcatori home']]));
     const marcatoriTrasferta=splitPeopleList(firstPresent(r,[['marcatori trasferta','marcatori ospite','marcatori squadra trasferta','gol trasferta marcatori','scorer trasferta']]) || firstPresent(r,[['marcatori away']]));
     const marcatoriGenerici=splitInlinePeople(firstPresent(r,[['marcatori','scorers','reti']]) || inlineMarcatori);
@@ -3284,13 +3422,13 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
     teamsWrap.appendChild(homeTeam); teamsWrap.appendChild(vs); teamsWrap.appendChild(awayTeam);
     left.appendChild(teamsWrap);
 
-    const metaParts=[giornata,data,esito?('Esito: '+esito):'',inlineRiposa?('Riposa: '+inlineRiposa):''].filter(Boolean);
+    const metaParts=[giornata,data,esito?('Esito: '+esito):''].filter(Boolean);
     if(metaParts.length){ const meta=document.createElement('div'); meta.className='small'; meta.textContent=metaParts.join(' · '); left.appendChild(meta); }
     addPeopleLineSmart(left,'Marcatori casa',marcatoriCasa,true,casa,contextRows);
     addPeopleLineSmart(left,'Marcatori trasf.',marcatoriTrasferta,true,trasferta,contextRows);
     if(!marcatoriCasa.length && !marcatoriTrasferta.length) addPeopleLineSmart(left,'Marcatori',marcatoriGenerici,true,'',contextRows);
     addPeopleLineSmart(left,'MVP',mvp,true,'',contextRows);
-    const notePulita=stripInlineField(note,'Riposa');
+    const notePulita=cleanRiepilogoNote(note);
     if(notePulita){ const n=document.createElement('div'); n.className='small'; n.style.marginTop='8px'; n.textContent=notePulita; left.appendChild(n); }
 
     const sc=document.createElement('div'); sc.className='score'; sc.textContent=res;
