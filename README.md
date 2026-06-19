@@ -1,18 +1,22 @@
-# CRAL Champions
+# Cral Champions
 
-Sito statico per visualizzare classifiche, calendario, risultati, statistiche giocatori, squadre e riepiloghi giornata di un torneo **CRAL Champions**.
+**Cral Champions** è un sito statico per visualizzare e gestire classifiche, calendario, risultati, statistiche, squadre, riepiloghi giornata e schede giocatore di un torneo CRAL Champions.
 
-Il progetto è composto principalmente da un unico file `index.html`, pensato per funzionare sia in locale sia pubblicato su GitHub Pages. I dati vengono letti da file CSV e le immagini da cartelle locali del progetto.
+Il progetto è pensato per funzionare sia in locale sia pubblicato su GitHub Pages.  
+I dati vengono letti da file CSV e le immagini da cartelle locali del progetto.
+
+---
 
 ## Funzionalità principali
 
-- Home con riepilogo generale del torneo:
+- Home riepilogativa con:
   - numero squadre;
   - numero giocatori;
   - partite disputate;
-  - dati aggiornati a giornata `X/Y`, dove `X` è l'ultima giornata con riepilogo caricato e `Y` è il totale giornate previsto dal calendario;
-  - grafico 💣 top marcatori;
-  - grafico 🏆 punti squadre.
+  - stato aggiornamento dati a giornata `X/Y`;
+  - grafico top marcatori;
+  - grafico punti squadre;
+  - grafico andamento squadre con proiezione finale.
 - Scheda **Classifiche**:
   - classifica squadre;
   - classifica marcatori;
@@ -23,28 +27,34 @@ Il progetto è composto principalmente da un unico file `index.html`, pensato pe
 - Scheda **Squadre**:
   - elenco squadre;
   - elenco giocatori per squadra;
-  - supporto immagini giocatori;
+  - foto giocatori;
+  - loghi squadre;
+  - ruolo giocatore;
   - evidenza del capitano con fascia `C`.
 - Scheda **Calendario**:
-  - supporto calendario tabellare;
-  - supporto calendario a blocchi per giornata;
+  - calendario tabellare;
+  - calendario a blocchi per giornata;
   - gestione squadre a riposo.
 - Scheda **Risultati**:
   - partite giocate con loghi squadre e risultato.
 - Scheda **Riepilogo giornate**:
   - filtro per giornata;
   - partite della giornata;
-  - marcatori della giornata;
+  - marcatori;
   - MVP della giornata;
   - miglior portiere;
   - autogol;
-  - statistiche complete, se presenti.
-- Ricerca globale per squadra, giocatore o partita, con riconoscimento coerente di nome e cognome dei giocatori.
-- Tema chiaro/scuro con salvataggio della preferenza in `localStorage`.
+  - statistiche di giornata.
+- Scheda dettaglio giocatore al click sul nome.
+- Scheda dettaglio portiere con logica dedicata.
+- Ricerca globale per squadra, giocatore o partita.
+- Tema chiaro/scuro con salvataggio della preferenza.
 - Ordinamento cliccabile delle colonne nelle tabelle.
-- Stampa / esportazione PDF tramite pulsante dedicato.
-- Caricamento automatico da CSV pubblicati nel repository.
-- Caricamento manuale di una cartella locale con CSV e immagini, quando il sito viene aperto in locale.
+- Stampa / esportazione PDF.
+- Caricamento automatico da CSV.
+- Caricamento manuale di una cartella locale con CSV e immagini.
+
+---
 
 ## Struttura consigliata del progetto
 
@@ -64,18 +74,39 @@ CralChampions/
 └── immagini/
     ├── logo_cral.png
     ├── squadre/
-    │   ├── nome_squadra.png
+    │   ├── blackjack.png
     │   └── ...
     └── giocatori/
-        ├── nome_giocatore.png
+        ├── saracinogianvito.png
         └── ...
 ```
 
-I file CSV possono stare nella root del repository oppure nella cartella `data/`. Il codice prova prima a caricare da `data/` e poi dalla root.
+I file CSV possono stare nella root del repository oppure nella cartella `data/`.  
+Il codice prova prima a caricare da `data/` e poi dalla root.
+
+---
+
+## Avvio del progetto
+
+Il progetto è completamente statico.
+
+Puoi aprire direttamente `index.html` nel browser, ma per un funzionamento più stabile del caricamento CSV è consigliato usare un server locale.
+
+Esempio con Python:
+
+```bash
+python -m http.server 8000
+```
+
+Poi apri:
+
+```text
+http://localhost:8000
+```
+
+---
 
 ## File CSV riconosciuti automaticamente
-
-L'applicazione riconosce questi file principali:
 
 | File | Uso |
 |---|---|
@@ -98,12 +129,17 @@ riepilogo_giornata_1.csv
 referto_giornata_1.csv
 ```
 
+---
+
 ## Manifest
 
-Il file `manifest.csv` serve a indicare quali CSV caricare. Esempio:
+Il file `manifest.csv` indica quali CSV caricare.
+
+Esempio:
 
 ```csv
 file
+config.csv
 classifica_squadre.csv
 classifica_marcatori.csv
 classifica_mvp.csv
@@ -111,62 +147,230 @@ classifica_portieri.csv
 risultati_partite.csv
 calendario.csv
 riepilogo_giornate.csv
+squadra_BlackJack.csv
 squadra_Red Lions.csv
-squadra_Blue Tigers.csv
 ```
 
-I file di riepilogo possono essere già presenti nel manifest anche se non esistono ancora perché il torneo è in corso. L'interfaccia non mostra alert per questi riepiloghi mancanti.
+I file di riepilogo possono essere già presenti nel manifest anche se non esistono ancora perché il torneo è in corso. L'interfaccia non mostra alert bloccanti per i riepiloghi mancanti.
+
+---
 
 ## Configurazione sito
 
-Il file `config.csv` può contenere titolo e sottotitolo del sito.
+Il file `config.csv` può contenere titolo e sottotitolo.
 
 Esempio:
 
 ```csv
 chiave;valore
-titolo;CRAL Champions
+titolo;Cral Champions
 sottotitolo;Classifiche, calendario, risultati e statistiche giocatori
 ```
 
-Puoi cambiare titolo e sottotitolo a ogni nuova edizione del torneo senza modificare il codice HTML.
+Puoi cambiare titolo e sottotitolo senza modificare il codice HTML.
 
-## Classifiche
+---
 
-La scheda **Classifiche** mostra, nell'ordine:
+## Classifica squadre
 
-1. Classifica squadre
-2. Classifica marcatori
-3. Classifica MVP
-4. Classifica portieri
+Esempio:
 
-Per Marcatori, MVP e Portieri, il codice prova a portare come prima colonna la posizione in classifica. Sono riconosciute intestazioni come:
-
-```text
-Posizione
-Pos.
-Pos
-Rank
+```csv
+Posizione;Squadra;PG;V;N;P;GF;GS;DR;Punti
+1;BlackJack;3;3;0;0;12;5;7;9
 ```
 
-Per i valori principali sono riconosciute varie intestazioni equivalenti, ad esempio:
+Il nome squadra viene usato per:
+
+- tabella classifica;
+- grafico punti squadre;
+- grafico andamento squadre;
+- associazione del logo;
+- scheda dettaglio giocatore.
+
+Nel grafico andamento squadre i nomi vengono presi dalla classifica senza alterazioni automatiche.  
+Ad esempio `BlackJack` resta `BlackJack`.
+
+---
+
+## Classifica marcatori
+
+Esempio:
+
+```csv
+Posizione;Giocatore;Squadra;Gol
+1;Saracino Gianvito;BlackJack;6
+```
+
+Sono riconosciute intestazioni equivalenti come:
 
 ```text
 Gol
 Goal
 Reti
-Punti
+Giocatore
+Calciatore
+Player
+```
+
+---
+
+## Classifica MVP
+
+Esempio:
+
+```csv
+Posizione;Giocatore;Squadra;Punti MVP
+1;Bianchi Luca;Real Cral;8
+```
+
+Sono riconosciute intestazioni equivalenti come:
+
+```text
+MVP
 Punti MVP
-Portiere
+Punti
 Giocatore
 Player
 ```
+
+---
+
+## Classifica portieri
+
+Esempio:
+
+```csv
+Posizione;Portiere;Squadra;Punti
+1;Verdi Marco;BlackJack;7
+```
+
+Sono riconosciute intestazioni equivalenti come:
+
+```text
+Portiere
+Giocatore
+Player
+Punti
+Punti PT
+Miglior portiere
+```
+
+---
+
+## CSV squadre
+
+Ogni squadra può avere un file dedicato con nome:
+
+```text
+squadra_NomeSquadra.csv
+```
+
+Esempio:
+
+```csv
+Cognome;Nome;Ruolo;Numero;Capitano
+Rossi;Mario;Attaccante;10;Sì
+Bianchi;Luca;Portiere;1;
+Verdi;Marco;Centrocampista;8;
+```
+
+Il sito prova a riconoscere automaticamente:
+
+- nome;
+- cognome;
+- nome completo;
+- ruolo;
+- numero;
+- capitano.
+
+Il capitano viene evidenziato con una fascia gialla `C`.
+
+---
+
+## Ruoli giocatore
+
+I ruoli vengono normalizzati per evitare doppioni o sigle ripetute.
+
+Esempi:
+
+```text
+P / PT / Portiere        → 🧤 Portiere
+C / CC / Centrocampista  → 🧠 Centrocampista
+A / ATT / Attaccante     → 💣 Attaccante
+D / Difensore            → Difensore
+```
+
+Nella scheda giocatore viene mostrato il badge ruolo in alto accanto alla squadra, senza ripetizioni tipo `A · A`, `C · C` o `P · P`.
+
+---
+
+## Scheda dettaglio giocatore
+
+Cliccando sul nome di un giocatore si apre una scheda premium in stile Champions, ottimizzata per desktop e mobile.
+
+La scheda mostra:
+
+- foto giocatore;
+- nome;
+- logo e nome squadra;
+- ruolo;
+- totale gol;
+- dettaglio gol per giornata;
+- totale punti MVP;
+- dettaglio **MVP della giornata**;
+- informazioni collegate ai CSV disponibili.
+
+### Gol per giornata
+
+La scheda usa i riepiloghi giornata per ricostruire i gol segnati.
+
+Se nei riepiloghi sono presenti righe di tipo `Totale marcatore giornata`, queste vengono usate per evitare sottoconteggi.  
+Esempio: se un giocatore ha segnato 3 gol nella giornata 1, la scheda mostra correttamente `Giornata 1 — 3`.
+
+---
+
+## Scheda dettaglio portiere
+
+Per i portieri la scheda usa una logica dedicata.
+
+Mostra:
+
+- foto portiere;
+- nome;
+- logo e nome squadra;
+- badge `🧤 Portiere`;
+- gol subiti dalla squadra;
+- giornate in cui ha ottenuto il riconoscimento di miglior portiere;
+- punti ricevuti come miglior portiere;
+- eventuali gol segnati, solo se presenti.
+
+Per i portieri non vengono mostrati:
+
+- punti MVP;
+- scheda MVP della giornata.
+
+La sezione **Miglior portiere** mostra le giornate in cui il portiere è stato premiato.
+
+---
 
 ## Riepilogo giornate
 
 La scheda **Riepilogo giornate** supporta sia un CSV unico sia file separati per giornata.
 
-Le tabelle principali vengono mostrate con questo ordine di colonne prioritario:
+Sono supportate sezioni come:
+
+```text
+Partita
+Marcatore
+Totale marcatore giornata
+MVP
+Miglior portiere
+Autogol
+Statistica
+```
+
+Le sezioni principali vengono mostrate con questo ordine prioritario:
 
 ### Marcatori della giornata
 
@@ -192,45 +396,79 @@ Giocatore / Portiere
 Punti
 ```
 
-Sono supportate sezioni come:
+Le righe `Riposa X` non vengono mostrate nei riepiloghi giornata, perché le squadre a riposo sono già indicate nel calendario.
 
-```text
-Partita
-Marcatore
-Totale marcatore giornata
-MVP
-Miglior portiere
-Autogol
-Statistica
-```
+---
 
-I `Totale marcatore giornata` vengono usati come fallback quando non ci sono marcatori dettagliati, ma non vengono mostrati come scheda separata per evitare doppioni.
+## Calendario
 
-## CSV squadre
+Sono supportati due formati.
 
-Ogni squadra può avere un file dedicato con nome:
-
-```text
-squadra_NomeSquadra.csv
-```
-
-Esempio:
+### Formato tabellare
 
 ```csv
-Cognome;Nome;Ruolo;Numero;Capitano
-Rossi;Mario;Attaccante;10;Sì
-Bianchi;Luca;Portiere;1;
+Giornata;Squadra casa;Squadra trasferta;Data;Note
+1;BlackJack;Red Lions;AAAA-MM-GG;
 ```
 
-Il sito prova a riconoscere automaticamente:
+### Formato a blocchi
 
-- nome giocatore;
-- cognome;
-- ruolo;
-- numero;
-- capitano.
+```csv
+GIORNATA 1;;
+Casa;Trasferta;Note
+BlackJack;Red Lions;
+Green Foxes;Yellow Bears;
+;;Riposa: Blue Tigers
+```
 
-Il capitano viene evidenziato con una fascia gialla `C`.
+Il formato a blocchi è utile per calendari divisi per giornata e per gestire squadre a riposo.
+
+---
+
+## Risultati
+
+Esempio con colonne gol:
+
+```csv
+Giornata;Squadra casa;Squadra trasferta;Gol casa;Gol trasferta;Note
+1;BlackJack;Red Lions;3;2;
+```
+
+Esempio con colonna risultato:
+
+```csv
+Giornata;Squadra casa;Squadra trasferta;Risultato
+1;BlackJack;Red Lions;3 - 2
+```
+
+---
+
+## Grafici Home
+
+La Home include tre grafici principali.
+
+### Top marcatori
+
+Mostra i migliori marcatori del torneo.
+
+### Punti squadre
+
+Mostra i punti attuali delle squadre.
+
+### Andamento squadre con proiezione finale
+
+Mostra l'andamento delle squadre giornata per giornata e una proiezione verso la fine del campionato.
+
+Il grafico usa:
+
+- nomi squadra presi dalla classifica;
+- colori derivati dai loghi squadra;
+- colori secondari quando il colore principale è troppo simile a quello di un'altra squadra;
+- colori alternativi ad alto contrasto se i colori del logo non sono abbastanza distinguibili.
+
+L'obiettivo è mantenere una logica visiva legata all'identità delle squadre senza perdere leggibilità.
+
+---
 
 ## Immagini
 
@@ -247,144 +485,117 @@ immagini/squadre/
 immagini/giocatori/
 ```
 
-Il nome file viene normalizzato, quindi è consigliato usare nomi semplici e coerenti con i CSV.
-
 Esempi:
 
 ```text
-immagini/squadre/redlions.png
-immagini/giocatori/mariorossi.png
+immagini/squadre/blackjack.png
+immagini/giocatori/saracinogianvito.png
 ```
 
-Se un'immagine non viene trovata, il sito mostra automaticamente le iniziali.
+Il nome file viene normalizzato per facilitare l'associazione tra CSV e immagini.
 
-## Calendario
+Se un'immagine non viene trovata, il sito mostra automaticamente iniziali o fallback grafico.
 
-Sono supportati due formati.
-
-### Formato tabellare
-
-```csv
-Giornata;Squadra casa;Squadra trasferta;Data;Note
-1;Red Lions;Blue Tigers;AAAA-MM-GG;
-```
-
-### Formato a blocchi
-
-```csv
-GIORNATA 1;;
-Casa;Trasferta;Note
-Red Lions;Blue Tigers;
-Green Foxes;Yellow Bears;
-;;Riposa: Black Panthers
-```
-
-Il formato a blocchi è utile per calendari divisi per giornata e per gestire squadre a riposo.
-
-## Risultati
-
-Esempio CSV risultati:
-
-```csv
-Giornata;Squadra casa;Squadra trasferta;Gol casa;Gol trasferta;Note
-1;Red Lions;Blue Tigers;3;2;
-```
-
-In alternativa può essere usata una colonna `Risultato`:
-
-```csv
-Giornata;Squadra casa;Squadra trasferta;Risultato
-1;Red Lions;Blue Tigers;3 - 2
-```
+---
 
 ## Ricerca e ordinamento
 
-La barra di ricerca filtra la sezione attiva. Cerca tra squadre, giocatori, partite e valori contenuti nei CSV.
+La barra di ricerca filtra la sezione attiva.
 
-Per i giocatori, la ricerca prova ad allineare nome e cognome anche quando i CSV usano formati diversi, ad esempio `Nome Cognome`, `Cognome Nome` oppure solo nome o solo cognome. Questo evita risultati diversi tra una ricerca per nome e una ricerca per cognome.
+La ricerca funziona su:
 
-Quando il filtro viene riconosciuto come ricerca giocatore, alcune sezioni vengono ridotte ai soli dati pertinenti:
+- squadre;
+- giocatori;
+- partite;
+- valori contenuti nei CSV.
 
-- in **Squadre** viene mostrata solo la squadra a cui appartiene il giocatore filtrato;
-- in **Risultati** non vengono mostrate schede partita, perché il tab è legato alle squadre e non al singolo giocatore;
-- in **Classifiche** non viene mostrata la classifica squadre; vengono mostrate solo le classifiche in cui il giocatore è presente;
-- in **Riepilogo giornate** non vengono mostrate le card generali della giornata, come partite giocate, gol totali, media gol, partita con più gol o partite della giornata; restano solo Marcatori, MVP, Miglior portiere o Autogol se il giocatore ha righe effettive in quelle sezioni.
+Per i giocatori, il codice prova ad allineare nome e cognome anche quando i CSV usano formati diversi:
 
-Le sezioni vuote non pertinenti vengono nascoste, quindi non vengono mostrate card con messaggi come `Nessun risultato per la ricerca` quando il filtro riguarda un giocatore.
+```text
+Nome Cognome
+Cognome Nome
+solo Nome
+solo Cognome
+```
 
-Le tabelle sono ordinabili cliccando sulle intestazioni delle colonne. Le tabelle di Marcatori, MVP e Portieri usano larghezze coerenti tra loro, così i risultati restano allineati anche durante il filtro.
+Quando il filtro viene riconosciuto come ricerca giocatore:
+
+- in **Squadre** viene mostrata solo la squadra del giocatore;
+- in **Classifiche** viene nascosta la classifica squadre;
+- in **Classifiche** restano solo le classifiche in cui il giocatore è presente;
+- in **Riepilogo giornate** restano solo i dati relativi al giocatore;
+- le sezioni vuote non pertinenti vengono nascoste.
+
+Le tabelle sono ordinabili cliccando sulle intestazioni.
+
+---
 
 ## Tema scuro
 
-Il pulsante con icona luna/sole permette di cambiare tema. La scelta viene salvata nel browser tramite `localStorage`.
+Il pulsante luna/sole permette di cambiare tema.  
+La scelta viene salvata nel browser tramite `localStorage`.
 
-## Grafici
+---
 
-I grafici della Home usano Chart.js caricato da CDN:
+## Dipendenze
+
+Il progetto usa Chart.js caricato da CDN:
 
 ```text
 https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js
 ```
 
-Sono presenti:
-
-- grafico 💣 top marcatori;
-- grafico 🏆 punti squadre.
-
 Se Chart.js non viene caricato, il sito continua a funzionare ma i grafici non vengono mostrati.
+
+---
 
 ## Pubblicazione su GitHub Pages
 
 Per pubblicare il progetto:
 
-1. Caricare `index.html`, CSV e cartelle immagini nel repository GitHub.
+1. Caricare `index.html`, CSV, README e cartelle immagini nel repository GitHub.
 2. Aprire il repository su GitHub.
 3. Andare in **Settings > Pages**.
 4. Selezionare il branch, di solito `main`.
 5. Selezionare la cartella `/root` se i file sono nella root del repository.
 6. Salvare.
 
-L'URL avrà forma simile a:
+L'URL avrà una forma simile a:
 
 ```text
 https://nomeutente.github.io/nome-repository/
 ```
 
-Per togliere il nome utente dall'URL serve un dominio personalizzato.
+Per usare un URL personalizzato serve configurare un dominio custom su GitHub Pages.
+
+---
 
 ## Riutilizzo per tornei futuri
 
-Per usare lo stesso progetto in un nuovo torneo basta aggiornare i CSV, le immagini e, se necessario, il file `config.csv`. Il file `index.html` può rimanere lo stesso, purché i nomi dei file e delle colonne restino compatibili con quelli descritti in questo README.
+Per usare lo stesso progetto in un nuovo torneo basta aggiornare:
+
+- CSV;
+- immagini squadre;
+- immagini giocatori;
+- `manifest.csv`;
+- `config.csv`, se vuoi cambiare titolo o sottotitolo.
+
+Il file `index.html` può rimanere lo stesso, purché i nomi dei file e delle colonne restino compatibili con quelli descritti in questo README.
+
+---
 
 ## Note tecniche
 
-- Il sito è completamente statico: non richiede backend o database.
+- Il sito è completamente statico.
+- Non richiede backend o database.
 - I dati vengono letti da CSV.
 - Le immagini vengono cercate automaticamente in base ai nomi di squadre e giocatori.
-- Il codice usa funzioni di escape per evitare inserimenti HTML non sicuri dai CSV.
+- Il codice evita inserimenti HTML non sicuri dai CSV.
 - Il caricamento manuale cartella funziona meglio su browser basati su Chromium, come Chrome o Edge.
-- Su GitHub Pages il caricamento automatico funziona se i file CSV sono pubblicati nel repository e i nomi corrispondono a quelli indicati nel manifest.
+- Su GitHub Pages il caricamento automatico funziona se i CSV sono pubblicati nel repository e i nomi corrispondono a quelli indicati nel manifest.
 
-## Ultime modifiche applicate
-
-- Rimossa dalla Home la voce **CSV Caricati**.
-- Rimosso l'alert per i file di riepilogo mancanti indicati nel manifest.
-- Aggiunta nella Home la card **Dati aggiornati a giornata X/Y**, calcolata confrontando l'ultima giornata con riepilogo caricato con il numero totale di giornate del calendario.
-- Aggiunte le emoji nei grafici Home: 💣 per **Top marcatori** e 🏆 per **Punti squadre**.
-- Corretto il filtro tabellare per evitare che una riga dati venga interpretata come intestazione quando la ricerca restituisce un solo risultato.
-- Migliorata la ricerca giocatore: nome e cognome vengono riconosciuti in modo coerente anche con formati `Nome Cognome` e `Cognome Nome`.
-- Nelle classifiche Marcatori, MVP e Portieri, la posizione viene mostrata come prima colonna quando disponibile.
-- Nel tab **Classifiche**, quando si filtra un giocatore, la classifica squadre viene nascosta e restano solo le classifiche realmente pertinenti. Per i portieri viene evitata la visualizzazione di sezioni non collegate, come MVP, se non pertinenti.
-- Nel tab **Squadre**, quando si filtra un giocatore, viene mostrata solo la squadra associata al giocatore filtrato.
-- Nel tab **Risultati**, quando si filtra un giocatore, non viene mostrata una card partita vuota.
-- Nel **Riepilogo giornate**, quando si filtra un giocatore, vengono nascoste le card generali di giornata e restano solo i dati effettivamente relativi al giocatore.
-- Nel **Riepilogo giornate**, le sezioni vuote come MVP, Marcatori o Miglior portiere vengono nascoste quando non hanno righe per il giocatore filtrato.
-- Nel Riepilogo giornate, le tabelle principali mostrano prima le colonne richieste:
-  - `Sezione`, `Giocatore`, `Gol/Goal/Reti` per i marcatori;
-  - `Sezione`, `Giocatore`, `Punti` per MVP;
-  - `Sezione`, `Giocatore/Portiere`, `Punti` per miglior portiere.
-- Allineate le larghezze delle colonne nelle tabelle Marcatori, MVP e Portieri, sia nelle classifiche sia nel riepilogo giornate.
+---
 
 ## Licenza
 
-Progetto realizzato per uso interno del torneo CRAL Champions.
+Progetto realizzato per uso interno del torneo Cral Champions.
