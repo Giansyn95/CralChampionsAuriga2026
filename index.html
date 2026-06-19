@@ -191,10 +191,10 @@
     .player-profile-photo{width:170px;height:170px;border-radius:28px;object-fit:cover;object-position:center;background:rgba(255,255,255,.14);border:2px solid rgba(255,255,255,.44);box-shadow:0 18px 36px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:900;color:#fff;z-index:1}
     .player-profile-title{position:relative;z-index:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:10px}
     .player-profile-title h2{margin:0;color:#fff;font-size:clamp(30px,5vw,56px);line-height:.98;letter-spacing:.01em;text-transform:uppercase;text-shadow:0 8px 22px rgba(0,0,0,.28)}
-    .player-profile-sub{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:#dbeaff;font-weight:800}
+    .player-profile-sub{display:flex;flex-direction:column;gap:8px;align-items:flex-start;flex-wrap:nowrap;color:#dbeaff;font-weight:800}
     .player-profile-sub .mini-logo{background:#fff;color:var(--blue);border:1px solid rgba(255,255,255,.72)}
     .player-profile-badge{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);color:#fff;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
-    .player-profile-role-emoji{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:rgba(255,255,255,.18);font-size:14px;line-height:1;letter-spacing:0}
+    .player-profile-role-emoji{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:999px;background:rgba(255,255,255,.18);font-size:14px;line-height:1;letter-spacing:0;flex:0 0 22px}
     .player-profile-close{position:absolute;top:14px;right:14px;z-index:3;width:42px;height:42px;border-radius:14px;border:1px solid rgba(255,255,255,.32);background:rgba(255,255,255,.14);color:#fff;font-size:22px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center}
     .player-profile-body{position:relative;padding:18px 20px 22px}
     .player-profile-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
@@ -278,8 +278,9 @@
     .player-profile-title h2,.player-profile-stat .n{overflow-wrap:anywhere;word-break:normal}
     .player-profile-team-badge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:4px 8px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.28);max-width:100%;min-width:0}
     .player-profile-team-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:min(240px,48vw)}
-    .player-profile-role-badge{min-width:32px;justify-content:center}
-    @media(max-width:720px){.player-profile-backdrop{padding:7px;align-items:center}.player-profile-card{width:calc(100vw - 14px);max-width:calc(100vw - 14px);max-height:calc(100svh - 14px);border-radius:22px}.player-profile-hero{grid-template-columns:74px minmax(0,1fr);gap:11px;padding:16px 14px 14px;border-radius:22px 22px 0 0}.player-profile-photo{width:72px;height:72px;border-radius:18px;font-size:23px}.player-profile-title{padding-right:38px;gap:8px}.player-profile-title h2{font-size:clamp(22px,7vw,30px);line-height:1.02}.player-profile-sub{gap:6px;font-size:12px}.player-profile-team-badge{padding:4px 7px}.player-profile-team-name{max-width:34vw}.player-profile-badge{font-size:11px;padding:5px 8px}.player-profile-body{padding:13px 12px 16px}.player-profile-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.player-profile-stat{min-height:78px;padding:10px;border-radius:16px}.player-profile-stat .n{font-size:23px}.player-profile-stat .l{font-size:10px}.player-profile-panels{grid-template-columns:1fr;gap:10px}.player-profile-section{border-radius:18px;padding:12px}.player-profile-entry{align-items:flex-start;padding:9px 10px}.player-profile-close{top:9px;right:9px;width:36px;height:36px;border-radius:12px}.chart-container.is-tall{height:340px}}
+    .player-profile-role-badge{display:inline-flex;align-items:center;justify-content:flex-start;min-width:0;max-width:100%;text-align:left}
+    .player-profile-role-badge span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    @media(max-width:720px){.player-profile-backdrop{padding:7px;align-items:center}.player-profile-card{width:calc(100vw - 14px);max-width:calc(100vw - 14px);max-height:calc(100svh - 14px);border-radius:22px}.player-profile-hero{grid-template-columns:74px minmax(0,1fr);gap:11px;padding:16px 14px 14px;border-radius:22px 22px 0 0}.player-profile-photo{width:72px;height:72px;border-radius:18px;font-size:23px}.player-profile-title{padding-right:38px;gap:8px}.player-profile-title h2{font-size:clamp(22px,7vw,30px);line-height:1.02}.player-profile-sub{gap:6px;font-size:12px;align-items:flex-start}.player-profile-team-badge{padding:4px 7px}.player-profile-team-name{max-width:min(42vw,260px)}.player-profile-role-badge{max-width:min(42vw,260px)}.player-profile-badge{font-size:11px;padding:5px 8px}.player-profile-body{padding:13px 12px 16px}.player-profile-stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.player-profile-stat{min-height:78px;padding:10px;border-radius:16px}.player-profile-stat .n{font-size:23px}.player-profile-stat .l{font-size:10px}.player-profile-panels{grid-template-columns:1fr;gap:10px}.player-profile-section{border-radius:18px;padding:12px}.player-profile-entry{align-items:flex-start;padding:9px 10px}.player-profile-close{top:9px;right:9px;width:36px;height:36px;border-radius:12px}.chart-container.is-tall{height:340px}}
     @media(max-width:560px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.hero{padding:22px}.match{display:block}.score{margin:6px 0}.riepilogo-match .match-team{max-width:none}.riepilogo-match .match-name{font-size:16px}.riepilogo-match .score{text-align:left;font-size:26px;min-width:0}.riepilogo-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.riepilogo-kpi.is-wide,.riepilogo-kpi.is-match-max,.riepilogo-kpi.is-scorer{grid-column:1/-1}.tableWrap{font-size:13px}th,td{padding:9px 9px}table.tbl-aligned th[data-col-role=rank],table.tbl-aligned td[data-col-role=rank]{min-width:40px;max-width:54px}table.tbl-aligned th[data-col-role=section],table.tbl-aligned td[data-col-role=section]{min-width:70px;max-width:110px}table.tbl-aligned th[data-col-role=team],table.tbl-aligned td[data-col-role=team],table.tbl-aligned th[data-col-role=person],table.tbl-aligned td[data-col-role=person]{min-width:118px;max-width:150px}table.tbl-aligned th[data-col-role=metric],table.tbl-aligned td[data-col-role=metric]{min-width:48px;max-width:68px}.tbl-logo,.tbl-avatar{width:24px;height:24px}.mini-logo{width:22px;height:22px}.name-cell{gap:7px}.player{gap:9px}.player-link-inline{display:inline-block;line-height:1.18}.chart-container.is-tall{height:380px}}
     @media print{.toolbar,.tabs,.search,#errorBanner{display:none}.section{display:block}.wrap{max-width:none}.card,.hero{box-shadow:none}}
     @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -2549,7 +2550,7 @@ function openPlayerProfile(name,contextRow){
   const stats=document.createElement('div'); stats.className='player-profile-stats';
   if(!data.isKeeper || data.goals.total>0) stats.appendChild(profileStatTile('Gol segnati',formatProfileNumber(data.goals.total),data.goals.entries.length ? data.goals.entries.length+' giornate registrate' : 'Totale classifica',true));
   if(data.isKeeper){
-    stats.appendChild(profileStatTile('Miglior portiere',profileGiornateText(data.keeper.entries),profileKeeperSubText(data.keeper),true));
+    stats.appendChild(profileStatTile('Punti Miglior portiere',formatProfileNumber(data.keeper.total),'',true));
     stats.appendChild(profileStatTile('Gol subiti squadra',data.conceded===null?'—':formatProfileNumber(data.conceded),data.team||'Squadra non indicata',false));
   } else {
     stats.appendChild(profileStatTile('Punti MVP',formatProfileNumber(data.mvp.total),data.mvp.entries.length ? data.mvp.entries.length+' giornate MVP' : 'Totale classifica',false));
@@ -2558,12 +2559,10 @@ function openPlayerProfile(name,contextRow){
 
   const panels=document.createElement('div'); panels.className='player-profile-panels';
   if(!data.isKeeper || data.goals.total>0) panels.appendChild(profileTimelineSection('Gol per giornata','⚽',data.goals.entries,{detail:'',valueSuffix:''},'Nessun dettaglio giornata disponibile per i gol.'));
-  if(data.isKeeper){
-    panels.appendChild(profileTimelineSection('Giornate miglior portiere','🧤',data.keeper.entries,'punti','Nessuna giornata da miglior portiere registrata.'));
-  } else {
+  if(!data.isKeeper){
     panels.appendChild(profileTimelineSection('MVP DELLA GIORNATA','⭐',data.mvp.entries,{detail:'',valueSuffix:'pt'},'Nessun MVP registrato nelle giornate.'));
   }
-  body.appendChild(panels);
+  if(panels.children.length) body.appendChild(panels);
   card.appendChild(body);
   backdrop.appendChild(card);
   document.body.appendChild(backdrop);
