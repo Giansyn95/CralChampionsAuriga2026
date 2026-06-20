@@ -1007,26 +1007,6 @@ function showTab(id){
   state.activeTab=id;
   document.querySelectorAll('.section').forEach(s=>s.classList.toggle('active',s.id===id));
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===id));
-
-  // Il tab Riepilogo è il più pesante: costruisce molte card, partite, KPI,
-  // tabelle e immagini. Rimandiamo il render di due frame per permettere al
-  // browser di mostrare subito lo switch visivo del tab prima del lavoro pesante.
-  if(id==='riepilogo'){
-    const token = showTab._renderToken = (showTab._renderToken || 0) + 1;
-    const el=document.getElementById('riepilogo');
-    if(el && !el.children.length){
-      el.innerHTML='<div class="empty">Caricamento riepilogo…</div>';
-    }
-    requestAnimationFrame(()=>{
-      requestAnimationFrame(()=>{
-        if(showTab._renderToken!==token || state.activeTab!==id) return;
-        renderActiveSection();
-      });
-    });
-    return;
-  }
-
-  showTab._renderToken = (showTab._renderToken || 0) + 1;
   renderActiveSection();
 }
 
@@ -3355,6 +3335,31 @@ function teamForPersonToken(name, fallbackTeam, contextRows){
   if(matches.length===1) return matches[0][1];
   return '';
 }
+// Come teamForPersonToken, ma per i marcatori scritti in un'unica lista generica
+// (senza distinzione "marcatori casa" / "marcatori trasferta"). In questo caso non
+// abbiamo un singolo fallbackTeam: conosciamo però le due squadre della partita
+// (candidateTeams). Se un cognome è condiviso da omonimi di squadre diverse, usiamo
+// la rosa per restringere il match alle sole squadre che stanno realmente giocando,
+// invece di ricadere sulla mappa globale (che tiene una sola voce per cognome e
+// quindi può assegnare il logo della squadra sbagliata, es. due "Menolascina").
+function teamForPersonTokenAmongTeams(name, candidateTeams, contextRows){
+  const contextTeam=teamFromContextRows(name,contextRows);
+  if(contextTeam) return contextTeam;
+  const teams=[...new Set((candidateTeams||[]).map(t=>teamDisplayNameForChart(t||'')).filter(Boolean))];
+  if(teams.length){
+    const matchesByTeam=teams
+      .map(team=>({team,recs:uniqueRosterRecords(rosterMatchesForPersonToken(name,team))}))
+      .filter(x=>x.recs.length);
+    // Caso normale: il cognome appartiene chiaramente a una sola delle due squadre in campo.
+    if(matchesByTeam.length===1) return matchesByTeam[0].team;
+    // Caso ambiguo: omonimi in entrambe le squadre della partita (es. due "Menolascina"
+    // che si affrontano). Senza altro contesto (riga marcatori con colonna squadra) non
+    // possiamo distinguerli con certezza, quindi non assegniamo un logo specifico:
+    // meglio nessun logo che quello sbagliato.
+    if(matchesByTeam.length>1) return '';
+  }
+  return teamForPersonToken(name,'',contextRows);
+}
 function extractInlineField(text,label){
   const source=String(text||'');
   const labels='Marcatori|MVP|Riposa|Autogol|Autogoal|Note';
@@ -3397,7 +3402,7 @@ function labelEmoji(label){
   if(k==='mvp' || k.includes('miglioreincampo')) return '⭐';
   return label;
 }
-function addPeopleLineSmart(parent,label,people,withImages,teamHint,contextRows){
+function addPeopleLineSmart(parent,label,people,withImages,teamHint,contextRows,candidateTeams){
   if(!people || !people.length) return;
   const row=document.createElement('div');
   row.style.cssText='display:flex;gap:8px;align-items:flex-start;margin-top:8px;flex-wrap:wrap';
@@ -3414,7 +3419,12 @@ function addPeopleLineSmart(parent,label,people,withImages,teamHint,contextRows)
     const pill=document.createElement('span');
     pill.style.cssText='display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--soft);border-radius:999px;padding:4px 8px;font-size:12px;font-weight:700';
     if(withImages){
-      const team=teamForPersonToken(name,teamHint,contextRows);
+      // Quando non c'è una squadra unica certa (teamHint vuoto) ma conosciamo le due
+      // squadre della partita (candidateTeams), restringiamo il match a quelle per
+      // evitare di prendere il logo di un omonimo di un'altra partita/giornata.
+      const team=teamHint
+        ? teamForPersonToken(name,teamHint,contextRows)
+        : teamForPersonTokenAmongTeams(name,candidateTeams,contextRows);
       if(team){
         const logo=imgOrInitialEl('team',team,'mini-logo');
         logo.title=team;
@@ -3873,7 +3883,7 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
     if(metaParts.length){ const meta=document.createElement('div'); meta.className='small'; meta.textContent=metaParts.join(' · '); left.appendChild(meta); }
     addPeopleLineSmart(left,'Marcatori casa',marcatoriCasa,true,casa,contextRows);
     addPeopleLineSmart(left,'Marcatori trasf.',marcatoriTrasferta,true,trasferta,contextRows);
-    if(!marcatoriCasa.length && !marcatoriTrasferta.length) addPeopleLineSmart(left,'Marcatori',marcatoriGenerici,true,'',contextRows);
+    if(!marcatoriCasa.length && !marcatoriTrasferta.length) addPeopleLineSmart(left,'Marcatori',marcatoriGenerici,true,'',contextRows,[casa,trasferta]);
     addPeopleLineSmart(left,'MVP',mvp,true,'',contextRows);
     const notePulita=cleanRiepilogoNote(note);
     if(notePulita){ const n=document.createElement('div'); n.className='small'; n.style.marginTop='8px'; n.textContent=notePulita; left.appendChild(n); }
