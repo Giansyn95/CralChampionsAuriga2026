@@ -10,18 +10,16 @@ I dati vengono letti da file CSV e le immagini da cartelle locali del progetto.
 ## Funzionalità principali
 
 - Home riepilogativa con:
-  - numero squadre;
-  - numero giocatori;
-  - partite disputate;
-  - stato aggiornamento dati a giornata `X/Y`;
+  - riepilogo squadre, giocatori, partite disputate e stato aggiornamento dati a giornata `X/Y`, raggruppati in un'unica card a griglia 2×2;
+  - card **Player of the Match**, con il primo della classifica MVP generale;
   - grafico top marcatori;
   - grafico punti squadre;
   - grafico andamento squadre con proiezione finale.
 - Scheda **Classifiche**:
   - classifica squadre;
-  - classifica marcatori;
-  - classifica MVP;
-  - classifica portieri.
+  - classifica marcatori, con criteri di spareggio a pari valore (vedi sezione dedicata);
+  - classifica MVP, con criteri di spareggio a pari valore;
+  - classifica portieri, con criteri di spareggio a pari valore.
 - Scheda **Statistiche**:
   - media gol per partita dei giocatori.
 - Scheda **Squadre**:
@@ -45,7 +43,7 @@ I dati vengono letti da file CSV e le immagini da cartelle locali del progetto.
   - miglior portiere;
   - autogol;
   - statistiche di giornata.
-- Scheda dettaglio giocatore al click sul nome.
+- Scheda dettaglio giocatore al click sul nome, con confronto diretto fra due giocatori dello stesso ruolo.
 - Scheda dettaglio portiere con logica dedicata.
 - Ricerca globale per squadra, giocatore o partita.
 - Tema chiaro/scuro con salvataggio della preferenza.
@@ -258,6 +256,37 @@ Miglior portiere
 
 ---
 
+## Criteri di ordinamento delle classifiche
+
+Le classifiche **Marcatori**, **MVP** e **Portieri** vengono riordinate automaticamente dal sito quando più giocatori sono a pari valore, in aggiunta all'ordine già scritto nel CSV.
+
+### Marcatori
+
+A pari gol, l'ordine di spareggio è:
+
+1. media gol/partita più alta;
+2. squadra meglio piazzata in `classifica_squadre.csv`;
+3. ordine alfabetico.
+
+### MVP e Portieri
+
+A pari punti, l'ordine di spareggio è:
+
+1. squadra meglio piazzata in `classifica_squadre.csv`;
+2. ordine alfabetico.
+
+### Colonna Nota: disattiva il riordino automatico
+
+Se il CSV (`classifica_marcatori.csv`, `classifica_mvp.csv` o `classifica_portieri.csv`) contiene una colonna **Nota** (o `Note`, `Commento`, `Descrizione`) e **almeno una riga** la riporta compilata, il riordino automatico viene disattivato per quel file: il sito mostra l'ordine già scritto nel CSV, così com'è.
+
+Questo permette di gestire a mano casi particolari (es. un pareggio deciso a voce dall'organizzatore) senza che il criterio automatico li sovrascriva.
+
+L'ordinamento manuale cliccando le intestazioni di colonna resta sempre disponibile e ha priorità su entrambi i comportamenti sopra descritti.
+
+Anche la colonna **Posizione** (se presente nel CSV) viene rinumerata automaticamente in base all'ordine finale mostrato a video.
+
+---
+
 ## CSV squadre
 
 Ogni squadra può avere un file dedicato con nome:
@@ -351,6 +380,31 @@ Per i portieri non vengono mostrati:
 - scheda MVP della giornata.
 
 La sezione **Miglior portiere** mostra le giornate in cui il portiere è stato premiato.
+
+---
+
+## Confronto giocatori
+
+Dalla scheda dettaglio di ogni giocatore è disponibile il bottone **Confronta con...**, che apre un pannello con il confronto diretto fra due giocatori.
+
+Il confronto è possibile **solo fra giocatori dello stesso ruolo**: un giocatore di movimento può essere confrontato solo con un altro giocatore di movimento, un portiere solo con un altro portiere. Questo perché le metriche disponibili per i due ruoli sono diverse e non sono comparabili fra loro.
+
+### Giocatori di movimento
+
+Confronto a grafico radar su tre assi:
+
+- gol;
+- media gol/partita;
+- punti MVP.
+
+### Portieri
+
+Confronto a grafico a barre (2D) su due assi:
+
+- gol subiti dalla squadra (un valore più basso è migliore, indicato nel tooltip);
+- punti Miglior Portiere.
+
+Se per un ruolo non esiste nessun altro giocatore da confrontare, il pannello lo segnala invece di mostrare un grafico vuoto.
 
 ---
 
@@ -470,6 +524,21 @@ L'obiettivo è mantenere una logica visiva legata all'identità delle squadre se
 
 ---
 
+## Player of the Match
+
+In Home, sotto al riepilogo squadre/giocatori/partite, è presente una card **Player of the Match** con animazione di ingresso e tilt 3D al tocco/mouse.
+
+La card mostra il **primo giocatore della classifica MVP generale**, con gli stessi identici criteri di ordinamento del tab Classifiche → MVP (vedi sezione "Criteri di ordinamento delle classifiche"), così resta sempre coerente con quanto mostrato in tabella.
+
+Il titolo della card cambia automaticamente in base allo stato del torneo:
+
+- **MVP attuale del torneo**, finché la giornata aggiornata (`X`) non ha raggiunto il totale giornate da calendario (`Y`);
+- **MVP Torneo**, quando `X` e `Y` coincidono, cioè a torneo concluso.
+
+Se la classifica MVP non è ancora disponibile o è vuota, la card semplicemente non viene mostrata.
+
+---
+
 ## Immagini
 
 Sono supportati questi formati:
@@ -546,6 +615,18 @@ https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js
 ```
 
 Se Chart.js non viene caricato, il sito continua a funzionare ma i grafici non vengono mostrati.
+
+---
+
+## Anteprima link e icona browser
+
+Il sito include meta tag **Open Graph** (titolo, descrizione, immagine) per mostrare un'anteprima quando il link viene condiviso su WhatsApp, Telegram o Facebook, e tag **favicon / apple-touch-icon** per l'icona nella scheda del browser e nei preferiti.
+
+Entrambi puntano a `immagini/logo_cral.png`: per cambiare l'icona basta sostituire quel file con uno nuovo, **quadrato e senza trasparenza** (idealmente 180×180px), mantenendo lo stesso nome.
+
+Titolo e descrizione Open Graph non contengono l'anno del torneo, così non serve aggiornarli a ogni edizione. L'unico riferimento legato all'edizione corrente è l'URL dell'immagine (`og:image`), che dipende dal nome del repository GitHub Pages: va aggiornato manualmente solo se in futuro si crea un repository con un nome diverso.
+
+> Nota: iOS mantiene una cache molto aggressiva dell'icona nei preferiti. Dopo aver pubblicato una modifica all'icona, su iPhone può essere necessario cancellare cronologia e dati di Safari (Impostazioni → Safari → Cancella cronologia e dati siti) e ri-aggiungere il sito ai preferiti perché il cambiamento sia visibile.
 
 ---
 
