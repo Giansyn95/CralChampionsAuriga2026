@@ -4,6 +4,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>CRAL Champions</title>
+  <!-- Open Graph: anteprima link su WhatsApp, Telegram, Facebook ecc.
+       Letti dai crawler senza eseguire JavaScript, quindi i valori restano fissi
+       (non vengono presi dal config.csv, che è dinamico). Nessun riferimento
+       all'anno/edizione per non doverli aggiornare a ogni torneo. -->
+  <meta property="og:title" content="CRAL Champions" />
+  <meta property="og:description" content="Classifiche, calendario, risultati e statistiche giocatori del torneo aziendale CRAL Champions" />
+  <meta property="og:image" content="https://cralauriga.github.io/CralChampions2026/immagini/logo_cral.png" />
+  <meta property="og:url" content="https://cralauriga.github.io/CralChampions2026/" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
   <!-- Preconnect: risparmia DNS/TLS quando Chart.js viene richiesto al volo nella Home -->
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
   <!-- Font: Oswald per titoli/hero/tab (stile scoreboard sportivo), Inter per corpo testo e tabelle (leggibilità e cifre tabellari allineate) -->
@@ -2694,6 +2704,26 @@ function isGoalkeeperProfile(base,keeperData){
   if(roleKind(base.role)==='keeper') return true;
   return (keeperData.entries.length>0 || keeperData.total>0) && !base.role;
 }
+function playerMediaGolProfile(name,candidates,team){
+  // Stessa identica logica di renderStatistiche(), così il dato nella card
+  // del giocatore coincide sempre con quello mostrato nel tab Statistiche.
+  // Se il giocatore non compare in quel calcolo, ritorna null e la card
+  // semplicemente non mostra la tile (nessun dato inventato).
+  const ms=teamMatchCounts();
+  for(const r of scorers()){
+    const giocatore=col(r,['giocatore','nome','calciatore','player'])||Object.values(r)[0];
+    if(!giocatore) continue;
+    const squadraRow=col(r,['squadra','team']);
+    const rowCandidates=playerProfileNameCandidates(giocatore,r);
+    const matches=rowMatchesAnyPlayerCandidate(r,candidates,team) || personTokensReferToSamePlayer(rowCandidates,candidates,squadraRow,team);
+    if(!matches) continue;
+    const gol=num(col(r,['gol','reti','goal','g']));
+    const partite=num(col(r,['partite','presenze','pg']))||ms[norm(squadraRow)]||0;
+    if(!partite) return null;
+    return {media:gol/partite,gol,partite};
+  }
+  return null;
+}
 function buildPlayerProfileData(name,contextRow){
   const cacheKey=profileCacheKey(name,contextRow);
   if(_profileDataCache.has(cacheKey)) return _profileDataCache.get(cacheKey);
@@ -2706,10 +2736,11 @@ function buildPlayerProfileData(name,contextRow){
   const goals=playerGoalProfile(fullName||name,candidates,team);
   const mvp=playerMvpProfile(fullName||name,candidates,team);
   const keeper=playerKeeperProfile(fullName||name,candidates,team);
+  const mediaGol=playerMediaGolProfile(fullName||name,candidates,team);
   const base={name:baseName||fullName||name,fullName,team,role,record,candidates,imageNames:record?playerImageNames(record.row):[fullName||name,name].filter(Boolean)};
   const isKeeper=isGoalkeeperProfile(base,keeper);
   const conceded=isKeeper ? teamGoalsConceded(team) : null;
-  const data={...base,isKeeper,goals,mvp,keeper,conceded};
+  const data={...base,isKeeper,goals,mvp,keeper,conceded,mediaGol};
   _profileDataCache.set(cacheKey,data);
   return data;
 }
@@ -2809,6 +2840,7 @@ function openPlayerProfile(name,contextRow){
   const body=document.createElement('div'); body.className='player-profile-body';
   const stats=document.createElement('div'); stats.className='player-profile-stats';
   if(!data.isKeeper || data.goals.total>0) stats.appendChild(profileStatTile('Gol segnati',formatProfileNumber(data.goals.total),data.goals.entries.length ? data.goals.entries.length+' giornate registrate' : 'Totale classifica',true));
+  if(data.mediaGol) stats.appendChild(profileStatTile('Media gol/partita',data.mediaGol.media.toFixed(2).replace('.',','),data.mediaGol.partite+' partite',false));
   if(data.isKeeper){
     stats.appendChild(profileStatTile('Punti Miglior portiere',formatProfileNumber(data.keeper.total),'',true));
     stats.appendChild(profileStatTile('Gol subiti squadra',data.conceded===null?'—':formatProfileNumber(data.conceded),data.team||'Squadra non indicata',false));
