@@ -245,7 +245,8 @@
       opacity:0;transition:opacity .25s}
     .motm-card::after{content:'';position:absolute;top:0;left:-60%;width:45%;height:100%;
       background:linear-gradient(75deg,transparent,rgba(255,255,255,.35),transparent);
-      transform:skewX(-18deg);animation:motmShine 2.6s ease-in-out .5s 1}
+      transform:skewX(-18deg);animation:motmShine 2.6s ease-in-out .5s 1;pointer-events:none}
+    .motm-card:hover::after{animation:motmShine .9s ease-in-out 0s 1}
     .motm-eyebrow{position:absolute;top:14px;left:20px;font-family:'Oswald',Arial,sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700;display:flex;align-items:center;gap:6px}
     .motm-photo{width:96px;height:96px;border-radius:22px;flex:0 0 auto;object-fit:cover;object-position:center;
       background:rgba(255,255,255,.14);border:2px solid var(--gold);box-shadow:0 10px 26px rgba(0,0,0,.35);
@@ -297,6 +298,54 @@
     .compare-chart-wrap{height:300px;position:relative}
     .compare-empty{padding:20px;text-align:center;color:var(--muted);font-size:14px}
     @media(max-width:560px){.compare-card{padding:16px;border-radius:20px}.compare-chart-wrap{height:260px}}
+
+    /* ── Wrapped di fine torneo ── */
+    .wrapped-banner{position:relative;overflow:hidden;border-radius:22px;padding:18px 20px;margin:18px 0;
+      display:flex;align-items:center;gap:14px;cursor:pointer;border:none;width:100%;text-align:left;
+      background:linear-gradient(120deg,#5b21b6,#9333ea 45%,#f5b942 100%);color:#fff;
+      box-shadow:0 14px 34px rgba(91,33,182,.35)}
+    .wrapped-banner:hover{filter:brightness(1.06)}
+    .wrapped-banner .wb-icon{font-size:30px;flex:0 0 auto}
+    .wrapped-banner .wb-text{min-width:0}
+    .wrapped-banner .wb-title{font-family:'Oswald',Arial,sans-serif;font-size:18px;font-weight:800;letter-spacing:.01em}
+    .wrapped-banner .wb-sub{font-size:12.5px;color:rgba(255,255,255,.85);margin-top:2px}
+    .wrapped-banner .wb-arrow{margin-left:auto;font-size:20px;flex:0 0 auto;opacity:.9}
+
+    .wrapped-overlay{position:fixed;inset:0;background:#0b0b14;z-index:10500;display:flex;flex-direction:column;
+      opacity:0;transition:opacity .2s}
+    .wrapped-overlay.is-open{opacity:1}
+    .wrapped-bars{display:flex;gap:5px;padding:12px 14px 0}
+    .wrapped-bar{flex:1;height:3px;border-radius:3px;background:rgba(255,255,255,.25);overflow:hidden}
+    .wrapped-bar i{display:block;height:100%;width:0%;background:#fff;border-radius:3px}
+    .wrapped-bar.is-done i{width:100%!important;transition:none}
+    .wrapped-bar.is-active i{transition:width linear}
+    .wrapped-close{position:absolute;top:10px;right:14px;width:38px;height:38px;border-radius:50%;border:none;
+      background:rgba(255,255,255,.12);color:#fff;font-size:20px;z-index:2;cursor:pointer}
+    .wrapped-stage{flex:1;position:relative;display:flex;align-items:center;justify-content:center;padding:20px;overflow:hidden}
+    .wrapped-tap-zone{position:absolute;top:0;bottom:0;width:38%;z-index:1}
+    .wrapped-tap-zone.left{left:0}
+    .wrapped-tap-zone.right{right:0}
+    .wrapped-slide{position:absolute;inset:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+      text-align:center;color:#fff;opacity:0;transform:scale(.94);transition:opacity .35s ease,transform .35s ease;padding:24px}
+    .wrapped-slide.is-current{opacity:1;transform:scale(1)}
+    .wrapped-slide .ws-eyebrow{font-family:'Oswald',Arial,sans-serif;font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:14px}
+    .wrapped-slide .ws-big{font-family:'Oswald',Arial,sans-serif;font-weight:900;font-size:clamp(40px,12vw,72px);line-height:1;color:#fff;margin-bottom:10px}
+    .wrapped-slide .ws-name{font-family:'Oswald',Arial,sans-serif;font-weight:800;font-size:clamp(24px,7vw,38px);line-height:1.1;margin-bottom:8px;text-transform:uppercase}
+    .wrapped-slide .ws-detail{font-size:15px;color:rgba(255,255,255,.78);max-width:380px;line-height:1.4}
+    .wrapped-slide .ws-sub{font-size:14px;color:var(--gold);font-weight:700;margin-bottom:14px}
+    .wrapped-slide .ws-photo{width:120px;height:120px;border-radius:28px;object-fit:cover;margin-bottom:18px;
+      border:3px solid var(--gold);box-shadow:0 16px 40px rgba(0,0,0,.4)}
+    .wrapped-slide .ws-logo{width:88px;height:88px;border-radius:22px;margin-bottom:18px;box-shadow:0 16px 40px rgba(0,0,0,.4)}
+    .wrapped-slide .ws-stats-row{display:flex;gap:22px;margin-top:8px;flex-wrap:wrap;justify-content:center}
+    .wrapped-slide .ws-stat .n{font-size:26px;font-weight:900;color:var(--gold)}
+    .wrapped-slide .ws-stat .l{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.65);margin-top:2px}
+    .wrapped-slide.cover{background:radial-gradient(circle at 50% 30%,rgba(147,51,234,.35),transparent 60%)}
+    .wrapped-footer{padding:14px 20px 22px;text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+    .wrapped-replay{background:none;border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:999px;padding:9px 18px;font-size:13px;font-weight:700;cursor:pointer}
+    .wrapped-share{background:linear-gradient(120deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);border:none;color:#fff;border-radius:999px;padding:9px 20px;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+    .wrapped-share:disabled{opacity:.6;cursor:wait}
+    @media(prefers-reduced-motion:reduce){.wrapped-slide{transition:opacity .2s}}
+    @media(max-width:560px){.wrapped-slide{inset:14px;padding:18px}.wrapped-slide .ws-photo{width:96px;height:96px;border-radius:22px}}
     .player-profile-stat.is-gold{background:linear-gradient(145deg,rgba(245,185,66,.23),var(--panel));border-color:rgba(245,185,66,.48)}
     .player-profile-stat .n{font-size:32px;line-height:1;font-weight:900;color:var(--blue);font-variant-numeric:tabular-nums}
     .player-profile-stat.is-gold .n{color:#b77900}
@@ -464,6 +513,7 @@ let state = {
   imagesReady: true, // false durante il caricamento manuale differito delle immagini
   search: '', activeTab: 'home',
   selectedRiepilogoGiornata: '',
+  riepilogoFilterInitialized: false,
   sortState: {}   // { tableId: { col, dir } }
 };
 let loadErrors = [];
@@ -2289,7 +2339,7 @@ function totalCalendarioGiornate(){
   return maxNumericGiornata(options) || options.length;
 }
 function latestRiepilogoGiornata(){
-  const options=riepilogoGiornateOptions(sectionFiles('riepilogo'));
+  const options=riepilogoGiornateOptions(sectionFiles('riepilogo'),{fast:true});
   return maxNumericGiornata(options) || options.length;
 }
 function homeProgressStatus(){
@@ -2322,6 +2372,9 @@ function renderHome(){
   });
   quad.appendChild(quadGrid);
   el.appendChild(quad);
+
+  const wrappedBanner=renderWrappedBanner();
+  if(wrappedBanner) el.appendChild(wrappedBanner);
 
   const motmCard=renderMotmCard();
   if(motmCard) el.appendChild(motmCard);
@@ -2563,11 +2616,13 @@ function isCaptainPlayer(obj){
 
 /* Cache dati derivati: evita di ricostruire rose, mappe e riepiloghi a ogni apertura scheda. */
 let _rosterIdentityCache = null;
+let _playerRoleCache = null;
 const _rosterMatchesCache = new Map();
 const _identityKeysCache = new Map();
 const _playerTeamMapCache = { value:null };
 const _playerRoleMapCache = { value:null };
 const _parsedRiepilogoCache = new Map();
+let _riepilogoPreloadToken = 0;
 const _profileDataCache = new Map();
 function clearDerivedDataCaches(){
   _rosterIdentityCache = null;
@@ -2576,8 +2631,10 @@ function clearDerivedDataCaches(){
   _playerTeamMapCache.value = null;
   _playerRoleMapCache.value = null;
   _parsedRiepilogoCache.clear();
+  _riepilogoPreloadToken++;
   _profileDataCache.clear();
   _teamRankMapCache = null;
+  _playerRoleCache = null;
 }
 function stableRowKey(row){
   if(!row) return '';
@@ -2841,6 +2898,542 @@ function isTournamentComplete(){
   const latest=latestRiepilogoGiornata();
   return !!total && !!latest && latest>=total;
 }
+function wrappedTopScorer(){
+  const f=sectionFiles('marcatori')[0];
+  if(!f) return null;
+  const rows=state.rows[f];
+  if(!rows||rows.length<2) return null;
+  const objRows=rowsToObjects(rows);
+  const sorted=csvHasAnyNote(rows) ? objRows : sortMarcatoriRowsByGoalsThenTeamRank(objRows);
+  const top=sorted[0]; if(!top) return null;
+  const giocatore=col(top,['giocatore','nome','calciatore','player'])||Object.values(top)[0]||'';
+  if(!giocatore) return null;
+  return { name:giocatore, team:col(top,['squadra','team'])||'', goals:num(col(top,['gol','reti','goal','g'])) };
+}
+function wrappedBestAverage(){
+  // Stessa fonte/formula della classifica marcatori e del tab Statistiche:
+  // gol/partite, con teamMatchCounts() come stima quando manca la colonna Partite.
+  const f=sectionFiles('marcatori')[0];
+  if(!f) return null;
+  const rows=rowsToObjects(state.rows[f]);
+  if(!rows.length) return null;
+  const ms=teamMatchCounts();
+  let best=null;
+  rows.forEach(r=>{
+    const giocatore=col(r,['giocatore','nome','calciatore','player'])||Object.values(r)[0]||'';
+    if(!giocatore) return;
+    const gol=num(col(r,['gol','reti','goal','g']));
+    const squadra=col(r,['squadra','team']);
+    const partite=num(col(r,['partite','presenze','pg']))||ms[norm(squadra)]||0;
+    if(!partite) return;
+    const media=gol/partite;
+    if(!best || media>best.media) best={name:giocatore,team:squadra,media,gol,partite};
+  });
+  return best;
+}
+function wrappedBestKeeper(){
+  const f=sectionFiles('portieri')[0];
+  if(!f) return null;
+  const rows=state.rows[f];
+  if(!rows||rows.length<2) return null;
+  const objRows=rowsToObjects(rows);
+  const sorted=csvHasAnyNote(rows) ? objRows : sortPortieriRowsByPointsThenTeamRank(objRows);
+  const top=sorted[0]; if(!top) return null;
+  const giocatore=col(top,['giocatore','nome','calciatore','player','portiere'])||Object.values(top)[0]||'';
+  if(!giocatore) return null;
+  return { name:giocatore, team:col(top,['squadra','team'])||'', points:num(col(top,['punti portiere','punti pt','puntipt','punti','pts','points'])) };
+}
+function wrappedChampionTeam(){
+  const f=sectionFiles('classifica_squadre')[0];
+  if(!f) return null;
+  const rows=rowsToObjects(state.rows[f]);
+  const top=rows[0]; if(!top) return null;
+  const team=col(top,['squadra','team','nome','club'])||Object.values(top)[0]||'';
+  if(!team) return null;
+  return {
+    team,
+    points:num(col(top,['punti finali','puntifinali','punti totali','punti','pts','points'])),
+    v:num(col(top,['v','vittorie','vinte'])),
+    n:num(col(top,['n','pareggi','pareggiate'])),
+    p:num(col(top,['p','sconfitte','perse']))
+  };
+}
+function wrappedCraziestMatch(){
+  // Partita con più gol complessivi fra tutte quelle giocate, leggendo dai
+  // CSV risultati con la stessa logica già usata per mostrare i risultati
+  // (resultText/goalsFromResult), così il dato è sempre coerente con il tab Risultati.
+  let best=null;
+  matchRows().forEach(r=>{
+    const res=resultText(r);
+    const totalGoals=goalsFromResult(res);
+    if(!totalGoals) return;
+    if(!best || totalGoals>best.totalGoals){
+      const [home,away]=matchTeamsFromRow(r);
+      best={home,away,result:res,totalGoals};
+    }
+  });
+  return best;
+}
+function wrappedTournamentTotals(){
+  const matches=matchRows();
+  let totalGoals=0, played=0;
+  matches.forEach(r=>{
+    const g=goalsFromResult(resultText(r));
+    if(g){ totalGoals+=g; played++; }
+  });
+  if(!played) return null;
+  return { totalGoals, played, avgPerMatch:totalGoals/played };
+}
+function wrappedSlidesData(){
+  // Calcola tutti i dati una sola volta, in un punto unico: se una slide non
+  // ha abbastanza dati (es. classifica marcatori vuota), viene scartata
+  // invece di mostrare numeri a zero o finti.
+  const slides=[];
+  slides.push({ type:'cover' });
+
+  const scorer=wrappedTopScorer();
+  if(scorer && scorer.goals>0) slides.push({ type:'scorer', data:scorer });
+
+  const avg=wrappedBestAverage();
+  if(avg && avg.media>0) slides.push({ type:'average', data:avg });
+
+  const mvp=currentMvpOfTournament();
+  if(mvp) slides.push({ type:'mvp', data:mvp });
+
+  const keeper=wrappedBestKeeper();
+  if(keeper && keeper.points>0) slides.push({ type:'keeper', data:keeper });
+
+  const champion=wrappedChampionTeam();
+  if(champion) slides.push({ type:'champion', data:champion });
+
+  const crazy=wrappedCraziestMatch();
+  if(crazy) slides.push({ type:'crazy', data:crazy });
+
+  const totals=wrappedTournamentTotals();
+  if(totals) slides.push({ type:'totals', data:totals });
+
+  slides.push({ type:'closing' });
+  return slides;
+}
+function buildWrappedSlideEl(slide){
+  const el=document.createElement('div'); el.className='wrapped-slide';
+  const d=slide.data;
+  if(slide.type==='cover'){
+    el.classList.add('cover');
+    const total=wrappedTournamentTotals();
+    el.innerHTML=`
+      <div class="ws-eyebrow">🎉 Torneo concluso</div>
+      <div class="ws-name" style="font-size:clamp(28px,8vw,44px)">CRAL Champions</div>
+      <div class="ws-detail">${total?esc(total.played)+' partite giocate, pronti a scoprire i numeri del torneo?':'Ecco i numeri del torneo!'}</div>`;
+  } else if(slide.type==='scorer'){
+    el.appendChild(imgOrInitialEl('player',[d.name],'ws-photo'));
+    el.innerHTML+=`
+      <div class="ws-eyebrow">💣 Capocannoniere</div>
+      <div class="ws-name">${esc(d.name)}</div>
+      <div class="ws-sub">${esc(d.team)}</div>
+      <div class="ws-big">${esc(d.goals)}</div>
+      <div class="ws-detail">gol segnati nel torneo</div>`;
+  } else if(slide.type==='average'){
+    el.appendChild(imgOrInitialEl('player',[d.name],'ws-photo'));
+    el.innerHTML+=`
+      <div class="ws-eyebrow">📈 Miglior media gol</div>
+      <div class="ws-name">${esc(d.name)}</div>
+      <div class="ws-sub">${esc(d.team)}</div>
+      <div class="ws-big">${esc(d.media.toFixed(2).replace('.',','))}</div>
+      <div class="ws-detail">gol a partita (${esc(d.gol)} gol in ${esc(d.partite)} partite)</div>`;
+  } else if(slide.type==='mvp'){
+    el.appendChild(imgOrInitialEl('player',d.imageNames||[d.name],'ws-photo'));
+    el.innerHTML+=`
+      <div class="ws-eyebrow">⭐ MVP del torneo</div>
+      <div class="ws-name">${esc(d.name)}</div>
+      <div class="ws-sub">${esc(d.team)}</div>
+      <div class="ws-big">${esc(formatProfileNumber(d.points))}</div>
+      <div class="ws-detail">punti MVP totalizzati</div>`;
+  } else if(slide.type==='keeper'){
+    el.appendChild(imgOrInitialEl('player',[d.name],'ws-photo'));
+    el.innerHTML+=`
+      <div class="ws-eyebrow">🧤 Miglior portiere</div>
+      <div class="ws-name">${esc(d.name)}</div>
+      <div class="ws-sub">${esc(d.team)}</div>
+      <div class="ws-big">${esc(formatProfileNumber(d.points))}</div>
+      <div class="ws-detail">punti come miglior portiere</div>`;
+  } else if(slide.type==='champion'){
+    el.appendChild(imgOrInitialEl('team',[d.team],'ws-logo'));
+    el.innerHTML+=`
+      <div class="ws-eyebrow">🏆 Squadra campione</div>
+      <div class="ws-name">${esc(d.team)}</div>
+      <div class="ws-big">${esc(formatProfileNumber(d.points))}</div>
+      <div class="ws-detail">punti in classifica</div>
+      <div class="ws-stats-row">
+        <div class="ws-stat"><div class="n">${esc(d.v)}</div><div class="l">Vittorie</div></div>
+        <div class="ws-stat"><div class="n">${esc(d.n)}</div><div class="l">Pareggi</div></div>
+        <div class="ws-stat"><div class="n">${esc(d.p)}</div><div class="l">Sconfitte</div></div>
+      </div>`;
+  } else if(slide.type==='crazy'){
+    el.innerHTML=`
+      <div class="ws-eyebrow">🔥 Partita più pazza</div>
+      <div class="ws-name">${esc(d.home)} ${esc(d.result)} ${esc(d.away)}</div>
+      <div class="ws-big">${esc(d.totalGoals)}</div>
+      <div class="ws-detail">gol totali in una sola partita</div>`;
+  } else if(slide.type==='totals'){
+    el.innerHTML=`
+      <div class="ws-eyebrow">📊 Numeri del torneo</div>
+      <div class="ws-big">${esc(d.totalGoals)}</div>
+      <div class="ws-detail">gol segnati in ${esc(d.played)} partite</div>
+      <div class="ws-stats-row">
+        <div class="ws-stat"><div class="n">${esc(d.avgPerMatch.toFixed(2).replace('.',','))}</div><div class="l">Gol a partita</div></div>
+      </div>`;
+  } else if(slide.type==='closing'){
+    el.innerHTML=`
+      <div class="ws-eyebrow">🙌 Grazie per esserci stati</div>
+      <div class="ws-name" style="font-size:clamp(24px,7vw,36px)">Alla prossima edizione!</div>
+      <div class="ws-detail">CRAL Champions</div>`;
+  }
+  return el;
+}
+const wrappedState={ slides:[], index:0, timer:null, barEls:[], paused:false, slideDuration:5000, videoBlob:null, videoReady:false };
+function wrappedCanShareFiles(){
+  // Mostra il pulsante "Condividi" solo se il browser supporta davvero la
+  // condivisione nativa di file video (navigator.share + canShare con files):
+  // su desktop questa API non esiste o non accetta file, quindi il pulsante
+  // resta nascosto invece di offrire un download "muto" senza spiegazione.
+  if(!navigator.share || !navigator.canShare) return false;
+  try{
+    const probe=new File([new Blob(['x'],{type:'video/mp4'})],'probe.mp4',{type:'video/mp4'});
+    return navigator.canShare({files:[probe]});
+  }catch(e){ return false; }
+}
+function wrappedLoadImageSafe(src){
+  // Carica un'immagine per disegnarla su canvas; in caso di errore o mancanza
+  // del file risolve comunque con null, così il video continua a generarsi
+  // mostrando solo testo invece di bloccarsi per una foto assente.
+  return new Promise(resolve=>{
+    if(!src){ resolve(null); return; }
+    const img=new Image();
+    if(/^https?:/i.test(src)) img.crossOrigin='anonymous';
+    img.onload=()=>resolve(img);
+    img.onerror=()=>resolve(null);
+    img.src=src;
+  });
+}
+function wrappedDrawRoundedImage(ctx,img,x,y,size,radius){
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(x+radius,y);
+  ctx.arcTo(x+size,y,x+size,y+size,radius);
+  ctx.arcTo(x+size,y+size,x,y+size,radius);
+  ctx.arcTo(x,y+size,x,y,radius);
+  ctx.arcTo(x,y,x+size,y,radius);
+  ctx.closePath();
+  ctx.clip();
+  // "cover": ritaglia l'immagine al quadrato mantenendo le proporzioni centrate.
+  const ratio=Math.max(size/img.width,size/img.height);
+  const dw=img.width*ratio, dh=img.height*ratio;
+  ctx.drawImage(img,x+(size-dw)/2,y+(size-dh)/2,dw,dh);
+  ctx.restore();
+}
+async function wrappedDrawSlideOnCanvas(ctx,slide,w,h){
+  const d=slide.data;
+  ctx.clearRect(0,0,w,h);
+
+  // Sfondo: stesso gradiente scuro/viola/oro usato nell'overlay del Wrapped.
+  const bg=ctx.createLinearGradient(0,0,w,h);
+  bg.addColorStop(0,'#0b0b14'); bg.addColorStop(1,'#1a1030');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+
+  const cx=w/2;
+  ctx.textAlign='center';
+
+  // Branding fisso in alto, così ogni clip è riconoscibile anche da sola.
+  ctx.fillStyle='rgba(255,255,255,.55)';
+  ctx.font='700 28px Oswald, Arial, sans-serif';
+  ctx.fillText('CRAL CHAMPIONS — WRAPPED', cx, 90);
+
+  ctx.fillStyle='#f5b942';
+  ctx.font='700 32px Oswald, Arial, sans-serif';
+
+  let photoSrc=null;
+  if(slide.type==='scorer'||slide.type==='average'||slide.type==='mvp'||slide.type==='keeper'){
+    const names=d.imageNames||[d.name];
+    photoSrc=imageFor('player',names[0]);
+  } else if(slide.type==='champion'){
+    photoSrc=imageFor('team',d.team);
+  }
+  const img=photoSrc?await wrappedLoadImageSafe(photoSrc):null;
+
+  let y=h*0.34;
+  if(img){
+    const size=300;
+    ctx.save();
+    ctx.shadowColor='rgba(0,0,0,.45)'; ctx.shadowBlur=40; ctx.shadowOffsetY=18;
+    wrappedDrawRoundedImage(ctx,img,cx-size/2,y-size*0.55,size,64);
+    ctx.restore();
+    ctx.strokeStyle='#f5b942'; ctx.lineWidth=6;
+    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(cx-size/2,y-size*0.55,size,size,64); ctx.stroke(); }
+    y+=size*0.62;
+  } else {
+    y+=20;
+  }
+
+  const eyebrowMap={
+    cover:'🎉 TORNEO CONCLUSO', scorer:'💣 CAPOCANNONIERE', average:'📈 MIGLIOR MEDIA GOL',
+    mvp:'⭐ MVP DEL TORNEO', keeper:'🧤 MIGLIOR PORTIERE', champion:'🏆 SQUADRA CAMPIONE',
+    crazy:'🔥 PARTITA PIÙ PAZZA', totals:'📊 NUMERI DEL TORNEO', closing:'🙌 GRAZIE!'
+  };
+  ctx.fillStyle='#f5b942';
+  ctx.font='700 30px Oswald, Arial, sans-serif';
+  ctx.fillText(eyebrowMap[slide.type]||'', cx, y); y+=70;
+
+  ctx.fillStyle='#ffffff';
+  ctx.font='800 56px Oswald, Arial, sans-serif';
+  const nameLine = d ? (d.name||(slide.type==='champion'?d.team:'')||(slide.type==='crazy'?(d.home+' '+d.result+' '+d.away):'')) : '';
+  if(nameLine){ wrappedWrapText(ctx,nameLine.toUpperCase(),cx,y,w-160,62); y+= (nameLine.length>22?140:74); }
+
+  if(d && d.team && slide.type!=='champion' && slide.type!=='crazy'){
+    ctx.fillStyle='#f5b942'; ctx.font='700 32px Oswald, Arial, sans-serif';
+    ctx.fillText(d.team, cx, y); y+=64;
+  }
+
+  ctx.fillStyle='#ffffff';
+  ctx.font='900 130px Oswald, Arial, sans-serif';
+  let bigText='';
+  if(slide.type==='scorer') bigText=String(d.goals);
+  else if(slide.type==='average') bigText=d.media.toFixed(2).replace('.',',');
+  else if(slide.type==='mvp'||slide.type==='keeper') bigText=String(d.points);
+  else if(slide.type==='champion') bigText=String(d.points);
+  else if(slide.type==='crazy') bigText=String(d.totalGoals);
+  else if(slide.type==='totals') bigText=String(d.totalGoals);
+  if(bigText){ ctx.fillText(bigText, cx, y+110); y+=190; }
+
+  ctx.fillStyle='rgba(255,255,255,.78)';
+  ctx.font='500 30px Arial, sans-serif';
+  let detail='';
+  if(slide.type==='cover') detail='Ecco i numeri di questa edizione!';
+  else if(slide.type==='scorer') detail='gol segnati nel torneo';
+  else if(slide.type==='average') detail=`gol a partita (${d.gol} gol in ${d.partite} partite)`;
+  else if(slide.type==='mvp') detail='punti MVP totalizzati';
+  else if(slide.type==='keeper') detail='punti come miglior portiere';
+  else if(slide.type==='champion') detail=`punti  ·  ${d.v}V ${d.n}N ${d.p}P`;
+  else if(slide.type==='crazy') detail='gol totali in una sola partita';
+  else if(slide.type==='totals') detail=`gol in ${d.played} partite — media ${d.avgPerMatch.toFixed(2).replace('.',',')} a partita`;
+  else if(slide.type==='closing') detail='Alla prossima edizione!';
+  if(detail) wrappedWrapText(ctx,detail,cx,y,w-200,40);
+}
+function wrappedWrapText(ctx,text,cx,y,maxWidth,lineHeight){
+  const words=String(text).split(' ');
+  let line=''; let lines=[];
+  words.forEach(word=>{
+    const test=line?line+' '+word:word;
+    if(ctx.measureText(test).width>maxWidth && line){ lines.push(line); line=word; }
+    else line=test;
+  });
+  if(line) lines.push(line);
+  lines.forEach((l,i)=>ctx.fillText(l,cx,y+i*lineHeight));
+}
+async function wrappedPrepareVideoInBackground(shareBtn){
+  // Genera il video silenziosamente mentre l'utente guarda le slide.
+  // Quando è pronto, aggiorna il pulsante. Se l'utente chiude il Wrapped
+  // prima che finisca, wrappedState.videoBlob resta null e il pulsante
+  // non viene trovato più nel DOM — tutto si pulisce da solo.
+  wrappedState.videoBlob=null; wrappedState.videoReady=false;
+  if(shareBtn){ shareBtn.disabled=true; shareBtn.innerHTML='⏳ Preparo il video…'; }
+  try{
+    const W=1080,H=1920;
+    const canvas=document.createElement('canvas'); canvas.width=W; canvas.height=H;
+    const ctx=canvas.getContext('2d');
+    const stream=canvas.captureStream(30);
+    const mimeType=['video/mp4;codecs=h264','video/mp4','video/webm;codecs=vp9','video/webm']
+      .find(t=>window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t))||'';
+    if(!window.MediaRecorder) return;
+    const recorder=new MediaRecorder(stream, mimeType?{mimeType}:undefined);
+    const chunks=[];
+    recorder.ondataavailable=ev=>{ if(ev.data&&ev.data.size) chunks.push(ev.data); };
+    const finished=new Promise(resolve=>{ recorder.onstop=resolve; });
+    recorder.start();
+    const perSlideMs=2200;
+    for(const slide of wrappedState.slides){
+      if(!document.getElementById('wrappedOverlay')) return; // overlay chiuso durante la generazione
+      await wrappedDrawSlideOnCanvas(ctx,slide,W,H);
+      await new Promise(r=>setTimeout(r,perSlideMs));
+    }
+    recorder.stop();
+    await finished;
+    const finalType=mimeType&&mimeType.includes('mp4')?'video/mp4':'video/webm';
+    wrappedState.videoBlob=new Blob(chunks,{type:finalType});
+    wrappedState.videoReady=true;
+    if(shareBtn && shareBtn.isConnected){ shareBtn.disabled=false; shareBtn.innerHTML='📲 Condividi su Instagram'; }
+  }catch(e){
+    if(shareBtn && shareBtn.isConnected){ shareBtn.disabled=false; shareBtn.innerHTML='📲 Condividi su Instagram'; }
+  }
+}
+function wrappedShareVideo(btn){
+  // Il blob è già stato generato in background da wrappedPrepareVideoInBackground.
+  // La chiamata a navigator.share avviene qui in modo SINCRONO nel click handler,
+  // senza await prima di essa: il browser riconosce la user gesture e non blocca.
+  if(!wrappedState.videoReady || !wrappedState.videoBlob){
+    alert('Il video è ancora in preparazione, attendi qualche secondo e riprova.');
+    return;
+  }
+  const finalType=wrappedState.videoBlob.type;
+  const ext=finalType==='video/mp4'?'mp4':'webm';
+  const file=new File([wrappedState.videoBlob],'cral-champions-wrapped.'+ext,{type:finalType});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    navigator.share({ files:[file], title:'CRAL Champions — Wrapped' })
+      .catch(e=>{ if(e&&e.name!=='AbortError') alert('Condivisione non riuscita: '+(e.message||e)); });
+  }
+}
+function closeWrapped(){
+  const old=document.getElementById('wrappedOverlay');
+  if(old) old.remove();
+  if(wrappedState.timer){ clearTimeout(wrappedState.timer); wrappedState.timer=null; }
+  wrappedState.videoBlob=null; wrappedState.videoReady=false;
+  document.removeEventListener('keydown',wrappedKeyHandler);
+  document.body.classList.remove('player-modal-open');
+}
+function wrappedKeyHandler(ev){
+  if(ev.key==='Escape') closeWrapped();
+  else if(ev.key==='ArrowRight') wrappedGoTo(wrappedState.index+1);
+  else if(ev.key==='ArrowLeft') wrappedGoTo(wrappedState.index-1);
+}
+function wrappedGoTo(newIndex){
+  if(newIndex>=wrappedState.slides.length){ closeWrapped(); return; }
+  if(newIndex<0) newIndex=0;
+  wrappedState.index=newIndex;
+  wrappedRenderCurrent();
+}
+function wrappedRenderCurrent(){
+  const stage=document.getElementById('wrappedStage');
+  if(!stage) return;
+  stage.querySelectorAll('.wrapped-slide').forEach(s=>s.remove());
+  const slideEl=buildWrappedSlideEl(wrappedState.slides[wrappedState.index]);
+  slideEl.classList.add('is-current');
+  stage.appendChild(slideEl);
+
+  wrappedState.barEls.forEach((bar,i)=>{
+    bar.classList.remove('is-active','is-done');
+    const fill=bar.querySelector('i');
+    fill.style.transition='none'; fill.style.width='0%';
+    if(i<wrappedState.index) bar.classList.add('is-done');
+  });
+  const activeBar=wrappedState.barEls[wrappedState.index];
+  if(activeBar){
+    activeBar.classList.add('is-active');
+    const fill=activeBar.querySelector('i');
+    requestAnimationFrame(()=>{
+      fill.style.transition=`width ${wrappedState.slideDuration}ms linear`;
+      fill.style.width='100%';
+    });
+  }
+  wrappedScheduleNext();
+}
+function wrappedScheduleNext(){
+  if(wrappedState.timer){ clearTimeout(wrappedState.timer); wrappedState.timer=null; }
+  if(wrappedState.paused) return;
+  wrappedState.timer=setTimeout(()=>wrappedGoTo(wrappedState.index+1),wrappedState.slideDuration);
+}
+function wrappedSetPaused(paused){
+  wrappedState.paused=paused;
+  const activeBar=wrappedState.barEls[wrappedState.index];
+  if(activeBar){
+    const fill=activeBar.querySelector('i');
+    if(paused){
+      fill.style.width=getComputedStyle(fill).width; // congela la barra al valore attuale
+      if(wrappedState.timer){ clearTimeout(wrappedState.timer); wrappedState.timer=null; }
+    } else {
+      // Riprende da dove si era fermata, ricalcolando il tempo restante in proporzione.
+      const rect=fill.parentElement.getBoundingClientRect();
+      const doneRatio=rect.width ? (fill.getBoundingClientRect().width/rect.width) : 0;
+      const remaining=Math.max(400,wrappedState.slideDuration*(1-doneRatio));
+      fill.style.transition=`width ${remaining}ms linear`;
+      fill.style.width='100%';
+      wrappedState.timer=setTimeout(()=>wrappedGoTo(wrappedState.index+1),remaining);
+    }
+  }
+}
+function openWrapped(){
+  const slides=wrappedSlidesData();
+  if(slides.length<=2) return; // solo cover+closing: niente dati interessanti da mostrare
+  wrappedState.slides=slides; wrappedState.index=0; wrappedState.paused=false;
+
+  const overlay=document.createElement('div'); overlay.id='wrappedOverlay'; overlay.className='wrapped-overlay';
+  const close=document.createElement('button'); close.className='wrapped-close'; close.innerHTML='×'; close.setAttribute('aria-label','Chiudi'); close.onclick=closeWrapped;
+  overlay.appendChild(close);
+
+  const bars=document.createElement('div'); bars.className='wrapped-bars';
+  wrappedState.barEls=slides.map(()=>{
+    const bar=document.createElement('div'); bar.className='wrapped-bar';
+    bar.innerHTML='<i></i>';
+    bars.appendChild(bar);
+    return bar;
+  });
+  overlay.appendChild(bars);
+
+  const stage=document.createElement('div'); stage.id='wrappedStage'; stage.className='wrapped-stage';
+  const tapLeft=document.createElement('div'); tapLeft.className='wrapped-tap-zone left';
+  const tapRight=document.createElement('div'); tapRight.className='wrapped-tap-zone right';
+  tapLeft.onclick=()=>wrappedGoTo(wrappedState.index-1);
+  tapRight.onclick=()=>wrappedGoTo(wrappedState.index+1);
+  stage.appendChild(tapLeft); stage.appendChild(tapRight);
+  overlay.appendChild(stage);
+
+  const footer=document.createElement('div'); footer.className='wrapped-footer';
+  const replay=document.createElement('button'); replay.type='button'; replay.className='wrapped-replay';
+  replay.textContent='🔁 Rivedi dall’inizio';
+  replay.onclick=()=>wrappedGoTo(0);
+  footer.appendChild(replay);
+
+  if(wrappedCanShareFiles()){
+    const shareBtn=document.createElement('button'); shareBtn.type='button'; shareBtn.className='wrapped-share';
+    shareBtn.innerHTML='📲 Condividi su Instagram';
+    shareBtn.onclick=()=>wrappedShareVideo(shareBtn);
+    footer.appendChild(shareBtn);
+    // Avvia la generazione video in background subito dopo che l'overlay è nel DOM,
+    // così quando l'utente clicca "Condividi" il blob è già pronto e navigator.share
+    // può essere chiamato sincrono nel click handler (senza await che rompe la user gesture).
+    requestAnimationFrame(()=>wrappedPrepareVideoInBackground(shareBtn));
+  }
+  overlay.appendChild(footer);
+
+  document.body.appendChild(overlay);
+  document.body.classList.add('player-modal-open');
+  document.addEventListener('keydown',wrappedKeyHandler);
+  requestAnimationFrame(()=>overlay.classList.add('is-open'));
+
+  // Pausa l'autoplay mentre il dito/mouse resta premuto sulla slide (come le Stories).
+  let pressTimer=null;
+  const startPress=()=>{ pressTimer=setTimeout(()=>wrappedSetPaused(true),180); };
+  const endPress=()=>{ if(pressTimer) clearTimeout(pressTimer); if(wrappedState.paused) wrappedSetPaused(false); };
+  stage.addEventListener('mousedown',startPress); stage.addEventListener('mouseup',endPress); stage.addEventListener('mouseleave',endPress);
+  stage.addEventListener('touchstart',startPress,{passive:true}); stage.addEventListener('touchend',endPress); stage.addEventListener('touchcancel',endPress);
+
+  // Swipe orizzontale per tornare indietro/avanti, in aggiunta al tap.
+  let touchStartX=null;
+  stage.addEventListener('touchstart',ev=>{ touchStartX=ev.touches[0].clientX; },{passive:true});
+  stage.addEventListener('touchend',ev=>{
+    if(touchStartX===null) return;
+    const dx=ev.changedTouches[0].clientX-touchStartX;
+    touchStartX=null;
+    if(Math.abs(dx)<40) return; // tocco semplice, non swipe: lo gestiscono già le tap-zone
+    if(dx<0) wrappedGoTo(wrappedState.index+1); else wrappedGoTo(wrappedState.index-1);
+  });
+
+  wrappedRenderCurrent();
+}
+function renderWrappedBanner(){
+  if(!isTournamentComplete()) return null;
+  const slides=wrappedSlidesData();
+  if(slides.length<=2) return null; // niente da mostrare: nessuna classifica/risultato disponibile
+  const btn=document.createElement('button'); btn.type='button'; btn.className='wrapped-banner';
+  btn.innerHTML=`
+    <span class="wb-icon">🎁</span>
+    <span class="wb-text">
+      <span class="wb-title">Goditi il Wrapped del torneo</span>
+      <span class="wb-sub">Scopri i numeri e i protagonisti di questa edizione</span>
+    </span>
+    <span class="wb-arrow">›</span>`;
+  btn.onclick=openWrapped;
+  return btn;
+}
 function currentMvpOfTournament(){
   // Prende il primo della classifica MVP, con gli stessi identici criteri
   // di ordinamento già usati nel tab Classifiche → MVP (punti → squadra →
@@ -2898,30 +3491,34 @@ function renderMotmCard(){
   card.appendChild(glare);
 
   wrap.appendChild(card);
-  card.addEventListener('animationend',()=>{ card.style.animation='none'; },{once:true});
-  attachCardTilt(card,glare);
+  card.addEventListener('animationend',()=>{
+    card.style.animation='none';
+    attachCardTilt(card,glare);
+  },{once:true});
+  // Fallback: se animationend non scatta (browser che ottimizza via l'animazione,
+  // o prefers-reduced-motion attivo senza media query), attiviamo il tilt comunque.
+  setTimeout(()=>{
+    if(!card._tiltAttached) attachCardTilt(card,glare);
+  }, 750);
   return wrap;
 }
 function attachCardTilt(card,glare){
-  // Tilt 3D al tocco/mouse: la card ruota leggermente seguendo la posizione
-  // del dito/puntatore, come una carta fisica vista in prospettiva. Niente
-  // librerie esterne: solo transform CSS aggiornato con requestAnimationFrame
-  // per restare fluido. Disattivato per chi preferisce animazioni ridotte.
+  if(card._tiltAttached) return; card._tiltAttached=true;
   if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const MAX_DEG=9;
+  const MAX_DEG=15; // più alto = effetto più visibile, spec. su card larga e bassa
   let rafId=null;
 
   function applyTilt(clientX,clientY){
     const rect=card.getBoundingClientRect();
-    const px=(clientX-rect.left)/rect.width;  // 0..1
-    const py=(clientY-rect.top)/rect.height;  // 0..1
+    const px=(clientX-rect.left)/rect.width;
+    const py=(clientY-rect.top)/rect.height;
     const rotY=(px-0.5)*2*MAX_DEG;
     const rotX=(0.5-py)*2*MAX_DEG;
     if(rafId) cancelAnimationFrame(rafId);
     rafId=requestAnimationFrame(()=>{
-      card.style.transform=`perspective(800px) scale3d(1.015,1.015,1.015) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
+      card.style.transform=`perspective(600px) scale3d(1.02,1.02,1.02) rotateX(${rotX.toFixed(2)}deg) rotateY(${rotY.toFixed(2)}deg)`;
       glare.style.opacity='1';
-      glare.style.background=`radial-gradient(circle at ${(px*100).toFixed(0)}% ${(py*100).toFixed(0)}%, rgba(255,255,255,.25), transparent 60%)`;
+      glare.style.background=`radial-gradient(circle at ${(px*100).toFixed(0)}% ${(py*100).toFixed(0)}%, rgba(255,255,255,.3), transparent 55%)`;
     });
   }
   function resetTilt(){
@@ -3245,15 +3842,36 @@ function closeCompareModal(){
   }
 }
 function compareEscHandler(ev){ if(ev.key==='Escape') closeCompareModal(); }
+function playerRoleCache(){
+  // Cache lazy: mappa nome normalizzato → isKeeper (bool), letta direttamente
+  // dalla colonna Ruolo dei CSV squadra. Molto più veloce di buildPlayerProfileData
+  // perché non fa lookup su classifica/riepilogo per ogni giocatore.
+  if(_playerRoleCache) return _playerRoleCache;
+  _playerRoleCache=new Map();
+  for(const f of sectionFiles('squadra')){
+    for(const r of rowsToObjects(state.rows[f])){
+      const nome=playerFullName(r); if(!nome) continue;
+      const ruolo=norm(col(r,['ruolo','role','r'])||'');
+      const isKeeper=ruolo==='p'||ruolo==='pt'||ruolo.includes('portiere')||ruolo.includes('goalkeeper');
+      _playerRoleCache.set(norm(nome),isKeeper);
+    }
+  }
+  return _playerRoleCache;
+}
 function comparablePlayersForRole(isKeeper,excludeName){
-  // Stessa lista usata per la ricerca giocatori, filtrata per ruolo coerente
-  // (un confronto ha senso solo tra giocatori dello stesso ruolo: i portieri
-  // usano metriche diverse dagli altri giocatori).
+  // Versione ottimizzata: usa la cache del ruolo letto dal CSV squadra invece
+  // di chiamare buildPlayerProfileData per ogni giocatore (era il collo di
+  // bottiglia che rendeva lenta la prima apertura del modal di confronto).
+  const cache=playerRoleCache();
   return allPlayersFromTeams()
     .filter(p=>{
       if(norm(p.nome)===norm(excludeName||'')) return false;
-      const data=buildPlayerProfileData(p.nome,null);
-      return !!data.isKeeper===!!isKeeper;
+      // Usa il ruolo dalla cache; se non trovato (giocatore in classifica ma
+      // non nel CSV squadra) cade back su isGoalkeeperProfile tramite il dato
+      // già calcolato nel profilo del giocatore corrente (playerAData.isKeeper).
+      const cachedRole=cache.get(norm(p.nome));
+      const pIsKeeper=cachedRole!==undefined ? cachedRole : (norm(p.ruolo||'').includes('portiere')||norm(p.ruolo||'')==='p'||norm(p.ruolo||'')==='pt');
+      return !!pIsKeeper===!!isKeeper;
     })
     .sort((a,b)=>a.nome.localeCompare(b.nome,'it'));
 }
@@ -3737,22 +4355,94 @@ function rowGiornataLabel(row,file){
   if(gn) return 'Giornata '+gn;
   return giornataLabelFromFile(file);
 }
-function riepilogoGiornateOptions(files){
-  const map=new Map();
-  files.forEach(f=>{
-    const data=parseRiepilogoFile(f);
-    const all=[...data.partite,...data.marcatori,...data.totaliMarcatori,...data.mvp,...data.portiere,...data.autogoal,...data.statistiche];
-    if(!all.length){ map.set(giornataKeyFromFile(f),giornataLabelFromFile(f)); return; }
-    all.forEach(r=>{
-      const key=rowGiornataKey(r,f);
-      const label=rowGiornataLabel(r,f);
-      if(key && label && !map.has(key)) map.set(key,label);
-    });
+function addRiepilogoOptionsFromParsed(map,file){
+  const data=parseRiepilogoFile(file);
+  const all=[...data.partite,...data.marcatori,...data.totaliMarcatori,...data.mvp,...data.portiere,...data.autogoal,...data.statistiche];
+  if(!all.length){
+    const key=giornataKeyFromFile(file), label=giornataLabelFromFile(file);
+    if(key && label && !map.has(key)) map.set(key,label);
+    return;
+  }
+  all.forEach(r=>{
+    const key=rowGiornataKey(r,file);
+    const label=rowGiornataLabel(r,file);
+    if(key && label && !map.has(key)) map.set(key,label);
   });
-  return [...map.entries()].sort((a,b)=>String(a[1]).localeCompare(String(b[1]),'it',{numeric:true}));
+}
+function sortRiepilogoOptions(options){
+  return [...options].sort((a,b)=>String(a[1]).localeCompare(String(b[1]),'it',{numeric:true}));
+}
+function riepilogoGiornateOptions(files, opts={}){
+  const fast=!!opts.fast;
+  const map=new Map();
+  const toParse=[];
+  files.forEach(f=>{
+    const n=giornataNumberFromText(f);
+    if(fast && n){
+      map.set(String(parseInt(n,10)),'Giornata '+String(parseInt(n,10)));
+      return;
+    }
+    if(fast && !_parsedRiepilogoCache.has(f)){
+      // Se il file sembra un riepilogo aggregato (es. riepilogo_giornate.csv),
+      // è necessario leggerlo subito per conoscere davvero l'ultima giornata.
+      // Per i file singoli già numerati invece bastano nome file e parsing in background.
+      const nf=norm(f);
+      if(files.length===1 || nf.includes('riepilogogiornate') || nf.includes('riepilogocompleto')) toParse.push(f);
+      else {
+        const key=giornataKeyFromFile(f), label=giornataLabelFromFile(f);
+        if(key && label && !map.has(key)) map.set(key,label);
+      }
+      return;
+    }
+    toParse.push(f);
+  });
+  toParse.forEach(f=>addRiepilogoOptionsFromParsed(map,f));
+  return sortRiepilogoOptions(map.entries());
+}
+function latestRiepilogoOption(files){
+  const options=riepilogoGiornateOptions(files,{fast:true});
+  return options.length ? options[options.length-1] : null;
+}
+function ensureDefaultRiepilogoFilter(files){
+  const options=riepilogoGiornateOptions(files,{fast:true});
+  if(!options.length){ state.selectedRiepilogoGiornata=''; state.riepilogoFilterInitialized=true; return options; }
+  if(!state.riepilogoFilterInitialized){
+    // Nuovo comportamento: al primo ingresso il tab Riepilogo parte filtrato sull'ultima giornata.
+    state.selectedRiepilogoGiornata=options[options.length-1][0];
+    state.riepilogoFilterInitialized=true;
+    return options;
+  }
+  if(!state.selectedRiepilogoGiornata) return options; // "Tutte le giornate" scelto esplicitamente dall'utente.
+  if(options.some(([key])=>key===state.selectedRiepilogoGiornata)) return options;
+  // Se il valore salvato non esiste più dopo un refresh dati, torna all'ultima disponibile.
+  state.selectedRiepilogoGiornata=options[options.length-1][0];
+  return options;
+}
+function riepilogoFileHasGiornata(file,key){
+  if(!key) return true;
+  const n=giornataNumberFromText(file);
+  if(n && String(parseInt(n,10))===String(key)) return true;
+  const parsed=parseRiepilogoFile(file);
+  const all=[...parsed.partite,...parsed.marcatori,...parsed.totaliMarcatori,...parsed.mvp,...parsed.portiere,...parsed.autogoal,...parsed.statistiche];
+  if(!all.length) return giornataKeyFromFile(file)===key;
+  return all.some(r=>rowGiornataKey(r,file)===key);
+}
+function scheduleRiepilogoBackgroundPreload(files, selectedKey){
+  const token=++_riepilogoPreloadToken;
+  // Non usare controlli che parsano i file dentro il sort: il preload deve davvero
+  // procedere in background, a chunk, dopo il rendering della giornata visibile.
+  const ordered=[...files].sort((a,b)=>giornataLabelFromFile(a).localeCompare(giornataLabelFromFile(b),'it',{numeric:true}));
+  const remaining=ordered.filter(f=>!_parsedRiepilogoCache.has(f));
+  function process(i){
+    if(token!==_riepilogoPreloadToken || i>=remaining.length) return;
+    if(remaining[i]) parseRiepilogoFile(remaining[i]);
+    if(remaining[i+1]) parseRiepilogoFile(remaining[i+1]);
+    setTimeout(()=>process(i+2),0);
+  }
+  if(remaining.length) setTimeout(()=>process(0),0);
 }
 function renderRiepilogoFilter(parent, files){
-  const options=riepilogoGiornateOptions(files);
+  const options=ensureDefaultRiepilogoFilter(files);
   const bar=document.createElement('div');
   bar.className='card';
   bar.style.cssText='margin-bottom:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap';
@@ -3777,8 +4467,9 @@ function renderRiepilogoFilter(parent, files){
     sel.value=state.selectedRiepilogoGiornata;
   } else {
     state.selectedRiepilogoGiornata='';
+    sel.value='';
   }
-  sel.onchange=()=>{ state.selectedRiepilogoGiornata=sel.value; renderRiepilogoGiornate(); };
+  sel.onchange=()=>{ state.riepilogoFilterInitialized=true; state.selectedRiepilogoGiornata=sel.value; renderRiepilogoGiornate(); };
   bar.appendChild(sel);
 
   const info=document.createElement('span');
@@ -4544,16 +5235,30 @@ function renderRiepilogoGiornate(){
   renderRiepilogoFilter(el, files);
   const content=document.createElement('div');
   el.appendChild(content);
+
+  const sorted=[...files].sort((a,b)=>giornataLabelFromFile(a).localeCompare(giornataLabelFromFile(b),'it',{numeric:true}));
+
+  // Nuovo flusso: il filtro viene inizializzato sull'ultima giornata. In quel caso
+  // renderizziamo subito SOLO quella giornata; il resto viene solo preriscaldato in
+  // background, così lo switch su altre giornate o su "Tutte" riusa cache già pronte.
+  const selectedKey=state.selectedRiepilogoGiornata;
+  const selectedFile=selectedKey ? sorted.find(f=>riepilogoFileHasGiornata(f,selectedKey)) : null;
+  const priorityFile=selectedFile || sorted[sorted.length-1];
+  const renderOnlySelected=!!selectedKey;
+
+  const orderedFiles=(selectedKey && priorityFile)
+    ? [priorityFile, ...sorted.filter(f=>f!==priorityFile)]
+    : sorted;
+
   let rendered=0;
 
-  files.sort((a,b)=>giornataLabelFromFile(a).localeCompare(giornataLabelFromFile(b),'it',{numeric:true})).forEach(f=>{
+  function renderOneFile(f){
     const parsed=parseRiepilogoFile(f);
     const dayPartite=parsed.partite.filter(r=>!state.selectedRiepilogoGiornata || rowGiornataKey(r,f)===state.selectedRiepilogoGiornata);
     const playerSearch=isRiepilogoPlayerSearch(parsed,f);
     const partite=playerSearch ? [] : filteredRiepilogoRows(parsed.partite,f);
     let marcatori=filteredRiepilogoRows(parsed.marcatori,f);
     const totaliMarcatori=filteredRiepilogoRows(parsed.totaliMarcatori||[],f);
-    // Una sola scheda: se mancano i marcatori dettagliati, usa i totali come fallback.
     if(!marcatori.length && totaliMarcatori.length) marcatori=totaliMarcatori;
     const mvp=filteredRiepilogoRows(parsed.mvp,f);
     const portiere=filteredRiepilogoRows(parsed.portiere,f);
@@ -4570,28 +5275,45 @@ function renderRiepilogoGiornate(){
       const card=document.createElement('div'); card.className='card riepilogo-card'; card.style.marginBottom='14px';
       const h=document.createElement('h2'); h.textContent=title; card.appendChild(h);
       renderKpiGrid(card,deriveStats(partite,marcatori,statisticheRiepilogo,totaliMarcatori));
-
       const ph=document.createElement('h3'); ph.style.cssText='margin:14px 0 0;color:var(--blue);font-size:18px;text-transform:uppercase'; ph.textContent='Partite della giornata';
       card.appendChild(ph);
       renderPartiteRiepilogo(card,partite,f,[...marcatori,...totaliMarcatori,...mvp,...portiere,...autogoal]);
-
       content.appendChild(card);
     }
     const tablePrefix='riepilogo_'+norm(f)+'_'+rowGiornataKey(allRows[0]||{},f);
     renderMiniSection(content,'Marcatori della giornata',marcatori,'player',playerSearch?'':'Nessun marcatore indicato.',tablePrefix+'_marcatori',['sezione','giocatore','marcatore','gol','goal','reti'],['gol','goal','reti']);
     renderMiniSection(content,'MVP della giornata',mvp,'player',playerSearch?'':'Nessun MVP indicato.',tablePrefix+'_mvp',['sezione','giocatore','mvp','punti'],['punti']);
-    // Durante una ricerca testuale non mostrare la scheda vuota del miglior portiere:
-    // se il giocatore filtrato non è portiere, la sezione scompare invece di mostrare
-    // "Nessun miglior portiere indicato.".
     const portiereEmptyText=(playerSearch||norm(state.search))?'':'Nessun miglior portiere indicato.';
     renderMiniSection(content,'Miglior portiere',portiere,'player',portiereEmptyText,tablePrefix+'_portiere',['sezione','giocatore','portiere','punti'],['punti']);
     renderMiniSection(content,'Autogol',autogoal,'player','',tablePrefix+'_autogol',['giocatore']);
-    // Sezione "Statistiche complete" nascosta dal riepilogo: i dati restano disponibili solo per i KPI in alto.
     rendered++;
-  });
+  }
 
-  if(!rendered) content.appendChild(buildEl('div','empty','Nessun risultato per il filtro selezionato o per la ricerca.'));
+  // Frame corrente: solo la giornata filtrata, che di default è l'ultima.
+  if(orderedFiles.length) renderOneFile(orderedFiles[0]);
+
+  if(renderOnlySelected){
+    if(!rendered) content.appendChild(buildEl('div','empty','Nessun risultato per il filtro selezionato o per la ricerca.'));
+    scheduleRiepilogoBackgroundPreload(sorted,selectedKey);
+    return;
+  }
+
+  // Solo quando l'utente seleziona "Tutte le giornate" renderizziamo anche il resto,
+  // sempre in chunk da 2 con setTimeout(0) per mantenere fluida l'interfaccia.
+  const remaining=orderedFiles.slice(1);
+  function processChunk(i){
+    if(i>=remaining.length){
+      if(!rendered) content.appendChild(buildEl('div','empty','Nessun risultato per il filtro selezionato o per la ricerca.'));
+      return;
+    }
+    renderOneFile(remaining[i]);
+    renderOneFile(remaining[i+1]);
+    setTimeout(()=>processChunk(i+2),0);
+  }
+  if(remaining.length) setTimeout(()=>processChunk(0),0);
+  else if(!rendered) content.appendChild(buildEl('div','empty','Nessun risultato per il filtro selezionato o per la ricerca.'));
 }
+
 
 
 function renderMatchSection(sectionId, kind){
@@ -4682,6 +5404,7 @@ async function fetchText(path,fresh){
 async function loadAuto(fresh){
   setStatus('Caricamento in corso…');
   state.files={}; state.rows={}; loadErrors=[]; state.imagesReady=true;
+  state.selectedRiepilogoGiornata=''; state.riepilogoFilterInitialized=false;
   clearImageProbeCache();
   clearDerivedDataCaches();
   invalidateHeroLogo();
@@ -4847,6 +5570,7 @@ function refreshAfterManualLoad(csv,img){
 async function loadFromDirectoryHandle(dir){
   manualLoadActive = true;
   state.files={}; state.rows={}; state.imageURLs={}; state.imageAliases={}; loadErrors=[]; state.imagesReady=false;
+  state.selectedRiepilogoGiornata=''; state.riepilogoFilterInitialized=false;
   clearImageProbeCache();
   clearDerivedDataCaches();
   invalidateHeroLogo();
@@ -4915,6 +5639,7 @@ async function loadFolder(fileList){
   manualLoadActive = true;
   const files=[...fileList]; // snapshot: l'input viene svuotato subito dopo la selezione
   state.files={}; state.rows={}; state.imageURLs={}; state.imageAliases={}; loadErrors=[]; state.imagesReady=false;
+  state.selectedRiepilogoGiornata=''; state.riepilogoFilterInitialized=false;
   clearImageProbeCache();
   clearDerivedDataCaches();
   invalidateHeroLogo();
