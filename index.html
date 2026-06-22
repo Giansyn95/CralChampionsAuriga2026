@@ -492,7 +492,19 @@
     @media(max-width:560px){.wrap{padding:14px}.grid{grid-template-columns:1fr}.hero{padding:22px}.match{display:block}.score{margin:6px 0}.riepilogo-match .match-team{max-width:none}.riepilogo-match .match-name{font-size:16px}.riepilogo-match .score{text-align:left;font-size:26px;min-width:0}.riepilogo-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.riepilogo-kpi.is-wide,.riepilogo-kpi.is-match-max,.riepilogo-kpi.is-scorer{grid-column:1/-1}.tableWrap{font-size:13px}th,td{padding:9px 9px}table.tbl-aligned th[data-col-role=rank],table.tbl-aligned td[data-col-role=rank]{min-width:40px;max-width:54px}table.tbl-aligned th[data-col-role=section],table.tbl-aligned td[data-col-role=section]{min-width:70px;max-width:110px}table.tbl-aligned th[data-col-role=team],table.tbl-aligned td[data-col-role=team],table.tbl-aligned th[data-col-role=person],table.tbl-aligned td[data-col-role=person]{min-width:118px;max-width:150px}table.tbl-aligned th[data-col-role=metric],table.tbl-aligned td[data-col-role=metric]{min-width:48px;max-width:68px}.tbl-logo,.tbl-avatar{width:24px;height:24px}.mini-logo{width:22px;height:22px}.name-cell{gap:7px}.player{gap:9px}.player-link-inline{display:inline-block;line-height:1.18}.chart-container.is-tall{height:380px}}
     @media print{.toolbar,.tabs,.search,#errorBanner{display:none}.section{display:block}.wrap{max-width:none}.card,.hero{box-shadow:none}}
     @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
-  </style>
+  
+
+    /* Fix Wrapped desktop: aumenta la distanza tra testi nelle story verticali
+       senza toccare mobile/tablet piccoli, già gestiti da @media(max-width:560px). */
+    @media (min-width:721px){
+      .wrapped-slide{gap:10px}
+      .wrapped-slide .ws-name{line-height:1.08;margin-bottom:14px}
+      .wrapped-slide .ws-sub{margin-bottom:18px}
+      .wrapped-slide .ws-big{line-height:.96;margin:12px 0 18px}
+      .wrapped-slide .ws-detail{margin-top:6px;line-height:1.55}
+      .wrapped-slide .ws-stats-row{margin-top:22px}
+    }
+</style>
 </head>
 <body>
 <div class="wrap">
