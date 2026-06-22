@@ -433,6 +433,120 @@
     .match-vs{color:var(--muted);font-weight:700;font-size:12px;flex:0 0 auto}
     .match-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .match-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+
+    /* ── Calendario: andamento torneo e badge stato giornata ── */
+    .calendar-progress-card{
+      margin-bottom:14px;
+      padding:16px;
+      background:linear-gradient(145deg,var(--panel),rgba(15,90,168,.06));
+    }
+    .calendar-progress-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:14px;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+    .calendar-progress-head h2{margin:0}
+    .calendar-progress-head p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.45;
+    }
+    .calendar-progress-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+      gap:10px;
+    }
+    .calendar-progress-kpi{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--soft);
+      padding:11px 12px;
+    }
+    .calendar-progress-kpi .n{
+      color:var(--blue);
+      font-size:24px;
+      line-height:1;
+      font-weight:900;
+      font-variant-numeric:tabular-nums;
+    }
+    .calendar-progress-kpi .l{
+      display:block;
+      margin-top:5px;
+      color:var(--muted);
+      font-size:10.5px;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+    .calendar-round-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin:0 0 10px;
+    }
+    .calendar-round-head h3{
+      margin:0;
+      color:var(--blue);
+      font-size:18px;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      font-family:'Oswald',Arial,Helvetica,sans-serif;
+    }
+    .calendar-status-badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+      border-radius:999px;
+      padding:5px 10px;
+      border:1px solid var(--line);
+      background:var(--soft);
+      color:var(--muted);
+      font-size:11.5px;
+      line-height:1;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+      white-space:nowrap;
+    }
+    .calendar-status-badge.is-played{
+      background:rgba(18,128,92,.13);
+      border-color:rgba(18,128,92,.25);
+      color:var(--green);
+    }
+    .calendar-status-badge.is-next{
+      background:rgba(245,185,66,.18);
+      border-color:rgba(245,185,66,.42);
+      color:#9a6500;
+    }
+    [data-theme="dark"] .calendar-status-badge.is-next{color:var(--gold)}
+    .calendar-status-badge.is-todo{
+      background:rgba(15,90,168,.10);
+      border-color:rgba(15,90,168,.20);
+      color:var(--blue);
+    }
+    .calendar-match-status{
+      margin-left:auto;
+      flex:0 0 auto;
+    }
+    .match.is-calendar-played{border-left:4px solid var(--green)}
+    .match.is-calendar-next{
+      border-left:4px solid var(--gold);
+      background:linear-gradient(90deg,rgba(245,185,66,.12),transparent 70%);
+    }
+    .match.is-calendar-todo{border-left:4px solid rgba(15,90,168,.22)}
+    @media(max-width:560px){
+      .calendar-progress-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .calendar-match-status{margin:8px 0 0}
+    }
+
+
     /* ── Riepilogo giornata: KPI compatti e partite più leggibili ── */
     .riepilogo-card{padding:18px}
     .riepilogo-kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:12px 0 16px}
@@ -4201,6 +4315,130 @@ function parseBlockCalendar(rawText){
   return giornate;
 }
 
+
+function calendarioRoundKey(value){
+  return giornataNumberFromText(value) || norm(value);
+}
+
+function calendarioPlayedKeys(){
+  const files=sectionFiles('riepilogo');
+  const keys=new Set();
+
+  riepilogoGiornateOptions(files,{fast:true}).forEach(([key,label])=>{
+    const k=calendarioRoundKey(key)||calendarioRoundKey(label);
+    if(k) keys.add(k);
+  });
+
+  return keys;
+}
+
+function buildCalendarioProgress(labels){
+  const ordered=(labels||[])
+    .map((label,index)=>({
+      label:String(label||'').trim(),
+      key:calendarioRoundKey(label),
+      index,
+      num:parseInt(giornataNumberFromText(label)||'',10)
+    }))
+    .filter(x=>x.label && x.key);
+
+  ordered.sort((a,b)=>{
+    const an=Number.isFinite(a.num)?a.num:9999+a.index;
+    const bn=Number.isFinite(b.num)?b.num:9999+b.index;
+    if(an!==bn) return an-bn;
+    return a.label.localeCompare(b.label,'it',{numeric:true});
+  });
+
+  const played=calendarioPlayedKeys();
+  const firstTodo=ordered.find(x=>!played.has(x.key));
+
+  const map=new Map();
+
+  ordered.forEach(item=>{
+    const isPlayed=played.has(item.key);
+    const isNext=firstTodo && item.key===firstTodo.key;
+
+    map.set(item.key,{
+      label:isPlayed?'Disputata':(isNext?'Prossima da disputare':'Da disputare'),
+      cls:isPlayed?'is-played':(isNext?'is-next':'is-todo'),
+      icon:isPlayed?'✅':(isNext?'🔥':'⏳'),
+      played:isPlayed,
+      next:isNext
+    });
+  });
+
+  return {
+    map,
+    total:ordered.length,
+    playedCount:ordered.filter(x=>played.has(x.key)).length,
+    next:firstTodo||null
+  };
+}
+
+function calendarioStatusBadge(status){
+  const badge=document.createElement('span');
+  badge.className='calendar-status-badge '+(status?.cls||'is-todo');
+  badge.textContent=(status?.icon?status.icon+' ':'')+(status?.label||'Da disputare');
+  return badge;
+}
+
+function renderCalendarioProgressCard(el, progress){
+  if(!progress || !progress.total) return;
+
+  const card=document.createElement('div');
+  card.className='card calendar-progress-card';
+
+  const head=document.createElement('div');
+  head.className='calendar-progress-head';
+
+  const titleBox=document.createElement('div');
+
+  const h=document.createElement('h2');
+  h.textContent='Andamento torneo';
+
+  const p=document.createElement('p');
+  p.textContent='Lo stato delle giornate viene aggiornato automaticamente in base ai riepiloghi CSV caricati.';
+
+  titleBox.appendChild(h);
+  titleBox.appendChild(p);
+
+  const globalBadge=document.createElement('span');
+  globalBadge.className='calendar-status-badge '+(progress.playedCount>=progress.total?'is-played':(progress.next?'is-next':'is-todo'));
+  globalBadge.textContent=progress.playedCount>=progress.total?'🏁 Torneo completato':(progress.next?'🔥 Prossima: '+progress.next.label:'⏳ In attesa');
+
+  head.appendChild(titleBox);
+  head.appendChild(globalBadge);
+  card.appendChild(head);
+
+  const grid=document.createElement('div');
+  grid.className='calendar-progress-grid';
+
+  [
+    [progress.playedCount+'/'+progress.total,'Giornate disputate'],
+    [Math.max(progress.total-progress.playedCount,0),'Giornate da disputare'],
+    [progress.next?progress.next.label:'Completato','Prossima giornata']
+  ].forEach(([n,l])=>{
+    const kpi=document.createElement('div');
+    kpi.className='calendar-progress-kpi';
+
+    const nv=document.createElement('div');
+    nv.className='n';
+    nv.textContent=n;
+
+    const lb=document.createElement('span');
+    lb.className='l';
+    lb.textContent=l;
+
+    kpi.appendChild(nv);
+    kpi.appendChild(lb);
+    grid.appendChild(kpi);
+  });
+
+  card.appendChild(grid);
+  el.appendChild(card);
+}
+
+
 function renderCalendarioBlock(el, files){
   try {
   // Raccoglie tutte le giornate da tutti i file calendario
@@ -4211,6 +4449,9 @@ function renderCalendarioBlock(el, files){
   });
 
   if(!allGiornate.length){ el.appendChild(buildEl('div','empty','Nessuna giornata trovata nel calendario.')); return; }
+
+  const calendarioProgress=buildCalendarioProgress(allGiornate.map(g=>g.label));
+  renderCalendarioProgressCard(el,calendarioProgress);
 
   const q=norm(state.search);
 
@@ -4224,13 +4465,23 @@ function renderCalendarioBlock(el, files){
     if(q&&!partiteFiltrate.length) return;
 
     const card=document.createElement('div'); card.className='card'; card.style.marginBottom='14px';
-    const h=document.createElement('h3'); h.style.cssText='margin:0 0 10px;color:var(--blue);font-size:18px;text-transform:uppercase;letter-spacing:.04em';
-    h.textContent=g.label; card.appendChild(h);
+    const roundKey=calendarioRoundKey(g.label);
+    const roundStatus=calendarioProgress.map.get(roundKey)||{label:'Da disputare',cls:'is-todo',icon:'⏳'};
+
+    const head=document.createElement('div');
+    head.className='calendar-round-head';
+
+    const h=document.createElement('h3');
+    h.textContent=g.label;
+
+    head.appendChild(h);
+    head.appendChild(calendarioStatusBadge(roundStatus));
+    card.appendChild(head);
 
     const inner=document.createElement('div'); inner.className='tableWrap';
 
     partiteFiltrate.forEach(p=>{
-      const m=document.createElement('div'); m.className='match';
+      const m=document.createElement('div'); m.className='match '+(roundStatus.played?'is-calendar-played':(roundStatus.next?'is-calendar-next':'is-calendar-todo'));
 
       if(p.riposa&&!p.casa&&!p.trasferta){
         // Riga solo riposo
@@ -5409,6 +5660,19 @@ function renderMatchSection(sectionId, kind){
 
   // Fallback: tabella piatta (risultati o calendario semplice)
   const rows=files.flatMap(f=>rowsToObjects(state.rows[f]).map(r=>({...r,_file:f})));
+  let calendarioProgress=null;
+
+  if(kind==='calendario'){
+    const labels=[...new Set(rows.map(r=>{
+      const g=firstPresent(r,[['giornata','turno','round']]);
+      if(g) return giornataNumberFromText(g)?('Giornata '+giornataNumberFromText(g)):String(g);
+      return giornataLabelFromFile(r._file);
+    }).filter(Boolean))];
+
+    calendarioProgress=buildCalendarioProgress(labels);
+    renderCalendarioProgressCard(el,calendarioProgress);
+  }
+
   const filtered=filterRows(rows);
   const card=document.createElement('div'); card.className='card';
   const h=document.createElement('h2'); h.textContent=kind==='risultati'?'RISULTATI PARTITE':'CALENDARIO'; card.appendChild(h);
@@ -5418,7 +5682,15 @@ function renderMatchSection(sectionId, kind){
     const home=col(r,['squadra casa','casa','home','squadra 1'])||Object.values(r)[0]||'';
     const away=col(r,['squadra trasferta','trasferta','ospite','away','squadra 2'])||Object.values(r)[1]||'';
     const score=col(r,['risultato','score'])||[col(r,['gol casa','reti casa']),col(r,['gol trasferta','reti trasferta'])].filter(x=>x!==''&&x!=null).join(' - ');
-    const m=document.createElement('div'); m.className='match';
+
+    let rowStatus=null;
+    if(kind==='calendario' && calendarioProgress){
+      const g=firstPresent(r,[['giornata','turno','round']]);
+      const label=g ? (giornataNumberFromText(g)?('Giornata '+giornataNumberFromText(g)):String(g)) : giornataLabelFromFile(r._file);
+      rowStatus=calendarioProgress.map.get(calendarioRoundKey(label));
+    }
+
+    const m=document.createElement('div'); m.className='match '+(rowStatus?(rowStatus.played?'is-calendar-played':(rowStatus.next?'is-calendar-next':'is-calendar-todo')):'');
 
     const teamsWrap=document.createElement('div'); teamsWrap.className='match-teams';
     const homeTeam=document.createElement('div'); homeTeam.className='match-team';
@@ -5442,7 +5714,15 @@ function renderMatchSection(sectionId, kind){
     left.appendChild(meta);
 
     const sc=document.createElement('div'); sc.className='score'; sc.textContent=score||'-';
-    m.appendChild(left); m.appendChild(sc); inner.appendChild(m);
+    m.appendChild(left);
+
+    if(kind==='calendario' && rowStatus){
+      const badge=calendarioStatusBadge(rowStatus);
+      badge.classList.add('calendar-match-status');
+      m.appendChild(badge);
+    }
+
+    m.appendChild(sc); inner.appendChild(m);
   });
   card.appendChild(inner); el.appendChild(card);
 }
