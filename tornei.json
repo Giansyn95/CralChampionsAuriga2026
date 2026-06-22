@@ -1,0 +1,15 @@
+{
+  "titolo": "CRAL Champions Auriga",
+  "sottotitolo": "Scegli l'edizione del torneo da consultare",
+  "logo": "tornei/2026/immagini/logo_cral.png",
+  "tornei": [
+    {
+      "anno": "2026",
+      "titolo": "CRAL Champions - Auriga 2026",
+      "descrizione": "Classifiche, calendario, risultati, squadre e statistiche giocatori.",
+      "url": "tornei/2026/",
+      "stato": "Edizione attuale",
+      "attivo": true
+    }
+  ]
+}
