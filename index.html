@@ -5,793 +5,398 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
 
   <title>CRAL Champions Auriga</title>
-  <meta name="description" content="Landing page CRAL Champions Auriga: accedi al torneo attuale o consulta l'archivio delle edizioni passate." />
+  <meta name="description" content="Torneo aziendale CRAL Champions Auriga: classifiche, risultati e archivio storico di tutte le edizioni." />
 
-  <link rel="icon" type="image/png" href="tornei/2026/immagini/logo_cral.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="tornei/2026/immagini/logo_cral.png" />
-  <link rel="apple-touch-icon" href="tornei/2026/immagini/logo_cral.png" />
+  <!-- Favicon punta al logo condiviso nella root, indipendente dall'edizione -->
+  <link rel="icon" type="image/png" href="immagini/logo_cral.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="immagini/logo_cral.png" />
 
-  <!-- Stessi font del torneo 2026: Oswald per titoli/bottoni, Inter per testi -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg:#eef3f9;
-      --panel:#fff;
-      --ink:#142033;
-      --muted:#667085;
-      --line:#dbe5f2;
-      --blue:#0f5aa8;
-      --dark:#071d3a;
-      --soft:#f3f7fc;
-      --gold:#f5b942;
-      --green:#12805c;
-      --red:#b42318;
-      --shadow:rgba(7,29,58,.10);
+      --bg:#eef3f9; --panel:#fff; --ink:#142033; --muted:#667085; --line:#dbe5f2;
+      --blue:#0f5aa8; --dark:#071d3a; --soft:#f3f7fc; --gold:#f5b942;
+      --green:#12805c; --green-soft:rgba(18,128,92,.13);
+      --red:#b42318; --shadow:rgba(7,29,58,.10);
     }
-
     [data-theme="dark"] {
-      --bg:#0d1520;
-      --panel:#162033;
-      --ink:#e2eaf5;
-      --muted:#8fa4be;
-      --line:#243450;
-      --blue:#3b82f6;
-      --dark:#0a1628;
-      --soft:#1a2d47;
-      --gold:#f5b942;
-      --green:#34d399;
-      --red:#f87171;
-      --shadow:rgba(0,0,0,.35);
+      --bg:#0d1520; --panel:#162033; --ink:#e2eaf5; --muted:#8fa4be; --line:#243450;
+      --blue:#3b82f6; --dark:#0a1628; --soft:#1a2d47; --gold:#f5b942;
+      --green:#34d399; --green-soft:rgba(52,211,153,.14);
+      --red:#f87171; --shadow:rgba(0,0,0,.35);
     }
 
-    * {
-      box-sizing:border-box;
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:'Inter',Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);transition:background .3s,color .3s}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1180px;margin:auto;padding:24px}
+
+    /* ── Hero ── */
+    .hero{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--dark),var(--blue));color:#fff;border-radius:26px;padding:30px;margin-bottom:20px;box-shadow:0 14px 36px var(--shadow)}
+    .hero::before{content:'';position:absolute;right:-80px;top:-80px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(245,185,66,.30),transparent 68%);pointer-events:none}
+    .hero::after{content:'';position:absolute;left:-60px;bottom:-80px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.07),transparent 68%);pointer-events:none}
+    .hero-inner{position:relative;z-index:1;display:flex;gap:20px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .brand{display:flex;gap:18px;align-items:center;min-width:0}
+    .hero-logo{width:68px;height:68px;border-radius:18px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);padding:6px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .hero-logo img{width:100%;height:100%;object-fit:contain;border-radius:12px}
+    .hero-logo-fallback{font-family:'Oswald',Arial,Helvetica,sans-serif;font-size:18px;font-weight:700;color:var(--gold);letter-spacing:.03em}
+    .hero h1{margin:0;font-size:clamp(26px,4.5vw,50px);letter-spacing:.02em;line-height:1;text-transform:uppercase;font-family:'Oswald',Arial,Helvetica,sans-serif;font-weight:700}
+    .hero-sub{margin:8px 0 0;color:#dbeaff;font-size:16px;line-height:1.45}
+    .theme-btn{width:44px;height:44px;border:1px solid rgba(255,255,255,.28);border-radius:14px;background:rgba(255,255,255,.13);color:#fff;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:20px;transition:background .15s,transform .15s;flex:0 0 auto}
+    .theme-btn:hover{background:rgba(255,255,255,.22);transform:translateY(-1px)}
+
+    /* ── Layout ── */
+    .layout{display:flex;flex-direction:column;gap:20px}
+
+    /* ── Torneo corrente ── */
+    .current-card{position:relative;overflow:hidden;border-radius:26px;padding:28px 28px 28px 30px;background:radial-gradient(circle at 88% 14%,rgba(245,185,66,.36),transparent 34%),linear-gradient(135deg,var(--dark) 0%,#1a4a8a 100%);border:1px solid rgba(255,255,255,.14);box-shadow:0 18px 48px rgba(7,29,58,.25);color:#fff;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:24px;align-items:center}
+    .current-card::before{content:'';position:absolute;inset:-40% auto auto -20%;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.10),transparent 68%);pointer-events:none}
+    .current-card > *{position:relative;z-index:1}
+    .current-label{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:5px 11px;background:rgba(245,185,66,.22);border:1px solid rgba(245,185,66,.42);color:var(--gold);font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+    .current-card h2{margin:0 0 8px;font-family:'Oswald',Arial,Helvetica,sans-serif;font-size:clamp(26px,4.5vw,44px);font-weight:700;text-transform:uppercase;letter-spacing:.01em;color:#fff;line-height:1.05}
+    .current-card p{margin:0;color:#c8dbf5;font-size:15px;line-height:1.55;max-width:560px}
+    .current-meta{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
+    .season-badge{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 10px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.24);color:rgba(255,255,255,.90);font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+    .primary-btn{display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:13px 20px;border-radius:14px;border:0;background:linear-gradient(120deg,var(--gold),#ffe6a3);color:#071d3a;font-family:'Oswald',Arial,Helvetica,sans-serif;font-size:16px;font-weight:700;letter-spacing:.02em;text-decoration:none;cursor:pointer;box-shadow:0 10px 26px rgba(245,185,66,.30);transition:transform .16s,box-shadow .16s}
+    .primary-btn:hover{transform:translateY(-2px);box-shadow:0 14px 32px rgba(245,185,66,.38)}
+    .current-anno{display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right;flex:0 0 auto}
+    .current-anno-num{font-family:'Oswald',Arial,Helvetica,sans-serif;font-size:clamp(54px,10vw,100px);font-weight:700;line-height:.9;letter-spacing:.01em;color:var(--gold);text-shadow:0 10px 30px rgba(0,0,0,.22)}
+    .current-anno-stagione{font-family:'Oswald',Arial,Helvetica,sans-serif;font-size:18px;font-weight:600;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.08em}
+
+    /* ── Card generica ── */
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 8px 22px var(--shadow)}
+
+    /* ── Sezione archivio ── */
+    .section-head{display:flex;align-items:baseline;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+    .section-head h2{margin:0;font-family:'Oswald',Arial,Helvetica,sans-serif;font-size:clamp(20px,3vw,28px);font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.02em}
+    .section-head p{margin:0;color:var(--muted);font-size:14px}
+    .archive-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+
+    /* ── Card archivio ── */
+    .archive-card{position:relative;overflow:hidden;min-height:160px;border-radius:20px;padding:20px;background:linear-gradient(150deg,var(--panel),var(--soft));border:1px solid var(--line);box-shadow:0 6px 18px var(--shadow);text-decoration:none;color:var(--ink);display:flex;flex-direction:column;justify-content:space-between;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+    .archive-card:hover{transform:translateY(-4px);box-shadow:0 14px 34px var(--shadow);border-color:var(--blue)}
+    /* Striscia colorata in testa: verde=concluso, oro=in-corso */
+    .archive-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;border-radius:20px 20px 0 0;background:var(--line)}
+    .archive-card.stato-concluso::before{background:var(--green)}
+    .archive-card.stato-in-corso::before{background:var(--gold)}
+    .archive-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+    .archive-anno{font-family:'Oswald',Arial,Helvetica,sans-serif;font-size:46px;font-weight:700;color:var(--blue);line-height:1}
+    .archive-stagione{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:4px 9px;border:1px solid var(--line);background:var(--soft);color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;flex:0 0 auto}
+    .archive-stato{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-top:10px;align-self:flex-start}
+    .archive-stato.stato-concluso{background:var(--green-soft);border:1px solid rgba(18,128,92,.22);color:var(--green)}
+    .archive-stato.stato-in-corso{background:rgba(245,185,66,.16);border:1px solid rgba(245,185,66,.40);color:#9a6500}
+    [data-theme="dark"] .archive-stato.stato-in-corso{color:var(--gold)}
+    .archive-desc{margin:10px 0 0;color:var(--muted);font-size:13px;line-height:1.45}
+    .archive-arrow{position:absolute;right:16px;bottom:14px;font-size:24px;color:var(--gold);font-weight:900;line-height:1}
+    .archive-empty{border:1px dashed var(--line);border-radius:18px;padding:22px;text-align:center;color:var(--muted);font-size:14px;display:none}
+
+    /* ── Footer ── */
+    footer{margin-top:24px;padding-bottom:8px;color:var(--muted);font-size:13px;text-align:center}
+
+    /* ── Responsive ── */
+    @media(max-width:720px){
+      .wrap{padding:14px}
+      .hero{padding:20px}
+      .current-card{grid-template-columns:1fr;padding:22px}
+      .current-anno{flex-direction:row;align-items:baseline;gap:10px}
+      .current-anno-num{font-size:54px}
+      .primary-btn{width:100%;justify-content:center}
+      .archive-grid{grid-template-columns:1fr 1fr}
     }
-
-    html {
-      scroll-behavior:smooth;
+    @media(max-width:420px){
+      .archive-grid{grid-template-columns:1fr}
     }
-
-    body {
-      margin:0;
-      font-family:'Inter',Arial,Helvetica,sans-serif;
-      background:
-        radial-gradient(circle at 12% 10%, rgba(245,185,66,.18), transparent 30%),
-        radial-gradient(circle at 85% 12%, rgba(15,90,168,.14), transparent 34%),
-        var(--bg);
-      color:var(--ink);
-      transition:background .3s,color .3s;
-    }
-
-    a {
-      color:inherit;
-    }
-
-    .wrap {
-      max-width:1180px;
-      margin:auto;
-      padding:24px;
-    }
-
-    .hero {
-      position:relative;
-      overflow:hidden;
-      background:linear-gradient(135deg,var(--dark),var(--blue));
-      color:#fff;
-      border-radius:26px;
-      padding:30px;
-      margin-bottom:18px;
-      box-shadow:0 14px 36px var(--shadow);
-    }
-
-    .hero::after {
-      content:'';
-      position:absolute;
-      right:-90px;
-      top:-95px;
-      width:260px;
-      height:260px;
-      border-radius:50%;
-      background:radial-gradient(circle,rgba(245,185,66,.32),transparent 68%);
-      pointer-events:none;
-    }
-
-    .hero-top {
-      position:relative;
-      z-index:1;
-      display:flex;
-      gap:20px;
-      align-items:center;
-      justify-content:space-between;
-      flex-wrap:wrap;
-    }
-
-    .brand {
-      display:flex;
-      gap:20px;
-      align-items:center;
-      min-width:0;
-    }
-
-    .hero-logo {
-      width:72px;
-      height:72px;
-      border-radius:18px;
-      object-fit:contain;
-      background:rgba(255,255,255,.12);
-      padding:6px;
-      flex:0 0 auto;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      overflow:hidden;
-    }
-
-    .hero-logo img {
-      width:100%;
-      height:100%;
-      object-fit:contain;
-      border-radius:12px;
-    }
-
-    .fallback-logo {
-      width:100%;
-      height:100%;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-family:'Oswald',Arial,Helvetica,sans-serif;
-      font-size:20px;
-      font-weight:700;
-      color:var(--gold);
-      letter-spacing:.03em;
-    }
-
-    h1 {
-      margin:0;
-      font-size:clamp(28px,5vw,54px);
-      letter-spacing:.02em;
-      line-height:1;
-      text-transform:uppercase;
-      font-family:'Oswald',Arial,Helvetica,sans-serif;
-      font-weight:700;
-    }
-
-    .hero p {
-      margin:10px 0 0;
-      color:#dbeaff;
-      font-size:17px;
-      line-height:1.45;
-    }
-
-    .theme-btn {
-      width:44px;
-      height:44px;
-      border:0;
-      border-radius:14px;
-      background:rgba(255,255,255,.14);
-      color:#fff;
-      border:1px solid rgba(255,255,255,.28);
-      cursor:pointer;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      font-size:20px;
-      line-height:1;
-      transition:transform .15s, background .15s;
-    }
-
-    .theme-btn:hover {
-      transform:translateY(-1px);
-      background:rgba(255,255,255,.20);
-    }
-
-    .layout {
-      display:grid;
-      grid-template-columns:minmax(0,1fr);
-      gap:16px;
-    }
-
-    .card {
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:22px;
-      padding:20px;
-      box-shadow:0 8px 22px var(--shadow);
-    }
-
-    .welcome-card {
-      display:grid;
-      grid-template-columns:minmax(0,1.25fr) minmax(220px,.75fr);
-      gap:18px;
-      align-items:center;
-      background:
-        radial-gradient(circle at top right, rgba(245,185,66,.18), transparent 34%),
-        linear-gradient(145deg,var(--panel),var(--soft));
-    }
-
-    .eyebrow {
-      display:inline-flex;
-      align-items:center;
-      gap:7px;
-      border-radius:999px;
-      padding:6px 10px;
-      background:rgba(15,90,168,.10);
-      color:var(--blue);
-      font-size:12px;
-      font-weight:800;
-      text-transform:uppercase;
-      letter-spacing:.05em;
-      margin-bottom:12px;
-    }
-
-    h2 {
-      margin:0 0 10px;
-      color:var(--blue);
-      font-size:clamp(24px,3vw,34px);
-      line-height:1.05;
-      font-family:'Oswald',Arial,Helvetica,sans-serif;
-      font-weight:700;
-      text-transform:uppercase;
-      letter-spacing:.01em;
-    }
-
-    .card p {
-      margin:0;
-      color:var(--muted);
-      line-height:1.55;
-      font-size:15px;
-    }
-
-    .jump-actions {
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:16px;
-    }
-
-    .jump-link,
-    .primary-btn,
-    .secondary-btn {
-      border:0;
-      border-radius:14px;
-      padding:11px 15px;
-      font-family:'Oswald',Arial,Helvetica,sans-serif;
-      font-size:15px;
-      font-weight:700;
-      letter-spacing:.02em;
-      text-decoration:none;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:8px;
-      cursor:pointer;
-      transition:transform .16s ease, box-shadow .16s ease, background .16s ease, border-color .16s ease;
-    }
-
-    .jump-link {
-      background:var(--soft);
-      color:var(--blue);
-      border:1px solid var(--line);
-    }
-
-    .jump-link:hover,
-    .primary-btn:hover,
-    .secondary-btn:hover {
-      transform:translateY(-2px);
-    }
-
-    .quick-panel {
-      border-radius:20px;
-      padding:18px;
-      background:linear-gradient(135deg,var(--dark),var(--blue));
-      color:#fff;
-      min-height:180px;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-      overflow:hidden;
-      position:relative;
-    }
-
-    .quick-panel::after {
-      content:'⚽';
-      position:absolute;
-      right:-10px;
-      bottom:-18px;
-      font-size:96px;
-      opacity:.13;
-      transform:rotate(-12deg);
-    }
-
-    .quick-panel strong {
-      position:relative;
-      z-index:1;
-      display:block;
-      font-family:'Oswald',Arial,Helvetica,sans-serif;
-      font-size:28px;
-      line-height:1;
-      text-transform:uppercase;
-      letter-spacing:.02em;
-    }
-
-    .quick-panel span {
-      position:relative;
-      z-index:1;
-      color:#dbeaff;
-      font-size:13px;
-      line-height:1.45;
-      margin-top:8px;
-      display:block;
-    }
-
-    .section-title {
-      margin:10px 0 0;
-      display:flex;
-      align-items:end;
-      justify-content:space-between;
-      gap:14px;
-      flex-wrap:wrap;
-    }
-
-    .section-title h2 {
-      margin:0;
-    }
-
-    .section-title p {
-      margin:0;
-      color:var(--muted);
-      font-size:14px;
-    }
-
-    .current-card {
-      position:relative;
-      overflow:hidden;
-      display:grid;
-      grid-template-columns:minmax(0,1fr) auto;
-      gap:18px;
-      align-items:center;
-      padding:24px;
-      border-radius:26px;
-      color:#fff;
-      background:
-        radial-gradient(circle at 85% 15%, rgba(245,185,66,.38), transparent 34%),
-        linear-gradient(135deg,var(--dark),var(--blue));
-      border:1px solid rgba(255,255,255,.16);
-      box-shadow:0 18px 46px rgba(7,29,58,.22);
-      scroll-margin-top:18px;
-    }
-
-    .current-card::before {
-      content:'';
-      position:absolute;
-      inset:-40% auto auto -20%;
-      width:380px;
-      height:380px;
-      border-radius:50%;
-      background:radial-gradient(circle,rgba(255,255,255,.12),transparent 68%);
-      pointer-events:none;
-    }
-
-    .current-card > * {
-      position:relative;
-      z-index:1;
-    }
-
-    .current-year {
-      color:var(--gold);
-      font-family:'Oswald',Arial,Helvetica,sans-serif;
-      font-size:clamp(58px,12vw,108px);
-      font-weight:700;
-      line-height:.9;
-      letter-spacing:.01em;
-      text-align:right;
-      text-shadow:0 10px 30px rgba(0,0,0,.22);
-    }
-
-    .current-card h2 {
-      color:#fff;
-      margin:0 0 8px;
-      font-size:clamp(30px,5vw,48px);
-    }
-
-    .current-card p {
-      color:#dbeaff;
-      max-width:650px;
-    }
-
-    .primary-btn {
-      margin-top:18px;
-      color:#071d3a;
-      background:linear-gradient(120deg,var(--gold),#ffe6a3);
-      box-shadow:0 12px 28px rgba(245,185,66,.28);
-    }
-
-    .secondary-btn {
-      color:var(--blue);
-      background:var(--panel);
-      border:1px solid var(--line);
-    }
-
-    .archive-section {
-      scroll-margin-top:18px;
-    }
-
-    .years {
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:14px;
-      margin-top:14px;
-    }
-
-    .year-card {
-      position:relative;
-      overflow:hidden;
-      min-height:165px;
-      border-radius:22px;
-      padding:20px;
-      background:
-        radial-gradient(circle at top right, rgba(245,185,66,.26), transparent 35%),
-        linear-gradient(150deg,var(--panel),var(--soft));
-      border:1px solid var(--line);
-      box-shadow:0 8px 22px var(--shadow);
-      text-decoration:none;
-      color:var(--ink);
-      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-
-    .year-card:hover {
-      transform:translateY(-4px);
-      box-shadow:0 16px 36px var(--shadow);
-      border-color:var(--blue);
-    }
-
-    .year {
-      font-family:'Oswald',Arial,Helvetica,sans-serif;
-      font-size:50px;
-      font-weight:700;
-      color:var(--blue);
-      line-height:1;
-    }
-
-    .badge {
-      display:inline-flex;
-      margin-top:12px;
-      border-radius:999px;
-      padding:6px 10px;
-      background:rgba(15,90,168,.12);
-      color:var(--blue);
-      font-weight:800;
-      font-size:12px;
-      text-transform:uppercase;
-      letter-spacing:.04em;
-    }
-
-    .year-card p {
-      margin:16px 0 0;
-      color:var(--muted);
-      line-height:1.45;
-      padding-right:20px;
-    }
-
-    .arrow {
-      position:absolute;
-      right:18px;
-      bottom:14px;
-      font-size:28px;
-      color:var(--gold);
-      font-weight:900;
-    }
-
-    .empty {
-      margin-top:14px;
-      border:1px dashed var(--line);
-      background:var(--panel);
-      color:var(--muted);
-    }
-
-    footer {
-      margin-top:24px;
-      color:var(--muted);
-      font-size:13px;
-      text-align:center;
-    }
-
-    @media(max-width:760px) {
-      .wrap {
-        padding:14px;
-      }
-
-      .hero {
-        padding:22px;
-      }
-
-      .brand {
-        align-items:flex-start;
-      }
-
-      .hero-logo {
-        width:62px;
-        height:62px;
-        border-radius:16px;
-      }
-
-      .welcome-card,
-      .current-card {
-        grid-template-columns:1fr;
-      }
-
-      .quick-panel {
-        min-height:150px;
-      }
-
-      .current-year {
-        text-align:left;
-        font-size:72px;
-      }
-
-      .primary-btn,
-      .secondary-btn,
-      .jump-link {
-        width:100%;
-      }
-    }
-
-    @media(prefers-reduced-motion:reduce) {
-      * {
-        transition:none!important;
-        scroll-behavior:auto!important;
-      }
+    @media(prefers-reduced-motion:reduce){
+      *{transition:none!important;scroll-behavior:auto!important}
     }
   </style>
 </head>
 
 <body>
   <div class="wrap">
+
     <header class="hero">
-      <div class="hero-top">
+      <div class="hero-inner">
         <div class="brand">
           <div class="hero-logo" id="logoBox">
-            <div class="fallback-logo">CRAL</div>
+            <span class="hero-logo-fallback">CRAL</span>
           </div>
-
           <div>
             <h1 id="pageTitle">CRAL Champions Auriga</h1>
-            <p id="pageSubtitle">Dove ogni partita pesa, ogni gol lascia il segno.</p>
+            <p class="hero-sub" id="pageSubtitle">Dove ogni partita pesa, ogni gol lascia il segno.</p>
           </div>
         </div>
-
         <button class="theme-btn" id="btnTheme" type="button" title="Passa al tema scuro" aria-label="Cambia tema chiaro/scuro">🌙</button>
       </div>
     </header>
 
     <main class="layout">
-      <section class="card welcome-card" aria-labelledby="welcomeTitle">
-        <div>
-          <span class="eyebrow">🏆 Qui si fa la storia del calcio</span>
-          <h2 id="welcomeTitle">Benvenuto nel cuore della competizione</h2>
-          <p>
-            Da qui puoi entrare subito nel <a href="#torneo-attuale" class="text-jump"><strong>torneo attuale</strong></a>
-            oppure scendere nell'<a href="#archivio-tornei" class="text-jump"><strong>archivio</strong></a>
-            per consultare le edizioni passate. Ogni anno ha la sua pagina dedicata con classifiche,
-            calendario, risultati, squadre e statistiche.
-          </p>
 
-          <div class="jump-actions" aria-label="Scorciatoie landing">
-            <a class="jump-link" href="#torneo-attuale">⚡ Torneo attuale</a>
-            <a class="jump-link" href="#archivio-tornei">📚 Archivio</a>
-          </div>
-        </div>
-
-        <div class="quick-panel">
+      <!-- Torneo corrente -->
+      <section aria-labelledby="currentTitle">
+        <div class="current-card">
           <div>
-            <strong>La sfida continua</strong>
-            <span>Consulta il torneo in corso o rivivi le stagioni precedenti.</span>
+            <div class="current-label" id="currentLabel">🔥 Edizione in corso</div>
+            <h2 id="currentTitle">Torneo attuale</h2>
+            <p id="currentDesc">Classifiche, calendario, risultati e statistiche.</p>
+            <div class="current-meta" id="currentMeta"></div>
+            <a class="primary-btn" id="currentBtn" href="#">Apri l'edizione ›</a>
           </div>
-          <span>Scorri, scegli l'anno e apri l'edizione che vuoi seguire.</span>
-        </div>
-      </section>
-
-      <section id="torneo-attuale" class="current-card" aria-labelledby="currentTitle">
-        <div>
-          <span class="eyebrow">🔥 Edizione in primo piano</span>
-          <h2 id="currentTitle">Torneo attuale</h2>
-          <p id="currentDescription">
-            Classifiche, calendario, risultati, squadre e statistiche giocatori.
-          </p>
-          <a class="primary-btn" id="currentButton" href="tornei/2026/">Vai al torneo attuale ›</a>
-        </div>
-        <div class="current-year" id="currentYear">2026</div>
-      </section>
-
-      <section id="archivio-tornei" class="archive-section" aria-labelledby="archiveTitle">
-        <div class="section-title">
-          <div>
-            <h2 id="archiveTitle">Archivio tornei</h2>
-            <p>Seleziona un'edizione passata per consultare dati, squadre e risultati.</p>
+          <div class="current-anno">
+            <span class="current-anno-num" id="currentAnnoNum">—</span>
+            <span class="current-anno-stagione" id="currentAnnoStagione"></span>
           </div>
         </div>
+      </section>
 
-        <div class="years" id="archiveYears"></div>
-
-        <div class="card empty" id="archiveEmpty">
-          Al momento non ci sono tornei passati in archivio.
+      <!-- Archivio -->
+      <section aria-labelledby="archiveTitle">
+        <div class="card">
+          <div class="section-head">
+            <h2 id="archiveTitle">Archivio edizioni</h2>
+            <p id="archiveCount"></p>
+          </div>
+          <div class="archive-grid" id="archiveGrid"></div>
+          <div class="archive-empty" id="archiveEmpty">
+            Nessuna edizione passata in archivio ancora.
+          </div>
         </div>
       </section>
+
     </main>
 
-    <footer>
-      CRAL Champions Auriga · Torneo aziendale
-    </footer>
+    <footer id="pageFooter">CRAL Champions Auriga · Torneo aziendale</footer>
   </div>
 
   <script>
-    const DEFAULT_CONFIG = {
+    /* ══════════════════════════════════
+       FALLBACK se tornei.json non carica
+       ══════════════════════════════════ */
+    const FALLBACK = {
       titolo: 'CRAL Champions Auriga',
       sottotitolo: 'Dove ogni partita pesa, ogni gol lascia il segno.',
-      logo: 'tornei/2026/immagini/logo_cral.png',
-      tornei: [
-        {
-          anno: '2026',
-          titolo: 'CRAL Champions - Auriga 2026',
-          descrizione: 'Classifiche, calendario, risultati, squadre e statistiche giocatori.',
-          url: 'tornei/2026/',
-          stato: 'Edizione attuale',
-          attivo: true
-        }
-      ]
+      logo: 'immagini/logo_cral.png',
+      tornei: [{
+        id: '2026', anno: '2026', stagione: '',
+        titolo: 'CRAL Champions - Auriga 2026',
+        descrizione: 'Classifiche, calendario, risultati, squadre e statistiche giocatori.',
+        url: 'tornei/2026/', stato: 'in-corso', corrente: true, ordine: 20260, attivo: true
+      }]
     };
 
-    function escapeText(value) {
-      return String(value ?? '');
-    }
-
+    /* ── Tema ── */
     function initTheme() {
       const saved = localStorage.getItem('cral_theme');
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme:dark)').matches;
-      const dark = saved === 'dark' || (saved === null && prefersDark);
+      const dark = saved === 'dark' || (saved === null && window.matchMedia('(prefers-color-scheme:dark)').matches);
       applyTheme(dark, false);
     }
-
     function applyTheme(dark, save = true) {
       document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-
       const btn = document.getElementById('btnTheme');
       btn.textContent = dark ? '☀️' : '🌙';
       btn.title = dark ? 'Passa al tema chiaro' : 'Passa al tema scuro';
-      btn.setAttribute('aria-label', dark ? 'Passa al tema chiaro' : 'Passa al tema scuro');
-
-      if (save) {
-        localStorage.setItem('cral_theme', dark ? 'dark' : 'light');
-      }
+      if (save) localStorage.setItem('cral_theme', dark ? 'dark' : 'light');
     }
+    document.getElementById('btnTheme').addEventListener('click', () =>
+      applyTheme(document.documentElement.getAttribute('data-theme') !== 'dark')
+    );
 
-    document.getElementById('btnTheme').addEventListener('click', () => {
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      applyTheme(!isDark);
-    });
-
-    function setLogo(src) {
+    /* ── Logo ── */
+    function tryLogo(src) {
       if (!src) return;
-
-      const logoBox = document.getElementById('logoBox');
-      const img = document.createElement('img');
-      img.src = src;
-      img.alt = 'Logo CRAL';
+      const img = new Image();
       img.decoding = 'async';
-
       img.onload = () => {
-        logoBox.innerHTML = '';
-        logoBox.appendChild(img);
+        const box = document.getElementById('logoBox');
+        img.alt = 'Logo CRAL';
+        img.style.cssText = 'width:100%;height:100%;object-fit:contain;border-radius:12px';
+        box.innerHTML = '';
+        box.appendChild(img);
       };
+      img.src = src;
     }
 
-    function isCurrentTournament(torneo, maxYear) {
-      const stato = String(torneo.stato || '').toLowerCase();
-      return stato.includes('attuale') || stato.includes('corrente') || stato.includes('nuova') || String(torneo.anno) === String(maxYear);
+    /* ── Helpers ── */
+    function esc(v) { return String(v ?? ''); }
+
+    /*
+      Sceglie il torneo corrente con questa logica precisa:
+      1. Esattamente un torneo ha corrente:true  → quello
+      2. Più tornei con corrente:true            → quello con ordine massimo
+      3. Nessuno con corrente:true               → quello con ordine massimo
+      4. Se manca ordine                         → anno più alto poi id desc
+    */
+    function pickCorrente(tornei) {
+      const attivi = tornei.filter(t => t.attivo !== false);
+      if (!attivi.length) return null;
+
+      const flagged = attivi.filter(t => t.corrente === true);
+      const pool = flagged.length ? flagged : attivi;
+
+      // Ordina: ordine numerico desc, poi anno desc, poi id desc (tiebreak)
+      return [...pool].sort((a, b) => {
+        const od = Number(b.ordine ?? 0) - Number(a.ordine ?? 0);
+        if (od !== 0) return od;
+        const ad = Number(b.anno ?? 0) - Number(a.anno ?? 0);
+        if (ad !== 0) return ad;
+        return esc(b.id).localeCompare(esc(a.id));
+      })[0];
     }
 
-    function pickCurrentTournament(tornei) {
-      const sorted = [...tornei].sort((a, b) => Number(b.anno || 0) - Number(a.anno || 0));
-      const maxYear = sorted[0]?.anno || '2026';
-      return sorted.find(t => isCurrentTournament(t, maxYear)) || sorted[0] || DEFAULT_CONFIG.tornei[0];
+    /*
+      Normalizza lo stato in tre classi CSS:
+        "in-corso" | "concluso" | "prossimo"
+    */
+    function normalizzaStato(stato) {
+      const k = esc(stato).toLowerCase().replace(/[\s_]/g, '-');
+      if (/corso|attuale|corrente|nuova/.test(k)) return 'in-corso';
+      if (/prossim|futuro|upcoming/.test(k))      return 'prossimo';
+      return 'concluso';
     }
 
-    function renderCurrent(torneo) {
-      // Mantiene l'anno pulito per la scritta gigante (es: 2026)
-      document.getElementById('currentYear').textContent = escapeText(torneo.anno || '2026');
-      document.getElementById('currentTitle').textContent = escapeText(torneo.titolo || `CRAL Champions - Auriga ${torneo.anno || '2026'}`);
-      document.getElementById('currentDescription').textContent = escapeText(torneo.descrizione || 'Classifiche, calendario, risultati, squadre e statistiche giocatori.');
+    function statoLabel(stato) {
+      return { 'in-corso': '● In corso', 'concluso': '✓ Concluso', 'prossimo': '◎ Prossima edizione' }[stato] ?? stato;
+    }
 
-      const btn = document.getElementById('currentButton');
-      btn.href = torneo.url || 'tornei/2026/';
-      
-      // Controllo dinamico sul campo "edizione" del JSON
-      if (torneo.edizione) {
-        btn.textContent = `Vai all'edizione ${torneo.edizione} ›`;
-      } else {
-        btn.textContent = `Vai al torneo ${torneo.anno || 'attuale'} ›`;
+    function stagionIcon(stagione) {
+      const k = esc(stagione).toLowerCase();
+      if (/estate|summer/.test(k))        return '☀️';
+      if (/inverno|winter/.test(k))       return '❄️';
+      if (/autunno|autumn|fall/.test(k))  return '🍂';
+      if (/primavera|spring/.test(k))     return '🌱';
+      return '';
+    }
+
+    /* ── Render corrente ── */
+    function renderCorrente(t) {
+      const stato    = normalizzaStato(t.stato);
+      const stagione = esc(t.stagione);
+      const icon     = stagionIcon(stagione);
+      const stagLabel = stagione ? (icon + ' ' + stagione).trim() : '';
+
+      document.getElementById('currentTitle').textContent    = esc(t.titolo || `CRAL Champions ${t.anno}`);
+      document.getElementById('currentDesc').textContent     = esc(t.descrizione || '');
+      document.getElementById('currentAnnoNum').textContent  = esc(t.anno || '—');
+      document.getElementById('currentAnnoStagione').textContent = stagLabel;
+      document.getElementById('currentLabel').textContent    = stato === 'in-corso' ? '🔥 Edizione in corso' : '📌 Edizione in primo piano';
+
+      const meta = document.getElementById('currentMeta');
+      meta.innerHTML = '';
+      if (stagione) {
+        const badge = document.createElement('span');
+        badge.className = 'season-badge';
+        badge.textContent = stagLabel;
+        meta.appendChild(badge);
       }
+
+      const btn = document.getElementById('currentBtn');
+      btn.href = esc(t.url || '#');
+      btn.textContent = stagione
+        ? `Apri l'edizione ${esc(t.anno)} ${stagione} \u203A`
+        : `Apri l'edizione ${esc(t.anno)} \u203A`;
     }
 
-    function createArchiveCard(torneo) {
-      const link = document.createElement('a');
-      link.className = 'year-card';
-      link.href = torneo.url || '#';
+    /* ── Render archivio ── */
+    function renderArchivio(tornei, corrente) {
+      const archivio = tornei
+        .filter(t => t.attivo !== false && esc(t.id) !== esc(corrente?.id))
+        .sort((a, b) => {
+          const od = Number(b.ordine ?? 0) - Number(a.ordine ?? 0);
+          if (od !== 0) return od;
+          const ad = Number(b.anno ?? 0) - Number(a.anno ?? 0);
+          if (ad !== 0) return ad;
+          return esc(b.id).localeCompare(esc(a.id));
+        });
 
-      // Mostra la combinazione di anno ed edizione nell'archivio per distinguerli
-      const year = document.createElement('div');
-      year.className = 'year';
-      year.textContent = torneo.edizione ? `${torneo.anno} ${torneo.edizione}` : (torneo.anno || '');
-
-      const badge = document.createElement('span');
-      badge.className = 'badge';
-      badge.textContent = torneo.stato || 'Archivio';
-
-      const desc = document.createElement('p');
-      desc.textContent = torneo.descrizione || torneo.titolo || 'Apri il torneo.';
-
-      const arrow = document.createElement('span');
-      arrow.className = 'arrow';
-      arrow.textContent = '›';
-
-      link.appendChild(year);
-      link.appendChild(badge);
-      link.appendChild(desc);
-      link.appendChild(arrow);
-
-      return link;
-    }
-
-    function renderArchive(tornei, current) {
-      // Se hanno lo stesso anno solare ma ID diverso (es: 2026-summer e 2026-winter), 
-      // l'edizione passata deve comunque comparire in archivio
-      const archive = tornei
-        .filter(t => String(t.id) !== String(current.id))
-        .sort((a, b) => Number(b.anno || 0) - Number(a.anno || 0));
-
-      const container = document.getElementById('archiveYears');
+      const grid  = document.getElementById('archiveGrid');
       const empty = document.getElementById('archiveEmpty');
-      container.innerHTML = '';
+      const count = document.getElementById('archiveCount');
+      grid.innerHTML = '';
 
-      if (!archive.length) {
+      if (!archivio.length) {
         empty.style.display = 'block';
+        count.textContent = '';
         return;
       }
 
       empty.style.display = 'none';
-      archive.forEach(t => container.appendChild(createArchiveCard(t)));
+      count.textContent = archivio.length === 1 ? '1 edizione' : `${archivio.length} edizioni`;
+
+      archivio.forEach(t => {
+        const stato    = normalizzaStato(t.stato);
+        const stagione = esc(t.stagione);
+        const icon     = stagionIcon(stagione);
+
+        const a = document.createElement('a');
+        a.className = `archive-card stato-${stato}`;
+        a.href = esc(t.url || '#');
+        a.setAttribute('aria-label', esc(t.titolo || `Edizione ${t.anno}`));
+
+        // Riga anno + badge stagione
+        const top = document.createElement('div');
+        top.className = 'archive-top';
+
+        const annoEl = document.createElement('div');
+        annoEl.className = 'archive-anno';
+        annoEl.textContent = esc(t.anno || '—');
+        top.appendChild(annoEl);
+
+        if (stagione) {
+          const stagEl = document.createElement('span');
+          stagEl.className = 'archive-stagione';
+          stagEl.textContent = (icon + ' ' + stagione).trim();
+          top.appendChild(stagEl);
+        }
+
+        const statoEl = document.createElement('span');
+        statoEl.className = `archive-stato stato-${stato}`;
+        statoEl.textContent = statoLabel(stato);
+
+        const descEl = document.createElement('p');
+        descEl.className = 'archive-desc';
+        descEl.textContent = esc(t.descrizione || t.titolo || '');
+
+        const arrow = document.createElement('span');
+        arrow.className = 'archive-arrow';
+        arrow.setAttribute('aria-hidden', 'true');
+        arrow.textContent = '›';
+
+        a.appendChild(top);
+        a.appendChild(statoEl);
+        a.appendChild(descEl);
+        a.appendChild(arrow);
+        grid.appendChild(a);
+      });
     }
 
+    /* ── Render completo ── */
     function renderLanding(config) {
-      const cleanConfig = config || DEFAULT_CONFIG;
-      const tornei = Array.isArray(cleanConfig.tornei)
-        ? cleanConfig.tornei.filter(t => t && t.attivo !== false)
-        : DEFAULT_CONFIG.tornei;
+      const cfg    = config || FALLBACK;
+      const tornei = Array.isArray(cfg.tornei) ? cfg.tornei : FALLBACK.tornei;
+      const titolo = esc(cfg.titolo || FALLBACK.titolo);
 
-      document.title = cleanConfig.titolo || DEFAULT_CONFIG.titolo;
-      document.getElementById('pageTitle').textContent = cleanConfig.titolo || DEFAULT_CONFIG.titolo;
-      document.getElementById('pageSubtitle').textContent = cleanConfig.sottotitolo || DEFAULT_CONFIG.sottotitolo;
+      document.title = titolo;
+      document.getElementById('pageTitle').textContent    = titolo;
+      document.getElementById('pageSubtitle').textContent = esc(cfg.sottotitolo || FALLBACK.sottotitolo);
+      document.getElementById('pageFooter').textContent   = titolo + ' · Torneo aziendale';
 
-      setLogo(cleanConfig.logo || DEFAULT_CONFIG.logo);
+      tryLogo(cfg.logo || FALLBACK.logo);
 
-      const current = pickCurrentTournament(tornei);
-      renderCurrent(current);
-      renderArchive(tornei, current);
+      const corrente = pickCorrente(tornei);
+      if (corrente) renderCorrente(corrente);
+      renderArchivio(tornei, corrente);
     }
 
+    /* ── Boot ── */
     initTheme();
-
     fetch('tornei.json', { cache: 'no-store' })
-      .then(response => {
-        if (!response.ok) throw new Error('tornei.json non trovato');
-        return response.json();
-      })
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(renderLanding)
-      .catch(() => renderLanding(DEFAULT_CONFIG));
+      .catch(() => renderLanding(FALLBACK));
   </script>
 </body>
 </html>
