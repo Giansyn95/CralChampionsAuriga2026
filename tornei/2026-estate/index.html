@@ -6259,6 +6259,54 @@ function fantaResolvePlayerByName(players,row,file){
   const team=teamHintFromRow(row) || firstPresent(row,[['squadra','team','club']]);
   return fantaFindPlayer(players,team,name) || fantaFindPlayer(players,'',name);
 }
+function fantaFindPlayerForGoalScore(players,score){
+  if(!score) return null;
+  const tried=new Set();
+  const tryFind=(team,name)=>{
+    const clean=smartSpace(name);
+    const key=(teamMatchKey(team)||'')+'|'+personMatchKey(clean);
+    if(!clean || tried.has(key)) return null;
+    tried.add(key);
+    return fantaFindPlayer(players,team||'',clean);
+  };
+  if(score.identityKey){
+    const rec=rosterIdentityRecords().find(x=>x.identityKey===score.identityKey);
+    if(rec){
+      const aliases=[...(rec.aliases||[]),playerFullName(rec.row),playerDisplayName(rec.row),score.name];
+      for(const alias of aliases){
+        const player=tryFind(rec.team,alias);
+        if(player) return player;
+      }
+    }
+  }
+  return tryFind('',score.name);
+}
+function fantaAddGoalScoreData(map,day,players,scoreData){
+  if(!scoreData || !scoreData.totals) return 0;
+  let added=0;
+  [...scoreData.totals.values()].forEach(score=>{
+    const goals=Number(score.goals);
+    if(!Number.isFinite(day) || day<=0 || !Number.isFinite(goals) || goals<=0) return;
+    const player=fantaFindPlayerForGoalScore(players,score);
+    if(!player) return;
+    const key=fantaPlayerKey(day,player);
+    const allKey=fantaPlayerKey(-1,player);
+    map.set(key,(map.get(key)||0)+goals);
+    map.set(allKey,(map.get(allKey)||0)+goals);
+    added++;
+  });
+  return added;
+}
+function fantaRowsByDay(rows,file){
+  const groups=new Map();
+  (rows||[]).forEach(r=>{
+    const day=parseInt(rowGiornataKey(r,file),10);
+    if(!Number.isFinite(day) || day<=0) return;
+    if(!groups.has(day)) groups.set(day,[]);
+    groups.get(day).push(r);
+  });
+  return groups;
+}
 function fantaGoalsByPlayerDayAll(players){
   const map=new Map();
   const add=(day,player,goals)=>{
@@ -6271,18 +6319,26 @@ function fantaGoalsByPlayerDayAll(players){
   };
   sectionFiles('riepilogo').forEach(file=>{
     const parsed=parseRiepilogoFile(file);
-    // Nei riepiloghi sono spesso presenti sia l'elenco dei marcatori sia il
-    // totale marcatore giornata. Per il Fantacalcio bisogna usare il totale:
-    // l'elenco marcatori indica chi ha segnato nella partita, ma può non
-    // riportare correttamente le doppiette/triplette. Esempio: se Arena ha 11
-    // gol totali e viene contato solo come presenza tra i marcatori, il totale
-    // della rosa risulta sottostimato.
-    const rows=(parsed.totaliMarcatori&&parsed.totaliMarcatori.length) ? parsed.totaliMarcatori : (parsed.marcatori||[]);
-    rows.forEach(r=>{
-      const day=parseInt(rowGiornataKey(r,file),10);
-      const player=fantaResolvePlayerByName(players,r,file);
-      const g=num(firstPresent(r,[['gol','goal','reti','totale','quantita','qta','valore']]));
-      add(day,player,g||1);
+    // Il tab Fantacalcio usa i gol della singola giornata quando il filtro è su Gx
+    // e somma tutte le giornate solo quando il filtro è "Tutte le giornate".
+    // Per ogni giornata preferisce i totali marcatori espliciti (es.
+    // Sezione=Totale marcatore giornata, Statistica=Nome, Valore=Gol), così
+    // doppiette/triplette vengono contate correttamente. Se i totali non sono
+    // leggibili, ricade sui marcatori e poi sui marcatori scritti nelle partite.
+    const days=new Set([
+      ...fantaRowsByDay(parsed.totaliMarcatori||[],file).keys(),
+      ...fantaRowsByDay(parsed.marcatori||[],file).keys(),
+      ...fantaRowsByDay(parsed.partite||[],file).keys()
+    ]);
+    days.forEach(day=>{
+      const totaliRows=fantaRowsByDay(parsed.totaliMarcatori||[],file).get(day)||[];
+      const marcatoriRows=fantaRowsByDay(parsed.marcatori||[],file).get(day)||[];
+      const partiteRows=fantaRowsByDay(parsed.partite||[],file).get(day)||[];
+      const addedFromTotals=fantaAddGoalScoreData(map,day,players,riepilogoScoresFromRows(totaliRows,'totali'));
+      if(addedFromTotals) return;
+      const addedFromScorers=fantaAddGoalScoreData(map,day,players,riepilogoScoresFromRows(marcatoriRows,'marcatori'));
+      if(addedFromScorers) return;
+      fantaAddGoalScoreData(map,day,players,riepilogoScoresFromPartite(partiteRows));
     });
   });
   sectionFiles('marcatori').forEach(file=>{
@@ -6874,7 +6930,19 @@ function fantaBestDayResult(data){
     ? (data.results||[]).filter(r=>r.day>0)
     : (data.results||[]).filter(r=>r.day===day);
   if(!source.length) return null;
-  return [...source].sort(fantaCompareResults)[0];
+  const maxPoints=Math.max(...source.map(r=>Number(r.points||0)));
+  const bestRows=source
+    .filter(r=>Number(r.points||0)===maxPoints)
+    .sort((a,b)=>(a.day||0)-(b.day||0) || String(a.name||'').localeCompare(String(b.name||''),'it',{sensitivity:'base'}));
+  const players=new Map();
+  bestRows.forEach(r=>{
+    const key=fantaNormText(r.name);
+    if(key && !players.has(key)) players.set(key,r);
+  });
+  const pointsText=fantaFormatDecimal(maxPoints);
+  if(players.size>1) return {tie:true,points:maxPoints,value:'Pari merito, '+pointsText+' pt',label:'🏅 Miglior giornata'};
+  const first=[...players.values()][0] || bestRows[0];
+  return {tie:false,points:maxPoints,value:'G'+(first.day||day||'-')+' - '+(first.name||'-')+' '+pointsText+'pt',label:'🏅 Miglior giornata'};
 }
 function fantaAveragePoints(rows,data){
   const selected=state.selectedFantaGiornata||'totale';
@@ -6893,8 +6961,8 @@ function fantaSummaryCards(parent,rows,data){
   const leader=rows[0] ? rows[0].name : '-';
   const avg=fantaAveragePoints(rows,data);
   const best=fantaBestDayResult(data);
-  const bestValue=best ? (best.name||'-') : '-';
-  const bestLabel=best ? ('🏅 Miglior giornata · '+(best.points||0)+' pt') : '🏅 Miglior giornata';
+  const bestValue=best ? (best.value||'-') : '-';
+  const bestLabel=best ? (best.label||'🏅 Miglior giornata') : '🏅 Miglior giornata';
   const cards=[
     {value:rows.length,label:'👥 Partecipanti'},
     {value:leader,label:'👑 Leader'},
