@@ -14,26 +14,11 @@
       "nome": "Estate",
       "cartella": "tornei/2026-estate",
       "titolo": "CRAL Champions - Auriga",
-      "descrizione": "Classifiche, calendario, risultati, squadre e statistiche giocatori dell'edizione estiva.",
+      "descrizione": "Classifiche, calendario, risultati, squadre e statistiche giocatori dell'edizione scelta.",
       "url": "tornei/2026-estate/",
-      "stato": "concluso",
-      "corrente": false,
-      "ordine": 20261,
-      "attivo": true
-    },
-    {
-      "id": "2026-inverno",
-      "anno": "2026",
-      "stagione": "Inverno",
-      "slug": "inverno",
-      "nome": "Inverno",
-      "cartella": "tornei/2026-inverno",
-      "titolo": "CRAL Champions - Auriga",
-      "descrizione": "Classifiche finali, marcatori e tabellino completo dell'edizione invernale.",
-      "url": "tornei/2026-inverno/",
       "stato": "in-corso",
       "corrente": true,
-      "ordine": 20262,
+      "ordine": 20261,
       "attivo": true
     }
   ]
