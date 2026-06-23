@@ -5685,6 +5685,66 @@ function renderMatchSection(sectionId, kind){
   }
 
   const filtered=filterRows(rows);
+
+  // Per i Risultati: raggruppa per giornata se la colonna esiste in almeno una riga
+  if(kind==='risultati'){
+    const hasGiornata=filtered.some(r=>String(firstPresent(r,[['giornata','turno','round']])||'').trim());
+    if(hasGiornata){
+      // Raccoglie le giornate nell'ordine di apparizione
+      const giornataMap=new Map();
+      filtered.forEach(r=>{
+        const g=firstPresent(r,[['giornata','turno','round']]);
+        const label=g ? (giornataNumberFromText(g)?('Giornata '+giornataNumberFromText(g)):String(g)) : giornataLabelFromFile(r._file);
+        const key=giornataNumberFromText(g)||norm(label);
+        if(!giornataMap.has(key)) giornataMap.set(key,{label,rows:[]});
+        giornataMap.get(key).rows.push(r);
+      });
+      // Ordina le giornate numericamente
+      const sortedGiornate=[...giornataMap.values()].sort((a,b)=>
+        String(a.label).localeCompare(String(b.label),'it',{numeric:true})
+      );
+      sortedGiornate.forEach(({label,rows:gRows})=>{
+        const card=document.createElement('div'); card.className='card'; card.style.marginBottom='14px';
+        const head=document.createElement('div');
+        head.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 10px';
+        const h=document.createElement('h3');
+        h.style.cssText='margin:0;color:var(--blue);font-size:18px;text-transform:uppercase;letter-spacing:.04em;font-family:\'Oswald\',Arial,Helvetica,sans-serif';
+        h.textContent=label;
+        head.appendChild(h);
+        card.appendChild(head);
+        const inner=document.createElement('div'); inner.className='tableWrap';
+        gRows.forEach(r=>{
+          const data=col(r,['data','giorno','date']);
+          const home=col(r,['squadra casa','casa','home','squadra 1'])||Object.values(r)[0]||'';
+          const away=col(r,['squadra trasferta','trasferta','ospite','away','squadra 2'])||Object.values(r)[1]||'';
+          const score=col(r,['risultato','score'])||[col(r,['gol casa','reti casa']),col(r,['gol trasferta','reti trasferta'])].filter(x=>x!==''&&x!=null).join(' - ');
+          const m=document.createElement('div'); m.className='match';
+          const teamsWrap=document.createElement('div'); teamsWrap.className='match-teams';
+          const homeTeam=document.createElement('div'); homeTeam.className='match-team';
+          homeTeam.appendChild(imgOrInitialEl('team',home,'mini-logo'));
+          const homeName=document.createElement('span'); homeName.className='match-name'; homeName.textContent=home;
+          homeTeam.appendChild(homeName);
+          const vs=document.createElement('span'); vs.className='match-vs'; vs.textContent='vs';
+          const awayTeam=document.createElement('div'); awayTeam.className='match-team';
+          awayTeam.appendChild(imgOrInitialEl('team',away,'mini-logo'));
+          const awayName=document.createElement('span'); awayName.className='match-name'; awayName.textContent=away;
+          awayTeam.appendChild(awayName);
+          const meta=document.createElement('div'); meta.className='match-meta';
+          if(data){ const ds=document.createElement('span'); ds.className='small'; ds.textContent=data; meta.appendChild(ds); }
+          meta.appendChild(teamsWrap);
+          teamsWrap.appendChild(homeTeam); teamsWrap.appendChild(vs); teamsWrap.appendChild(awayTeam);
+          const left=document.createElement('div'); left.style.minWidth='0'; left.style.flex='1';
+          left.appendChild(meta);
+          const sc=document.createElement('div'); sc.className='score'; sc.textContent=score||'-';
+          m.appendChild(left); m.appendChild(sc); inner.appendChild(m);
+        });
+        card.appendChild(inner); el.appendChild(card);
+      });
+      return;
+    }
+    // Nessuna colonna giornata: ricade sulla card unica sotto
+  }
+
   const card=document.createElement('div'); card.className='card';
   const h=document.createElement('h2'); h.textContent=kind==='risultati'?'RISULTATI PARTITE':'CALENDARIO'; card.appendChild(h);
   const inner=document.createElement('div'); inner.className='tableWrap';
