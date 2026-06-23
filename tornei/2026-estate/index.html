@@ -6122,11 +6122,20 @@ function fantaPlayedDays(){
 }
 function fantaRole(raw){
   const v=fantaNormText(raw);
-  return (v==='PT'||v==='P'||v==='POR'||v==='PORTIERE'||v==='GK'||v.startsWith('PORT')) ? 'PT' : 'G';
+  if(!v) return 'G';
+  if(v==='PT'||v==='P'||v==='POR'||v==='PORTIERE'||v==='GK'||v.startsWith('PORT')) return 'PT';
+  if(v==='D'||v==='DC'||v==='DD'||v==='DS'||v==='DIF'||v==='DIFENSORE'||v.startsWith('DIF')||v==='DEF'||v.startsWith('DEF')) return 'D';
+  if(v==='C'||v==='CC'||v==='CD'||v==='CS'||v==='CEN'||v==='CENTROCAMPISTA'||v.startsWith('CENTR')||v==='MID'||v.startsWith('MID')) return 'C';
+  if(v==='A'||v==='ATT'||v==='ATTACCANTE'||v.startsWith('ATT')||v==='FW'||v==='FWD'||v==='FORWARD'||v==='STRIKER') return 'A';
+  return 'G';
+}
+function fantaRoleSortOrder(role){
+  return {PT:0,D:1,C:2,A:3,G:4}[fantaRole(role)] ?? 4;
 }
 function fantaComparePlayers(a,b){
-  if(a.role!==b.role) return a.role==='PT' ? -1 : 1;
-  const c=String(a.surname||'').localeCompare(String(b.surname||''),'it',{sensitivity:'base'});
+  let c=fantaRoleSortOrder(a.role)-fantaRoleSortOrder(b.role);
+  if(c) return c;
+  c=String(a.surname||'').localeCompare(String(b.surname||''),'it',{sensitivity:'base'});
   if(c) return c;
   return String(a.name||'').localeCompare(String(b.name||''),'it',{sensitivity:'base'});
 }
@@ -6802,7 +6811,7 @@ function fantaOpenSquadModal(result,rank){
       const name=document.createElement('div'); name.className='fanta-squad-name'; name.textContent=fantaPlayerDisplay(p)||fantaPlayerFull(p)||'-';
       const meta=document.createElement('div'); meta.className='fanta-squad-meta'; meta.textContent=p.teamCode||'';
       info.appendChild(name); info.appendChild(meta);
-      const role=document.createElement('span'); role.className='fanta-role-pill'; role.textContent=fantaRole(p.role)==='PT'?'PT':'G';
+      const role=document.createElement('span'); role.className='fanta-role-pill'; role.textContent=fantaRole(p.role);
       item.appendChild(info); item.appendChild(role); list.appendChild(item);
     });
   }
