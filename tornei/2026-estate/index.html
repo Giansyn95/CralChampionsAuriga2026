@@ -682,6 +682,7 @@
       .tabs{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;padding:2px 0 7px;margin:11px -12px 12px;padding-left:12px;scrollbar-width:none}
       .tabs::-webkit-scrollbar{display:none}
       .tab{flex:0 0 auto;padding:9px 12px;font-size:13px;white-space:nowrap}
+      .tab[data-tab="fantacalcio"] .gold-crown{width:1em;height:1em;font-size:1em;line-height:1;margin-right:3px}
       .search{padding:12px 13px;font-size:16px}
       .card{border-radius:18px;padding:14px}
       h2{font-size:23px;line-height:1.1}
@@ -712,7 +713,7 @@
 
     /* Fantacalcio: sorgente automatica da data/fantacalcio e tabella leggibile anche su mobile */
     .gold-crown{color:#f5b942!important;font-weight:900;text-shadow:0 0 12px rgba(245,185,66,.48)}
-    .tab[data-tab="fantacalcio"] .gold-crown{margin-right:1px}
+    .tab[data-tab="fantacalcio"] .gold-crown{display:inline-flex;align-items:center;justify-content:center;width:1em;height:1em;margin-right:3px;font-size:1em;line-height:1;vertical-align:-.08em;font-family:'Inter',Arial,Helvetica,sans-serif}
     .fanta-card-shell h2{display:flex;align-items:center;gap:8px}
     .fanta-claim{margin:0 0 12px;max-width:980px}
     .fanta-file-btn,.fanta-upload-list{display:none!important}
@@ -6976,6 +6977,15 @@ function fantaBuildRulesLegend(){
 function fantaFormatDecimal(value){
   return Number(value||0).toFixed(2).replace('.',',').replace(/,00$/,'');
 }
+function fantaShortParticipantName(value){
+  const clean=smartSpace(String(value||'').replace(/[_\.]+/g,' ')).trim();
+  if(!clean) return '-';
+  const parts=clean.split(/\s+/).filter(Boolean);
+  if(parts.length<2) return clean;
+  const surname=parts[parts.length-1];
+  const first=parts[0]||'';
+  return surname + (first ? ' ' + first.charAt(0).toUpperCase() + '.' : '');
+}
 function fantaBestDayResult(data){
   const selected=state.selectedFantaGiornata||'totale';
   const day=parseInt(selected,10);
@@ -6993,9 +7003,9 @@ function fantaBestDayResult(data){
     if(key && !players.has(key)) players.set(key,r);
   });
   const pointsText=fantaFormatDecimal(maxPoints);
-  if(players.size>1) return {tie:true,points:maxPoints,value:'Pari merito, '+pointsText+' pt',label:'🏅 Miglior giornata'};
+  if(players.size>1) return {tie:true,points:maxPoints,value:pointsText+' pt',label:'🏅 Miglior pt giornata'};
   const first=[...players.values()][0] || bestRows[0];
-  return {tie:false,points:maxPoints,value:'G'+(first.day||day||'-')+' - '+(first.name||'-')+' '+pointsText+'pt',label:'🏅 Miglior giornata'};
+  return {tie:false,points:maxPoints,value:'G'+(first.day||day||'-')+' - '+(first.name||'-')+' '+pointsText+'pt',label:'🏅 Miglior pt giornata'};
 }
 function fantaAveragePoints(rows,data){
   const selected=state.selectedFantaGiornata||'totale';
@@ -7011,11 +7021,11 @@ function fantaAveragePoints(rows,data){
 }
 function fantaSummaryCards(parent,rows,data){
   const wrap=document.createElement('div'); wrap.className='fanta-summary';
-  const leader=rows[0] ? rows[0].name : '-';
+  const leader=rows[0] ? fantaShortParticipantName(rows[0].name) : '-';
   const avg=fantaAveragePoints(rows,data);
   const best=fantaBestDayResult(data);
   const bestValue=best ? (best.value||'-') : '-';
-  const bestLabel=best ? (best.label||'🏅 Miglior giornata') : '🏅 Miglior giornata';
+  const bestLabel=best ? (best.label||'🏅 Miglior pt giornata') : '🏅 Miglior pt giornata';
   const cards=[
     {value:rows.length,label:'👥 Partecipanti'},
     {value:leader,label:'👑 Leader'},
