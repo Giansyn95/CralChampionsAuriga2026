@@ -910,6 +910,8 @@ const DEFAULT_FILES    = [
   'calendario_andata_ritorno.csv','calendario.csv',
   'riepilogo_giornate.csv'
 ];
+const FANTA_CACHE_FILE   = 'fantacalcio_cache.json';
+const FANTA_CACHE_SCHEMA = 1;
 const TABS = [
   ['home','🏠 Home'],['classifiche','🏆 Classifiche'],['statistiche','📊 Statistiche'],
   ['squadre','👕 Squadre'],['calendario','📅 Calendario'],['risultati','⚽ Risultati'],
@@ -926,6 +928,9 @@ let state = {
   riepilogoFilterInitialized: false,
   selectedFantaGiornata: 'totale',
   fantaResultFileKeys: [],
+  fantaPrecomputedData: null,
+  fantaPrecomputedAttempted: false,
+  fantaPrecomputedLoading: false,
   sortState: {}   // { tableId: { col, dir } }
 };
 let loadErrors = [];
@@ -6734,10 +6739,133 @@ function fantaReadImportedResults(){
   rows.sort(fantaCompareResults);
   return rows;
 }
+function fantaPlainPlayer(player){
+  return {
+    teamCode:String(player?.teamCode||''),
+    surname:String(player?.surname||''),
+    name:String(player?.name||''),
+    role:String(player?.role||''),
+    displayName:String(player?.displayName||''),
+    fullName:String(player?.fullName||''),
+    numericId:String(player?.numericId||''),
+    stableKey:String(player?.stableKey||'')
+  };
+}
+function fantaSerializeMap(map){
+  if(map instanceof Map) return [...map.entries()];
+  if(map && typeof map==='object') return Object.entries(map);
+  return [];
+}
+function fantaSerializeResult(result){
+  return {
+    day:Number(result.day||0),
+    name:String(result.name||''),
+    points:Number(result.points||0),
+    credits:Number(result.credits||0),
+    pres:Number(result.pres||0),
+    presPoints:result.presPoints===null||result.presPoints===undefined?null:Number(result.presPoints||0),
+    goals:Number(result.goals||0),
+    mvps:Number(result.mvps||0),
+    gsPt:Number(result.gsPt||0),
+    porteInviolate:Number(result.porteInviolate||0),
+    rigPar:Number(result.rigPar||0),
+    rigSbag:Number(result.rigSbag||0),
+    autogoal:Number(result.autogoal||0),
+    players:(result.players||[]).map(fantaPlainPlayer),
+    playerIds:(result.playerIds||[]).map(x=>String(x||'')),
+    playerPoints:fantaSerializeMap(result.playerPoints).map(([k,v])=>[String(k),Number(v||0)]),
+    playerExtras:fantaSerializeMap(result.playerExtras).map(([k,v])=>[String(k),{
+      pres:Number(v?.pres||0),goals:Number(v?.goals||0),mvps:Number(v?.mvps||0),gsPt:Number(v?.gsPt||0),pi:Number(v?.pi||0),
+      rigPar:Number(v?.rigPar||0),rigSbag:Number(v?.rigSbag||0),autogoal:Number(v?.autogoal||0)
+    }]),
+    notes:[...new Set((result.notes||[]).map(x=>String(x||'')).filter(Boolean))],
+    importedTotal:!!result.importedTotal,
+    squadOverride:result.squadOverride?String(result.squadOverride):''
+  };
+}
+function fantaDeserializeResult(raw){
+  const result=fantaResult(Number(raw?.day||0),String(raw?.name||''));
+  ['points','credits','pres','goals','mvps','gsPt','porteInviolate','rigPar','rigSbag','autogoal'].forEach(k=>{ result[k]=Number(raw?.[k]||0); });
+  result.presPoints=raw?.presPoints===null||raw?.presPoints===undefined?null:Number(raw.presPoints||0);
+  result.players=Array.isArray(raw?.players) ? raw.players.map(fantaPlainPlayer) : [];
+  result.playerIds=Array.isArray(raw?.playerIds) ? raw.playerIds.map(x=>String(x||'')) : [];
+  result.playerPoints=new Map((Array.isArray(raw?.playerPoints)?raw.playerPoints:[]).map(([k,v])=>[String(k),Number(v||0)]));
+  result.playerExtras=new Map((Array.isArray(raw?.playerExtras)?raw.playerExtras:[]).map(([k,v])=>[String(k),{
+    pres:Number(v?.pres||0),goals:Number(v?.goals||0),mvps:Number(v?.mvps||0),gsPt:Number(v?.gsPt||0),pi:Number(v?.pi||0),
+    rigPar:Number(v?.rigPar||0),rigSbag:Number(v?.rigSbag||0),autogoal:Number(v?.autogoal||0)
+  }]));
+  result.notes=Array.isArray(raw?.notes) ? raw.notes.map(x=>String(x||'')).filter(Boolean) : [];
+  if(raw?.importedTotal) result.importedTotal=true;
+  if(raw?.squadOverride) result.squadOverride=String(raw.squadOverride);
+  return result;
+}
+function fantaSerializeCachePayload(data){
+  return {
+    schema:FANTA_CACHE_SCHEMA,
+    generatedAt:new Date().toISOString(),
+    source:data?.source||'calcolata',
+    rosterCount:Number(data?.rosterCount||0),
+    playerCount:Number(data?.playerCount||0),
+    issues:Array.isArray(data?.issues)?data.issues.map(x=>String(x||'')).filter(Boolean):[],
+    results:(data?.results||[]).map(fantaSerializeResult)
+  };
+}
+function fantaDataFromCachePayload(payload){
+  const src=payload?.data||payload;
+  if(!src || Number(src.schema||0)!==FANTA_CACHE_SCHEMA || !Array.isArray(src.results)) return null;
+  return {
+    source:'precalcolata',
+    results:src.results.map(fantaDeserializeResult).sort(fantaCompareResults),
+    issues:Array.isArray(src.issues)?src.issues:[],
+    rosterCount:Number(src.rosterCount||0),
+    playerCount:Number(src.playerCount||0),
+    generatedAt:src.generatedAt||''
+  };
+}
+async function loadFantaPrecomputedCache(fresh){
+  if(manualLoadActive) return false;
+  if(state.fantaPrecomputedData && !fresh) return true;
+  state.fantaPrecomputedLoading=true;
+  try{
+    const txt=await fetchText(FANTA_CACHE_FILE,!!fresh);
+    const payload=JSON.parse(txt);
+    const data=fantaDataFromCachePayload(payload);
+    if(!data || !data.results.length) return false;
+    state.fantaPrecomputedData=data;
+    _fantaCurrentDataCache=null;
+    return true;
+  }catch(e){
+    state.fantaPrecomputedData=null;
+    return false;
+  }finally{
+    state.fantaPrecomputedAttempted=true;
+    state.fantaPrecomputedLoading=false;
+  }
+}
+let _fantaEnsureDataPromise=null;
+function ensureFantaDataInBackground(fresh){
+  if(manualLoadActive) return Promise.resolve(false);
+  if(state.fantaPrecomputedData && !fresh){ state.fantaLoading=false; return Promise.resolve(true); }
+  if(_fantaEnsureDataPromise && !fresh) return _fantaEnsureDataPromise;
+  state.fantaLoading=true;
+  _fantaEnsureDataPromise=(async()=>{
+    const cacheOk=await loadFantaPrecomputedCache(!!fresh);
+    if(cacheOk){
+      state.fantaLoading=false;
+      if(state.activeTab==='fantacalcio') renderFantacalcio();
+      return true;
+    }
+    await loadFantaFilesInBackground(!!fresh);
+    return false;
+  })().finally(()=>{ _fantaEnsureDataPromise=null; });
+  return _fantaEnsureDataPromise;
+}
+
 function fantaDataCacheKey(){
   return Object.keys(state.rows).sort().map(f=>f+':'+((state.rows[f]||[]).length)).join('|');
 }
 function fantaCurrentData(){
+  if(state.fantaPrecomputedData) return state.fantaPrecomputedData;
   // Calcolo pesante tenuto in cache: cambiare tab o tornare su Fantacalcio
   // non ricostruisce listone, mappe giocatori, riepiloghi e rose ogni volta.
   const key=fantaDataCacheKey();
@@ -7147,7 +7275,7 @@ function fantaSummaryCards(parent,rows,data){
   parent.appendChild(wrap);
 }
 function renderFantacalcio(){
-  if(!state.fantaLoading && !fantaRosterFiles().length){ loadFantaFilesInBackground(false); }
+  if(!manualLoadActive && !state.fantaLoading && !state.fantaPrecomputedData && !fantaRosterFiles().length){ ensureFantaDataInBackground(false); }
   const el=document.getElementById('fantacalcio'); el.innerHTML='';
   const card=document.createElement('div'); card.className='card fanta-card-shell';
   const title=document.createElement('h2');
@@ -7381,6 +7509,7 @@ async function loadAuto(fresh){
   setStatus('Caricamento in corso…');
   state.files={}; state.rows={}; loadErrors=[]; state.imagesReady=true;
   state.selectedRiepilogoGiornata=''; state.riepilogoFilterInitialized=false; state.selectedFantaGiornata='totale'; state.fantaResultFileKeys=[]; state.fantaLoading=true;
+  state.fantaPrecomputedData=null; state.fantaPrecomputedAttempted=false; state.fantaPrecomputedLoading=false;
   clearImageProbeCache();
   clearDerivedDataCaches();
   invalidateHeroLogo();
@@ -7433,7 +7562,7 @@ async function loadAuto(fresh){
      non sovrascrivere i dati più recenti già mostrati. */
   if(manualLoadActive) return;
   applyConfig(); showErrors(); renderAll(); tryLoadLogo(); warmPlayerProfileCaches();
-  loadFantaFilesInBackground(fresh);
+  ensureFantaDataInBackground(fresh);
   if(ok || state.rows['manifest.csv']) setStatus(dataLoadStatus(ok+(state.rows['manifest.csv']?1:0)),true);
   else setStatus('Autocaricamento bloccato — usa Seleziona cartella');
 }
@@ -7548,6 +7677,7 @@ async function loadFromDirectoryHandle(dir){
   manualLoadActive = true;
   state.files={}; state.rows={}; state.imageURLs={}; state.imageAliases={}; loadErrors=[]; state.imagesReady=false;
   state.selectedRiepilogoGiornata=''; state.riepilogoFilterInitialized=false; state.selectedFantaGiornata='totale'; state.fantaResultFileKeys=[];
+  state.fantaPrecomputedData=null; state.fantaPrecomputedAttempted=true; state.fantaPrecomputedLoading=false;
   clearImageProbeCache();
   clearDerivedDataCaches();
   invalidateHeroLogo();
@@ -7617,6 +7747,7 @@ async function loadFolder(fileList){
   const files=[...fileList]; // snapshot: l'input viene svuotato subito dopo la selezione
   state.files={}; state.rows={}; state.imageURLs={}; state.imageAliases={}; loadErrors=[]; state.imagesReady=false;
   state.selectedRiepilogoGiornata=''; state.riepilogoFilterInitialized=false; state.selectedFantaGiornata='totale'; state.fantaResultFileKeys=[];
+  state.fantaPrecomputedData=null; state.fantaPrecomputedAttempted=true; state.fantaPrecomputedLoading=false;
   clearImageProbeCache();
   clearDerivedDataCaches();
   invalidateHeroLogo();
@@ -7671,6 +7802,39 @@ async function loadFolder(fileList){
   // Poi immagini in background, senza bloccare il refresh dati.
   processImageFilesLater(imageFiles);
 }
+
+/* ══════════════════════════════════
+   EXPORT CACHE FANTACALCIO PER GITHUB ACTIONS
+   ══════════════════════════════════ */
+function fantaIngestCsvBatchForCacheBuild(files){
+  if(!Array.isArray(files)) return 0;
+  files.forEach(item=>{
+    const key=String(item?.path||'').replace(/\\/g,'/').replace(/^data\//i,'').replace(/^\.\//,'');
+    if(!key || !/\.csv$/i.test(key)) return;
+    const txt=String(item?.text||'');
+    state.files[key]=txt;
+    state.rows[key]=parseCsv(txt);
+  });
+  state.fantaPrecomputedData=null;
+  state.fantaPrecomputedAttempted=true;
+  state.fantaPrecomputedLoading=false;
+  state.fantaLoading=false;
+  clearDerivedDataCaches();
+  applyConfig();
+  return Object.keys(state.rows).length;
+}
+function fantaBuildCachePayloadForExport(){
+  const oldPrecomputed=state.fantaPrecomputedData;
+  state.fantaPrecomputedData=null;
+  _fantaCurrentDataCache=null;
+  const data=fantaCurrentData();
+  const payload=fantaSerializeCachePayload(data);
+  state.fantaPrecomputedData=oldPrecomputed;
+  _fantaCurrentDataCache=null;
+  return payload;
+}
+window.__cralIngestCsvBatchForCache = fantaIngestCsvBatchForCacheBuild;
+window.__cralBuildFantacalcioCache = fantaBuildCachePayloadForExport;
 
 /* ══════════════════════════════════
    EVENTI
