@@ -5335,6 +5335,7 @@ function addPeopleLineSmart(parent,label,people,withImages,teamHint,contextRows,
   strong.setAttribute('aria-label',label);
   row.appendChild(strong);
   const list=document.createElement('div'); list.style.cssText='display:flex;gap:6px;flex-wrap:wrap;align-items:center';
+  const isScorerLine=norm(label).startsWith('marcatori') || norm(label).includes('marcatore');
   // Set condiviso tra tutti i marcatori di QUESTA lista: se due token uguali (stesso
   // cognome) compaiono entrambi (es. due "Menolascina" che segnano nella stessa
   // partita), ogni token consuma la propria riga di contesto invece di riusare sempre
@@ -5359,9 +5360,17 @@ function addPeopleLineSmart(parent,label,people,withImages,teamHint,contextRows,
         pill.appendChild(roleFallbackElForPerson(name,contextRows));
       }
     }
-    const t=document.createElement('button'); t.type='button'; t.className='player-link'; t.textContent=name; t.title='Apri scheda giocatore';
-    t.onclick=(ev)=>{ ev.stopPropagation(); openPlayerProfile(name); };
-    pill.appendChild(t); list.appendChild(pill);
+    if(isScorerLine){
+      const t=document.createElement('span');
+      t.textContent=name;
+      t.setAttribute('aria-label',name);
+      pill.appendChild(t);
+    }else{
+      const t=document.createElement('button'); t.type='button'; t.className='player-link'; t.textContent=name; t.title='Apri scheda giocatore';
+      t.onclick=(ev)=>{ ev.stopPropagation(); openPlayerProfile(name); };
+      pill.appendChild(t);
+    }
+    list.appendChild(pill);
   });
   row.appendChild(list); parent.appendChild(row);
 }
