@@ -5335,7 +5335,12 @@ function addPeopleLineSmart(parent,label,people,withImages,teamHint,contextRows,
   strong.setAttribute('aria-label',label);
   row.appendChild(strong);
   const list=document.createElement('div'); list.style.cssText='display:flex;gap:6px;flex-wrap:wrap;align-items:center';
-  const isScorerLine=norm(label).startsWith('marcatori') || norm(label).includes('marcatore');
+  const lineKey=norm(label);
+  const isScorerLine=lineKey.startsWith('marcatori') || lineKey.includes('marcatore');
+  // Nel riepilogo partita i chip Marcatori e MVP sono solo informativi:
+  // non devono aprire la scheda giocatore. Le tabelle e le altre sezioni
+  // restano gestite da buildTable/player-link e mantengono il comportamento attuale.
+  const isMvpLine=lineKey==='mvp' || lineKey.includes('miglioreincampo') || lineKey.includes('manofthematch') || lineKey.includes('motm');
   // Set condiviso tra tutti i marcatori di QUESTA lista: se due token uguali (stesso
   // cognome) compaiono entrambi (es. due "Menolascina" che segnano nella stessa
   // partita), ogni token consuma la propria riga di contesto invece di riusare sempre
@@ -5360,7 +5365,7 @@ function addPeopleLineSmart(parent,label,people,withImages,teamHint,contextRows,
         pill.appendChild(roleFallbackElForPerson(name,contextRows));
       }
     }
-    if(isScorerLine){
+    if(isScorerLine || isMvpLine){
       const t=document.createElement('span');
       t.textContent=name;
       t.setAttribute('aria-label',name);
