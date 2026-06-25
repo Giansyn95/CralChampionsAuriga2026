@@ -1342,8 +1342,77 @@ const _imageProbeCache=new Map();
    Serve soprattutto quando si cambia tab: gli elementi <img> vengono ricreati,
    ma il src già trovato può essere assegnato subito senza mostrare placeholder/probe. */
 const _resolvedImageURLCache=new Map();
+const PLAYER_IMAGE_URL_CACHE_KEY='cral.playerImageURLCache.v1';
+let _persistentPlayerImageURLCache=null;
+let _persistentPlayerImageURLCacheTimer=null;
 function imageCacheCompositeKey(type,names){
   return type+':'+(names||[]).map(norm).filter(Boolean).join('|');
+}
+function canPersistResolvedImageURL(src){
+  const value=String(src||'').trim();
+  // Gli URL blob: creati dal caricamento manuale valgono solo per la sessione corrente:
+  // salvarli in localStorage causerebbe immagini rotte al refresh della pagina.
+  return !!value && !/^blob:/i.test(value) && !/^data:/i.test(value);
+}
+function readPersistentPlayerImageURLCache(){
+  if(_persistentPlayerImageURLCache) return _persistentPlayerImageURLCache;
+  _persistentPlayerImageURLCache={};
+  try{
+    const raw=localStorage.getItem(PLAYER_IMAGE_URL_CACHE_KEY);
+    if(raw){
+      const parsed=JSON.parse(raw);
+      if(parsed && typeof parsed==='object'){
+        _persistentPlayerImageURLCache=parsed.map && typeof parsed.map==='object' ? parsed.map : parsed;
+      }
+    }
+  }catch(e){ _persistentPlayerImageURLCache={}; }
+  return _persistentPlayerImageURLCache;
+}
+function schedulePersistentPlayerImageURLCacheSave(){
+  if(_persistentPlayerImageURLCacheTimer) return;
+  _persistentPlayerImageURLCacheTimer=setTimeout(()=>{
+    _persistentPlayerImageURLCacheTimer=null;
+    try{
+      localStorage.setItem(PLAYER_IMAGE_URL_CACHE_KEY,JSON.stringify({v:1,map:readPersistentPlayerImageURLCache()}));
+    }catch(e){ /* localStorage pieno/bloccato: la cache persistente è opzionale */ }
+  },120);
+}
+function persistentPlayerImageKeys(names){
+  return [...new Set((names||[]).map(n=>norm(n)).filter(Boolean))];
+}
+function cachedPersistentPlayerImage(type,names){
+  if(type!=='player') return '';
+  const map=readPersistentPlayerImageURLCache();
+  for(const key of persistentPlayerImageKeys(names)){
+    const src=map[key];
+    if(src) return src;
+  }
+  return '';
+}
+function rememberPersistentPlayerImage(type,names,src){
+  if(type!=='player' || !canPersistResolvedImageURL(src)) return;
+  const keys=persistentPlayerImageKeys(names);
+  if(!keys.length) return;
+  const map=readPersistentPlayerImageURLCache();
+  let changed=false;
+  keys.forEach(key=>{
+    if(map[key]!==src){ map[key]=src; changed=true; }
+  });
+  if(changed) schedulePersistentPlayerImageURLCacheSave();
+}
+function forgetPersistentPlayerImage(type,names,src){
+  if(type!=='player') return;
+  const keys=persistentPlayerImageKeys(names);
+  if(!keys.length) return;
+  const map=readPersistentPlayerImageURLCache();
+  let changed=false;
+  keys.forEach(key=>{
+    if(Object.prototype.hasOwnProperty.call(map,key) && (!src || map[key]===src)){
+      delete map[key];
+      changed=true;
+    }
+  });
+  if(changed) schedulePersistentPlayerImageURLCacheSave();
 }
 function cachedResolvedImage(type,names){
   const composite=imageCacheCompositeKey(type,names);
@@ -1354,6 +1423,15 @@ function cachedResolvedImage(type,names){
       if(value) return value;
     }
   }
+
+  // Cache persistente leggera: salva solo la mappa giocatore -> URL immagine già risolto.
+  // Se presente, evita nuovi probe dopo un refresh pagina e permette di mostrare subito la foto.
+  const persistentSrc=cachedPersistentPlayerImage(type,names);
+  if(persistentSrc){
+    rememberResolvedImage(type,names,persistentSrc);
+    return persistentSrc;
+  }
+
   // Il fallimento viene memorizzato solo per la combinazione esatta di nomi,
   // così un alias più completo può ancora trovare l'immagine in un'altra scheda.
   return _resolvedImageURLCache.get(composite);
@@ -1364,9 +1442,18 @@ function rememberResolvedImage(type,names,src){
   if(src){
     _resolvedImageURLCache.set(composite,src);
     (names||[]).forEach(n=>{ const key=norm(n); if(key) _resolvedImageURLCache.set(type+':'+key,src); });
+    rememberPersistentPlayerImage(type,names,src);
   }else{
     _resolvedImageURLCache.set(composite,null);
   }
+}
+function forgetResolvedImage(type,names,src){
+  const composite=imageCacheCompositeKey(type,names);
+  const keys=[composite,...(names||[]).map(n=>type+':'+norm(n)).filter(Boolean)];
+  keys.forEach(key=>{
+    if(!src || _resolvedImageURLCache.get(key)===src) _resolvedImageURLCache.delete(key);
+  });
+  forgetPersistentPlayerImage(type,names,src);
 }
 function clearImageProbeCache(){
   _imageProbeCache.clear();
@@ -1412,9 +1499,28 @@ function avatarObserver(){
   return _avatarIO;
 }
 
+function initialIconEl(cls,name){
+  const d=document.createElement('div');
+  d.className=cls;
+  d.textContent=initials(name);
+  if(!d.textContent) d.classList.add('is-empty-fallback');
+  return d;
+}
+function readyImageEl(cls,name,src,onError){
+  const img=document.createElement('img');
+  img.className=cls;
+  img.alt=name||'';
+  img.decoding='async';
+  img.loading='lazy';
+  if(typeof onError==='function') img.onerror=()=>onError(img);
+  img.src=src;
+  return img;
+}
+
 /* Crea elemento img o div iniziali — NESSUN innerHTML con dati utente.
    Accetta anche una lista di nomi alternativi: utile quando nei CSV squadra
-   il giocatore è Cognome Nome, ma negli altri CSV o nei file immagine è Nome Cognome. */
+   il giocatore è Cognome Nome, ma negli altri CSV o nei file immagine è Nome Cognome.
+   Strategia: iniziali subito al primo tentativo, foto subito se già risolta in cache. */
 function imgOrInitialEl(type,name,cls){
   const names=(Array.isArray(name)?name:[name])
     .map(x=>smartSpace(x))
@@ -1425,12 +1531,6 @@ function imgOrInitialEl(type,name,cls){
   if(manualLoadActive && state.imagesReady===false){
     return imagePlaceholderEl(cls,mainName);
   }
-
-  const img=document.createElement('img');
-  img.className=cls;
-  img.alt=mainName;
-  img.decoding='async';
-  img.loading='lazy';
 
   const prefixes=type==='team'?['immagini/squadre/','data/immagini/squadre/']:['immagini/giocatori/','data/immagini/giocatori/'];
   const candidates=[];
@@ -1447,43 +1547,44 @@ function imgOrInitialEl(type,name,cls){
     }
   });
 
-  // Caso importante per Classifiche/Squadre/Riepilogo:
-  // se l'immagine era già stata trovata in una scheda precedente, assegna subito src
-  // senza attendere Promise/IntersectionObserver e senza mostrare il caricamento.
+  // Caso veloce: se l'immagine era già stata risolta nella sessione o nella cache
+  // persistente, mostriamo subito la foto senza passare dalle iniziali.
   const cached=cachedResolvedImage(type,names);
   if(cached){
-    img.src=cached;
-    return img;
+    return readyImageEl(cls,mainName,cached,img=>{
+      // Cache persistente obsoleta o file rinominato: rimuovi la mappa e torna alle iniziali.
+      forgetResolvedImage(type,names,cached);
+      if(img.isConnected) img.replaceWith(initialIconEl(cls,mainName));
+    });
   }
   if(cached===null){
-    const d=document.createElement('div');
-    d.className=cls;
-    d.textContent=initials(mainName);
-    if(!d.textContent) d.classList.add('is-empty-fallback');
-    return d;
+    return initialIconEl(cls,mainName);
   }
+
+  // Prima volta: iniziali immediatamente visibili, poi foto appena risolta.
+  const fallback=initialIconEl(cls,mainName);
+  fallback.setAttribute('aria-label',mainName||'Immagine');
 
   /* Quando l'avatar diventa visibile (o subito, se IntersectionObserver non è
      supportato), prova tutte le candidate in parallelo invece che una alla volta.
-     La prima URL valida viene salvata in _resolvedImageURLCache, così i successivi
-     cambi tab riusano subito la stessa immagine. */
-  img._onAvatarVisible=()=>{
+     La prima URL valida viene salvata in _resolvedImageURLCache e, per i giocatori,
+     anche in localStorage come mappa leggera nome -> URL. */
+  fallback._onAvatarVisible=()=>{
     probeFirstWorkingImage(candidates).then(src=>{
       rememberResolvedImage(type,names,src);
-      if(!img.isConnected) return; // la sezione è cambiata nel frattempo
+      if(!fallback.isConnected) return; // la sezione è cambiata nel frattempo
       if(src){
-        img.src=src; // stessa referenza: eventuali title/alt impostati dal chiamante restano validi
-      }else{
-        const d=document.createElement('div');
-        d.className=cls;
-        d.textContent=initials(mainName);
-        if(!d.textContent) d.classList.add('is-empty-fallback');
-        img.replaceWith(d);
+        const img=readyImageEl(cls,mainName,src,failedImg=>{
+          forgetResolvedImage(type,names,src);
+          if(failedImg.isConnected) failedImg.replaceWith(initialIconEl(cls,mainName));
+        });
+        fallback.replaceWith(img);
       }
+      // Se src è null restano le iniziali già visibili.
     });
   };
-  avatarObserver().observe(img);
-  return img;
+  avatarObserver().observe(fallback);
+  return fallback;
 }
 /* ══════════════════════════════════
    LOGO CRAL
