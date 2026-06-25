@@ -717,6 +717,66 @@
 
 
 
+    /* ── Fantacalcio: Trend badge ── */
+    .fanta-trend-up{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:rgba(18,128,92,.15);color:var(--green);font-size:13px;font-weight:900;margin-left:6px;flex:0 0 22px;vertical-align:middle}
+    .fanta-trend-down{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:rgba(180,35,24,.12);color:var(--red);font-size:13px;font-weight:900;margin-left:6px;flex:0 0 22px;vertical-align:middle}
+    .fanta-trend-flat{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:rgba(102,112,133,.12);color:var(--muted);font-size:11px;font-weight:900;margin-left:6px;flex:0 0 22px;vertical-align:middle}
+    /* ── Fantacalcio: Highlight riga personale ── */
+    .fanta-my-row td{background:rgba(245,185,66,.10)!important;border-top:2px solid rgba(245,185,66,.5);border-bottom:2px solid rgba(245,185,66,.5)}
+    .fanta-my-row td.col-highlight{background:rgba(245,185,66,.22)!important}
+    [data-theme="dark"] .fanta-my-row td{background:rgba(245,185,66,.13)!important}
+    [data-theme="dark"] .fanta-my-row td.col-highlight{background:rgba(245,185,66,.28)!important}
+    .fanta-my-card{border:2px solid rgba(245,185,66,.6)!important;background:linear-gradient(135deg,rgba(245,185,66,.08),var(--panel))!important}
+    /* ── Fantacalcio: Input nome personale ── */
+    .fanta-myname-wrap{display:flex;align-items:center;gap:8px;margin-left:auto}
+    .fanta-myname-input{padding:10px 13px;border:1px solid var(--line);border-radius:12px;font-size:13px;background:var(--panel);color:var(--ink);width:170px;font-family:inherit}
+    .fanta-myname-input:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(15,90,168,.12)}
+    .fanta-myname-label{font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap}
+    @media(max-width:600px){.fanta-myname-wrap{margin-left:0;width:100%;margin-top:8px}.fanta-myname-input{flex:1;width:auto}}
+    /* ── Fantacalcio: Grafico andamento ── */
+    .fanta-chart-wrap{margin:18px 0 0;border:1px solid var(--line);border-radius:20px;background:var(--panel);padding:18px 18px 12px;box-shadow:0 4px 16px var(--shadow)}
+    .fanta-chart-title{font-family:'Oswald',Arial,sans-serif;font-size:17px;font-weight:700;color:var(--blue);margin:0 0 14px;text-transform:uppercase;letter-spacing:.04em}
+    .fanta-chart-canvas-wrap{position:relative;width:100%;overflow-x:auto;overflow-y:hidden}
+    .fanta-chart-canvas-wrap canvas{display:block;max-width:100%}
+    .fanta-chart-legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .fanta-chart-legend-item{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:var(--ink);cursor:pointer;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:var(--soft);transition:opacity .15s}
+    .fanta-chart-legend-item.is-hidden{opacity:.35}
+    .fanta-chart-legend-dot{width:10px;height:10px;border-radius:50%;flex:0 0 10px}
+    @media(max-width:600px){.fanta-chart-wrap{padding:14px 12px 8px}.fanta-chart-title{font-size:14px}}
+    /* ── Fantacalcio: Confronto testa a testa ── */
+    .fanta-h2h-wrap{margin:18px 0 0;border:1px solid var(--line);border-radius:20px;background:var(--panel);padding:18px;box-shadow:0 4px 16px var(--shadow)}
+    .fanta-h2h-title{font-family:'Oswald',Arial,sans-serif;font-size:17px;font-weight:700;color:var(--blue);margin:0 0 14px;text-transform:uppercase;letter-spacing:.04em}
+    .fanta-h2h-selectors{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+    .fanta-h2h-selectors select{flex:1;min-width:130px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;font-size:14px;font-weight:700;background:var(--panel);color:var(--ink);font-family:inherit}
+    .fanta-h2h-selectors select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px rgba(15,90,168,.12)}
+    .fanta-h2h-vs{font-family:'Oswald',Arial,sans-serif;font-size:20px;font-weight:700;color:var(--muted);flex:0 0 auto}
+    .fanta-h2h-scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:0;border-radius:16px;overflow:hidden;border:1px solid var(--line);margin-bottom:14px}
+    .fanta-h2h-player{padding:14px 12px;text-align:center;background:var(--soft)}
+    .fanta-h2h-player.is-winner{background:linear-gradient(135deg,rgba(15,90,168,.10),rgba(245,185,66,.10))}
+    .fanta-h2h-player-name{font-weight:900;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .fanta-h2h-player-pts{font-family:'Oswald',Arial,sans-serif;font-size:34px;font-weight:700;color:var(--blue);line-height:1}
+    .fanta-h2h-player-label{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:3px}
+    .fanta-h2h-center{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 8px;background:var(--panel);border-left:1px solid var(--line);border-right:1px solid var(--line)}
+    .fanta-h2h-record{font-family:'Oswald',Arial,sans-serif;font-size:22px;font-weight:700;color:var(--ink);white-space:nowrap}
+    .fanta-h2h-record-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:2px}
+    .fanta-h2h-rounds{display:flex;flex-direction:column;gap:6px}
+    .fanta-h2h-round{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--soft);font-size:13px}
+    .fanta-h2h-round.is-left-win .fanta-h2h-round-left{font-weight:900;color:var(--blue)}
+    .fanta-h2h-round.is-right-win .fanta-h2h-round-right{font-weight:900;color:var(--blue)}
+    .fanta-h2h-round.is-draw .fanta-h2h-round-left,.fanta-h2h-round.is-draw .fanta-h2h-round-right{font-weight:700;color:var(--muted)}
+    .fanta-h2h-round-left{text-align:right;font-variant-numeric:tabular-nums}
+    .fanta-h2h-round-right{text-align:left;font-variant-numeric:tabular-nums}
+    .fanta-h2h-round-label{text-align:center;color:var(--muted);font-size:11px;font-weight:700;white-space:nowrap}
+    .fanta-h2h-empty{text-align:center;color:var(--muted);font-size:14px;padding:18px;font-style:italic}
+    @media(max-width:600px){
+      .fanta-h2h-wrap{padding:14px 12px}
+      .fanta-h2h-title{font-size:14px}
+      .fanta-h2h-player-pts{font-size:26px}
+      .fanta-h2h-player-name{font-size:13px}
+      .fanta-h2h-record{font-size:18px}
+      .fanta-h2h-round{font-size:12px;padding:7px 8px}
+    }
+
     /* Fantacalcio: sorgente automatica da data/fantacalcio e tabella leggibile anche su mobile */
     .gold-crown{color:#f5b942!important;font-weight:900;text-shadow:0 0 12px rgba(245,185,66,.48)}
     .tab[data-tab="fantacalcio"] .gold-crown{
@@ -6965,7 +7025,8 @@ function fantaCompareValues(a,b){
   if(aNum || bNum) return (an||0)-(bn||0);
   return String(a||'').localeCompare(String(b||''),'it',{numeric:true,sensitivity:'base'});
 }
-function fantaBuildTable(rows){
+function fantaBuildTable(rows, allResults){
+  rows._allResults=allResults||[];
   const headers=['POS.','Giornata','Partecipante','Punti','Crediti','Pres.','Gol','MVP','GS PT','PI','Rig. par.','Rig. sbagl.','AG','Squadra'];
   const roles=['rank','round','person','metric','metric','metric','metric','metric','metric','metric','metric','metric','metric','action'];
   const tableId='fantacalcio_'+(state.selectedFantaGiornata||'totale');
@@ -6998,18 +7059,29 @@ function fantaBuildTable(rows){
     trh.appendChild(th);
   });
   thead.appendChild(trh); table.appendChild(thead);
+  // Pre-calcola i trend per la colonna nome (serve tutti i risultati, non solo quelli filtrati)
+  const allResultsForTrend=rows._allResults||[];
   const tbody=document.createElement('tbody');
   sorted.forEach((r,i)=>{
     const tr=document.createElement('tr');
+    const isMe=fantaMatchesMyName(r.name);
+    if(isMe) tr.classList.add('fanta-my-row');
     const values=[String(i+1), r.day?String(r.day):'Totale', r.name, r.points||0, r.credits||0, fantaDisplayPres(r)||0, r.goals||0, r.mvps||0, r.gsPt||0, r.porteInviolate||0, r.rigPar||0, r.rigSbag||0, r.autogoal||0, ''];
     values.forEach((value,colIdx)=>{
       const td=document.createElement('td'); td.dataset.colRole=roles[colIdx];
       if(colIdx===3) td.classList.add('col-highlight');
       if(colIdx===2){
-        const name=document.createElement('span'); name.className='fanta-name-medal';
+        const nameWrap=document.createElement('span'); nameWrap.className='fanta-name-medal';
         const medal=fantaRankMedal(i);
-        if(medal){ const m=document.createElement('span'); m.className='fanta-medal'; m.textContent=medal; name.appendChild(m); }
-        const t=document.createElement('span'); t.textContent=r.name||'-'; name.appendChild(t); td.appendChild(name);
+        if(medal){ const m=document.createElement('span'); m.className='fanta-medal'; m.textContent=medal; nameWrap.appendChild(m); }
+        const t=document.createElement('span'); t.textContent=r.name||'-'; nameWrap.appendChild(t);
+        // Badge trend solo sul totale e se abbiamo storico
+        if((state.selectedFantaGiornata||'totale')==='totale' && allResultsForTrend.length){
+          const trend=fantaTrendBadge(r.name,allResultsForTrend);
+          const badge=fantaTrendEl(trend);
+          if(badge) nameWrap.appendChild(badge);
+        }
+        td.appendChild(nameWrap);
       }else if(colIdx===13){
         const btn=document.createElement('button'); btn.type='button'; btn.className='fanta-squad-btn'; btn.textContent='Vedi squadra';
         btn.onclick=(ev)=>{ ev.stopPropagation(); fantaOpenSquadModal(r,i+1); };
@@ -7023,8 +7095,13 @@ function fantaBuildTable(rows){
   });
   table.appendChild(tbody); wrap.appendChild(table); outer.appendChild(wrap);
   const hint=document.createElement('div'); hint.className='scroll-hint'; hint.textContent='⟷ Scorri per leggere altri dati'; outer.appendChild(hint);
+  // Mobile: card layout alternativo (CSS nasconde uno dei due a seconda della viewport)
+  const desktopWrap=document.createElement('div'); desktopWrap.className='fanta-table-desktop'; desktopWrap.appendChild(outer);
+  const mobileCards=fantaBuildMobileCards(sorted, rows._allResults||[]);
+  const container=document.createElement('div');
+  container.appendChild(desktopWrap); container.appendChild(mobileCards);
   requestAnimationFrame(()=>refreshTableScrollState(wrap));
-  return outer;
+  return container;
 }
 function fantaPlayerPointsFromResult(result, player){
   if(!result.playerPoints || !result.playerPoints.size) return null;
@@ -7112,12 +7189,13 @@ function fantaOpenSquadModal(result,rank){
   requestAnimationFrame(()=>backdrop.classList.add('is-open'));
 }
 
-function fantaBuildMobileCards(rows){
+function fantaBuildMobileCards(rows, allResults){
   const list=document.createElement('div');
   list.className='fanta-mobile-list';
   rows.forEach((r,i)=>{
     const card=document.createElement('article');
-    card.className='fanta-standing-card';
+    const isMe=fantaMatchesMyName(r.name);
+    card.className='fanta-standing-card'+(isMe?' fanta-my-card':'');
 
     const top=document.createElement('div');
     top.className='fanta-standing-top';
@@ -7129,13 +7207,23 @@ function fantaBuildMobileCards(rows){
 
     const main=document.createElement('div');
     main.className='fanta-player-main';
-    const name=document.createElement('div');
-    name.className='fanta-player-name';
-    name.textContent=r.name||'-';
+    const nameRow=document.createElement('div');
+    nameRow.style.cssText='display:flex;align-items:center;gap:4px;flex-wrap:wrap';
+    const nameSpan=document.createElement('span');
+    nameSpan.className='fanta-player-name';
+    nameSpan.style.marginRight='0';
+    nameSpan.textContent=r.name||'-';
+    nameRow.appendChild(nameSpan);
+    // Badge trend su mobile
+    if((state.selectedFantaGiornata||'totale')==='totale' && allResults&&allResults.length){
+      const trend=fantaTrendBadge(r.name,allResults);
+      const badge=fantaTrendEl(trend);
+      if(badge) nameRow.appendChild(badge);
+    }
     const day=document.createElement('span');
     day.className='fanta-day-badge';
     day.textContent=r.day ? ('Giornata '+r.day) : 'Tutte le giornate';
-    main.appendChild(name);
+    main.appendChild(nameRow);
     main.appendChild(day);
     top.appendChild(main);
 
@@ -7288,6 +7376,313 @@ function fantaSummaryCards(parent,rows,data){
   });
   parent.appendChild(wrap);
 }
+/* ══════════════════════════════════
+   FANTACALCIO: FEATURE AGGIUNTIVE
+   1. Highlight riga personale (nome salvato in sessionStorage)
+   2. Badge trend (↑↓ rispetto alla propria media)
+   3. Grafico andamento punti per giornata
+   4. Confronto testa a testa
+   ══════════════════════════════════ */
+
+/* ── Stato nome personale ── */
+function fantaGetMyName(){ try{ return sessionStorage.getItem('fantaMyName')||''; }catch(e){ return ''; } }
+function fantaSetMyName(v){ try{ if(v) sessionStorage.setItem('fantaMyName',v); else sessionStorage.removeItem('fantaMyName'); }catch(e){} }
+function fantaMatchesMyName(rowName){
+  const my=fantaNormText(fantaGetMyName());
+  if(!my) return false;
+  const rn=fantaNormText(rowName||'');
+  return rn===my || rn.includes(my) || my.includes(rn);
+}
+
+/* ── Colori partecipanti per grafico ── */
+const FANTA_CHART_PALETTE=[
+  '#3b82f6','#f5b942','#10b981','#ef4444','#8b5cf6',
+  '#f97316','#06b6d4','#ec4899','#84cc16','#a78bfa',
+  '#fb7185','#34d399','#60a5fa','#fbbf24','#4ade80'
+];
+function fantaChartColor(idx){ return FANTA_CHART_PALETTE[idx % FANTA_CHART_PALETTE.length]; }
+
+/* ── Trend badge: confronta ultima giornata con media ── */
+function fantaTrendBadge(name, allResults){
+  // Prendi tutti i risultati per giornata di questo partecipante, ordinati per giornata
+  const key=fantaNormText(name||'');
+  const personal=allResults
+    .filter(r=>r.day>0 && fantaNormText(r.name||'')===key)
+    .sort((a,b)=>(a.day||0)-(b.day||0));
+  if(personal.length<2) return null; // serve almeno 2 giornate
+  const last=personal[personal.length-1];
+  const prev=personal.slice(0,-1);
+  const avg=prev.reduce((s,r)=>s+(r.points||0),0)/prev.length;
+  const diff=(last.points||0)-avg;
+  if(Math.abs(diff)<0.5) return {type:'flat',diff:0};
+  return diff>0 ? {type:'up',diff} : {type:'down',diff};
+}
+function fantaTrendEl(trend){
+  if(!trend) return null;
+  const span=document.createElement('span');
+  if(trend.type==='up'){ span.className='fanta-trend-up'; span.textContent='↑'; span.title='Sopra la tua media (+'+(Math.round(trend.diff*10)/10)+' pt)'; }
+  else if(trend.type==='down'){ span.className='fanta-trend-down'; span.textContent='↓'; span.title='Sotto la tua media ('+(Math.round(trend.diff*10)/10)+' pt)'; }
+  else { span.className='fanta-trend-flat'; span.textContent='→'; span.title='Nella media'; }
+  return span;
+}
+
+/* ── Grafico andamento punti cumulati per giornata ── */
+function fantaBuildChart(data){
+  const allDays=fantaRiepilogoDayOptions().map(([k])=>parseInt(k,10)).filter(n=>n>0).sort((a,b)=>a-b);
+  if(allDays.length<2) return null; // non abbastanza giornate per un grafico utile
+
+  // Raggruppa i risultati per partecipante e giornata
+  const byParticipant=new Map();
+  (data.results||[]).filter(r=>r.day>0).forEach(r=>{
+    const k=fantaNormText(r.name||'');
+    if(!byParticipant.has(k)) byParticipant.set(k,{name:r.name,days:new Map()});
+    byParticipant.get(k).days.set(r.day,(r.points||0));
+  });
+  if(!byParticipant.size) return null;
+
+  // Calcola punti cumulati per ogni partecipante su ogni giornata
+  const participants=[...byParticipant.values()];
+  const datasets=participants.map((p,idx)=>{
+    let cumul=0;
+    const pts=allDays.map(d=>{ cumul+=(p.days.get(d)||0); return cumul; });
+    return {name:p.name, pts, color:fantaChartColor(idx), hidden:false};
+  });
+
+  // Wrapper
+  const wrap=document.createElement('div'); wrap.className='fanta-chart-wrap';
+  const h=document.createElement('div'); h.className='fanta-chart-title'; h.textContent='📈 Andamento punti per giornata';
+  wrap.appendChild(h);
+
+  const canvasWrap=document.createElement('div'); canvasWrap.className='fanta-chart-canvas-wrap';
+  const canvas=document.createElement('canvas');
+  // Altezza adattiva: su mobile più corta
+  const isMobile=window.innerWidth<640;
+  canvas.width=Math.max(window.innerWidth<640?320:600, Math.min(960, (window.innerWidth||800)-80));
+  canvas.height=isMobile?220:300;
+  canvasWrap.appendChild(canvas);
+  wrap.appendChild(canvasWrap);
+
+  // Legenda interattiva
+  const legend=document.createElement('div'); legend.className='fanta-chart-legend';
+  datasets.forEach((ds,idx)=>{
+    const item=document.createElement('div'); item.className='fanta-chart-legend-item';
+    const dot=document.createElement('span'); dot.className='fanta-chart-legend-dot'; dot.style.background=ds.color;
+    const label=document.createElement('span'); label.textContent=fantaShortParticipantName(ds.name);
+    // Evidenzia il proprio nome
+    if(fantaMatchesMyName(ds.name)){ item.style.border='1px solid '+ds.color; item.style.fontWeight='900'; }
+    item.appendChild(dot); item.appendChild(label);
+    item.onclick=()=>{
+      ds.hidden=!ds.hidden;
+      item.classList.toggle('is-hidden',ds.hidden);
+      drawChart();
+    };
+    legend.appendChild(item);
+  });
+  wrap.appendChild(legend);
+
+  function drawChart(){
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width, H=canvas.height;
+    const PAD={top:18,right:16,bottom:36,left:42};
+    const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+    const gridColor=isDark?'rgba(255,255,255,.08)':'rgba(0,0,0,.07)';
+    const textColor=isDark?'#8fa4be':'#667085';
+    const bgColor=isDark?'#162033':'#fff';
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle=bgColor; ctx.fillRect(0,0,W,H);
+
+    const visDs=datasets.filter(d=>!d.hidden);
+    if(!visDs.length) return;
+
+    const allPts=visDs.flatMap(d=>d.pts);
+    const maxPts=Math.max(...allPts,1);
+    const minPts=Math.min(...allPts,0);
+    const range=maxPts-minPts||1;
+
+    const chartW=W-PAD.left-PAD.right;
+    const chartH=H-PAD.top-PAD.bottom;
+    const xStep=allDays.length>1 ? chartW/(allDays.length-1) : chartW;
+
+    // Griglia Y: ~5 linee
+    const ySteps=4;
+    ctx.font='11px Inter,Arial,sans-serif';
+    ctx.textAlign='right'; ctx.fillStyle=textColor;
+    for(let i=0;i<=ySteps;i++){
+      const val=minPts+(range*i/ySteps);
+      const y=PAD.top+chartH*(1-(val-minPts)/range);
+      ctx.beginPath(); ctx.strokeStyle=gridColor; ctx.lineWidth=1;
+      ctx.moveTo(PAD.left,y); ctx.lineTo(W-PAD.right,y); ctx.stroke();
+      ctx.fillText(Math.round(val),PAD.left-5,y+4);
+    }
+    // Label asse X
+    ctx.textAlign='center'; ctx.fillStyle=textColor;
+    allDays.forEach((d,i)=>{
+      const x=PAD.left+i*xStep;
+      const y=H-PAD.bottom+16;
+      // Su mobile mostra solo ogni 2 etichette se troppo affollato
+      if(isMobile && allDays.length>6 && i%2!==0) return;
+      ctx.fillText('G'+d,x,y);
+    });
+
+    // Linee per ogni partecipante
+    visDs.forEach(ds=>{
+      const isMe=fantaMatchesMyName(ds.name);
+      ctx.beginPath();
+      ds.pts.forEach((pt,i)=>{
+        const x=PAD.left+i*xStep;
+        const y=PAD.top+chartH*(1-(pt-minPts)/range);
+        i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      });
+      ctx.strokeStyle=ds.color;
+      ctx.lineWidth=isMe?3.5:2;
+      ctx.lineJoin='round';
+      ctx.lineCap='round';
+      if(!isMe){ ctx.setLineDash([]); } else { ctx.setLineDash([]); }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Punti (solo se non troppo affollati)
+      if(allDays.length<=12){
+        ds.pts.forEach((pt,i)=>{
+          const x=PAD.left+i*xStep;
+          const y=PAD.top+chartH*(1-(pt-minPts)/range);
+          ctx.beginPath();
+          ctx.arc(x,y,isMe?4.5:3,0,Math.PI*2);
+          ctx.fillStyle=ds.color; ctx.fill();
+          ctx.strokeStyle=bgColor; ctx.lineWidth=1.5; ctx.stroke();
+        });
+      }
+    });
+  }
+
+  // Ridisegna quando cambia tema (osserva l'attributo data-theme)
+  const themeObserver=new MutationObserver(()=>drawChart());
+  themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+  requestAnimationFrame(drawChart);
+  return wrap;
+}
+
+/* ── Confronto testa a testa ── */
+function fantaBuildH2H(data, allParticipants){
+  if(allParticipants.length<2) return null;
+
+  const wrap=document.createElement('div'); wrap.className='fanta-h2h-wrap';
+  const h=document.createElement('div'); h.className='fanta-h2h-title'; h.textContent='⚔️ Confronto testa a testa';
+  wrap.appendChild(h);
+
+  // Stato locale H2H (persiste tra re-render tramite dataset sul wrapper)
+  const myName=fantaGetMyName();
+  let leftName=data._h2hLeft||'';
+  let rightName=data._h2hRight||'';
+  // Default: il proprio nome vs il leader
+  if(!leftName && myName) leftName=myName;
+  if(!leftName) leftName=allParticipants[0]||'';
+  if(!rightName){
+    const others=allParticipants.filter(n=>fantaNormText(n)!==fantaNormText(leftName));
+    rightName=others[0]||'';
+  }
+
+  const selRow=document.createElement('div'); selRow.className='fanta-h2h-selectors';
+
+  function buildSelect(currentVal, excludeVal){
+    const sel=document.createElement('select');
+    allParticipants.forEach(name=>{
+      const o=document.createElement('option'); o.value=name; o.textContent=name;
+      if(fantaNormText(name)===fantaNormText(currentVal)) o.selected=true;
+      sel.appendChild(o);
+    });
+    return sel;
+  }
+
+  const selLeft=buildSelect(leftName,rightName);
+  const vsEl=document.createElement('span'); vsEl.className='fanta-h2h-vs'; vsEl.textContent='vs';
+  const selRight=buildSelect(rightName,leftName);
+  selRow.appendChild(selLeft); selRow.appendChild(vsEl); selRow.appendChild(selRight);
+  wrap.appendChild(selRow);
+
+  const resultArea=document.createElement('div');
+  wrap.appendChild(resultArea);
+
+  function renderH2H(lName, rName){
+    resultArea.innerHTML='';
+    const lKey=fantaNormText(lName||'');
+    const rKey=fantaNormText(rName||'');
+    if(!lKey || !rKey || lKey===rKey){
+      const em=document.createElement('div'); em.className='fanta-h2h-empty'; em.textContent='Seleziona due partecipanti diversi.';
+      resultArea.appendChild(em); return;
+    }
+    // Raccogli risultati per giornata
+    const days=new Map();
+    (data.results||[]).filter(r=>r.day>0).forEach(r=>{
+      const rk=fantaNormText(r.name||'');
+      if(rk!==lKey && rk!==rKey) return;
+      if(!days.has(r.day)) days.set(r.day,{day:r.day,left:null,right:null});
+      const d=days.get(r.day);
+      if(rk===lKey) d.left=r.points||0;
+      else d.right=r.points||0;
+    });
+    const played=[...days.values()].filter(d=>d.left!==null&&d.right!==null).sort((a,b)=>a.day-b.day);
+
+    let lWins=0,rWins=0,draws=0,lTotal=0,rTotal=0;
+    played.forEach(d=>{
+      lTotal+=d.left; rTotal+=d.right;
+      if(d.left>d.right) lWins++;
+      else if(d.right>d.left) rWins++;
+      else draws++;
+    });
+
+    // Scoreboard
+    const sb=document.createElement('div'); sb.className='fanta-h2h-scoreboard';
+    const lPanel=document.createElement('div'); lPanel.className='fanta-h2h-player'+(lWins>=rWins?' is-winner':'');
+    const lNameEl=document.createElement('div'); lNameEl.className='fanta-h2h-player-name'; lNameEl.textContent=lName; lNameEl.title=lName;
+    const lPts=document.createElement('div'); lPts.className='fanta-h2h-player-pts'; lPts.textContent=String(lTotal);
+    const lLbl=document.createElement('div'); lLbl.className='fanta-h2h-player-label'; lLbl.textContent='punti totali';
+    lPanel.appendChild(lNameEl); lPanel.appendChild(lPts); lPanel.appendChild(lLbl);
+
+    const center=document.createElement('div'); center.className='fanta-h2h-center';
+    const rec=document.createElement('div'); rec.className='fanta-h2h-record';
+    rec.textContent=lWins+'-'+draws+'-'+rWins;
+    const recLbl=document.createElement('div'); recLbl.className='fanta-h2h-record-label'; recLbl.textContent='V - P - S';
+    center.appendChild(rec); center.appendChild(recLbl);
+
+    const rPanel=document.createElement('div'); rPanel.className='fanta-h2h-player'+(rWins>lWins?' is-winner':'');
+    const rNameEl=document.createElement('div'); rNameEl.className='fanta-h2h-player-name'; rNameEl.textContent=rName; rNameEl.title=rName;
+    const rPts=document.createElement('div'); rPts.className='fanta-h2h-player-pts'; rPts.textContent=String(rTotal);
+    const rLbl=document.createElement('div'); rLbl.className='fanta-h2h-player-label'; rLbl.textContent='punti totali';
+    rPanel.appendChild(rNameEl); rPanel.appendChild(rPts); rPanel.appendChild(rLbl);
+
+    sb.appendChild(lPanel); sb.appendChild(center); sb.appendChild(rPanel);
+    resultArea.appendChild(sb);
+
+    if(!played.length){
+      const em=document.createElement('div'); em.className='fanta-h2h-empty'; em.textContent='Nessuna giornata comune trovata.';
+      resultArea.appendChild(em); return;
+    }
+
+    // Lista giornate
+    const roundsWrap=document.createElement('div'); roundsWrap.className='fanta-h2h-rounds';
+    played.forEach(d=>{
+      const row=document.createElement('div');
+      const cls=d.left>d.right?'is-left-win':(d.right>d.left?'is-right-win':'is-draw');
+      row.className='fanta-h2h-round '+cls;
+      const lv=document.createElement('div'); lv.className='fanta-h2h-round-left'; lv.textContent=String(d.left)+' pt';
+      const lbl=document.createElement('div'); lbl.className='fanta-h2h-round-label'; lbl.textContent='G'+d.day;
+      const rv=document.createElement('div'); rv.className='fanta-h2h-round-right'; rv.textContent=String(d.right)+' pt';
+      row.appendChild(lv); row.appendChild(lbl); row.appendChild(rv);
+      roundsWrap.appendChild(row);
+    });
+    resultArea.appendChild(roundsWrap);
+  }
+
+  renderH2H(leftName,rightName);
+
+  selLeft.onchange=()=>{ data._h2hLeft=selLeft.value; renderH2H(selLeft.value,selRight.value); };
+  selRight.onchange=()=>{ data._h2hRight=selRight.value; renderH2H(selLeft.value,selRight.value); };
+
+  return wrap;
+}
+
 function renderFantacalcio(){
   if(!manualLoadActive && !state.fantaLoading && !state.fantaPrecomputedData && !fantaRosterFiles().length){ ensureFantaDataInBackground(false); }
   const el=document.getElementById('fantacalcio'); el.innerHTML='';
@@ -7304,16 +7699,32 @@ function renderFantacalcio(){
   let options=fantaAvailableDayOptions(data.results);
   if(!options.some(o=>o[0]===state.selectedFantaGiornata)) state.selectedFantaGiornata='totale';
 
+  // ── Actions row: filtro giornata + input nome personale ──
   const actions=document.createElement('div'); actions.className='fanta-actions';
   const select=document.createElement('select'); select.className='search'; select.setAttribute('aria-label','Filtro giornata fantacalcio');
   options.forEach(([value,text])=>{ const o=document.createElement('option'); o.value=value; o.textContent=text; if(value===state.selectedFantaGiornata) o.selected=true; select.appendChild(o); });
   select.onchange=()=>{ state.selectedFantaGiornata=select.value; renderFantacalcio(); };
   actions.appendChild(select);
+
+  // Input "Il mio nome" per highlight e trend
+  const myNameWrap=document.createElement('div'); myNameWrap.className='fanta-myname-wrap';
+  const myNameLabel=document.createElement('span'); myNameLabel.className='fanta-myname-label'; myNameLabel.textContent='Il tuo nome:';
+  const myNameInput=document.createElement('input'); myNameInput.type='text'; myNameInput.className='fanta-myname-input';
+  myNameInput.placeholder='es. Rossi Mario'; myNameInput.value=fantaGetMyName();
+  myNameInput.setAttribute('aria-label','Il tuo nome nel Fantacalcio');
+  let myNameTimer=null;
+  myNameInput.oninput=()=>{
+    clearTimeout(myNameTimer);
+    myNameTimer=setTimeout(()=>{ fantaSetMyName(myNameInput.value.trim()); renderFantacalcio(); },600);
+  };
+  myNameWrap.appendChild(myNameLabel); myNameWrap.appendChild(myNameInput);
+  actions.appendChild(myNameWrap);
   card.appendChild(actions);
   card.appendChild(fantaBuildRulesLegend());
 
   const rows=fantaRowsForSelected(data);
   fantaSummaryCards(card,rows,data);
+
   if(state.fantaLoading && !data.results.length){
     const loading=document.createElement('div'); loading.className='fanta-loading';
     loading.textContent='Caricamento dati Fantacalcio…';
@@ -7325,7 +7736,22 @@ function renderFantacalcio(){
   }else if(!rows.length){
     card.appendChild(buildEl('div','empty','Nessun risultato per il filtro selezionato.'));
   }else{
-    card.appendChild(fantaBuildTable(rows));
+    card.appendChild(fantaBuildTable(rows, data.results||[]));
+
+    // ── Grafico andamento (solo se "Tutte le giornate") ──
+    if((state.selectedFantaGiornata||'totale')==='totale'){
+      const chart=fantaBuildChart(data);
+      if(chart) card.appendChild(chart);
+    }
+
+    // ── Confronto testa a testa ──
+    const allParticipants=[...new Set(
+      (data.results||[]).filter(r=>r.day>0).map(r=>r.name).filter(Boolean)
+    )].sort((a,b)=>String(a).localeCompare(String(b),'it',{sensitivity:'base'}));
+    if(allParticipants.length>=2){
+      const h2h=fantaBuildH2H(data,allParticipants);
+      if(h2h) card.appendChild(h2h);
+    }
   }
   // Gli avvisi tecnici del Fantacalcio restano interni: la classifica mostra solo rose valide.
   el.appendChild(card);
