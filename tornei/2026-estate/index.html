@@ -184,6 +184,8 @@
     .tbl-avatar-col{width:1%;white-space:nowrap}
     .tbl-logo,.tbl-avatar{width:30px;height:30px;border-radius:8px;object-fit:cover;background:#dbe7f6;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;color:var(--blue);flex:0 0 auto}
     .tbl-avatar{border-radius:50%}
+    .initials-fallback{background:#dbe7f6;color:var(--blue);display:flex;align-items:center;justify-content:center;font-weight:900;text-transform:uppercase}
+    [data-theme="dark"] .initials-fallback{background:#243450;color:#93c5fd}
     .mini-logo{width:26px;height:26px;border-radius:7px;object-fit:cover;background:#dbe7f6;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:10px;color:var(--blue);flex:0 0 auto}
     .name-cell{display:flex;align-items:center;gap:9px;min-width:0}
     .name-cell span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
@@ -601,6 +603,7 @@
     .chart-label-strip{position:relative;height:58px;margin-top:2px;padding:0;overflow:visible}
     .chart-label-item{position:absolute;top:0;transform:translateX(-50%);width:54px;display:flex;justify-content:center;align-items:flex-start}
     .chart-label-img{width:44px;height:44px;background:#fff;border:2px solid rgba(255,255,255,.95);box-shadow:0 7px 16px var(--shadow);display:block}
+    .chart-label-img.fallback{display:flex;align-items:center;justify-content:center;font-weight:900;font-size:11px;line-height:1;color:var(--blue)}
     .chart-label-img.player{border-radius:14px;object-fit:cover;object-position:center center;padding:0}
     .chart-label-img.team{border-radius:12px;padding:3px;object-fit:contain}
     .chart-label-text{font-size:10px;color:var(--muted);font-weight:800;text-align:center;line-height:1.05;max-width:54px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical}
@@ -1459,16 +1462,17 @@ function clearImageProbeCache(){
   _imageProbeCache.clear();
   _resolvedImageURLCache.clear();
 }
-function probeFirstWorkingImage(candidates){
+function probeFirstWorkingImage(candidates, options={}){
   const unique=[...new Set((candidates||[]).filter(Boolean))];
   if(!unique.length) return Promise.resolve(null);
-  const cacheKey=unique.join('\\n');
+  const cacheKey=unique.join('\n');
   if(_imageProbeCache.has(cacheKey)) return _imageProbeCache.get(cacheKey);
   const promise=new Promise(resolve=>{
     let pending=unique.length, settled=false;
     unique.forEach(src=>{
       const probe=new Image();
       probe.decoding='async';
+      if(options.fetchPriority && 'fetchPriority' in probe) probe.fetchPriority=options.fetchPriority;
       probe.onload=()=>{ if(!settled){ settled=true; resolve(src); } };
       probe.onerror=()=>{ pending--; if(!settled && pending<=0) resolve(null); };
       probe.src=src;
@@ -1476,6 +1480,56 @@ function probeFirstWorkingImage(candidates){
   }).catch(()=>null);
   _imageProbeCache.set(cacheKey,promise);
   return promise;
+}
+
+function imageCandidatesFor(type,name){
+  const names=(Array.isArray(name)?name:[name]).map(x=>smartSpace(x)).filter(Boolean);
+  const prefixes=type==='team'?['immagini/squadre/','data/immagini/squadre/']:['immagini/giocatori/','data/immagini/giocatori/'];
+  const candidates=[];
+  const addCandidate=(src)=>{ if(src && !candidates.includes(src)) candidates.push(src); };
+
+  // Prima alias reali caricati dal picker/cartella, poi fallback statici.
+  names.forEach(n=>addCandidate(imageFor(type,n)));
+  names.forEach(n=>{
+    const key=norm(n);
+    for(const pref of prefixes){
+      for(const ext of imageExts()) addCandidate(pref+key+'.'+ext);
+    }
+  });
+  return candidates;
+}
+
+function createInitialFallback(cls,name){
+  const d=document.createElement('div');
+  d.className=cls+' initials-fallback';
+  d.textContent=initials(name);
+  d.title=name||'';
+  if(!d.textContent) d.classList.add('is-empty-fallback');
+  return d;
+}
+
+function createResolvedImageEl(type,name,cls,src,options={},onError){
+  const img=document.createElement('img');
+  img.className=cls;
+  img.alt=name||'';
+  img.title=name||'';
+  img.decoding='async';
+  img.loading=options.loading || (options.priority==='high' ? 'eager' : 'lazy');
+  if(options.priority==='high' && 'fetchPriority' in img) img.fetchPriority='high';
+  else if('fetchPriority' in img) img.fetchPriority=options.fetchPriority || 'low';
+  if(typeof onError==='function') img.onerror=()=>onError(img);
+  img.src=src;
+  return img;
+}
+
+function resolveImageForNames(type,names,options={}){
+  const cached=cachedResolvedImage(type,names);
+  if(cached!==undefined) return Promise.resolve(cached||null);
+  const fetchPriority=options.fetchPriority || (options.priority==='high' ? 'high' : 'low');
+  return probeFirstWorkingImage(imageCandidatesFor(type,names),{fetchPriority}).then(src=>{
+    rememberResolvedImage(type,names,src);
+    return src;
+  });
 }
 
 /* Observer condiviso: avvia il probe delle immagini solo quando l'elemento è vicino al
@@ -1500,110 +1554,67 @@ function avatarObserver(){
 }
 
 function initialIconEl(cls,name){
-  const d=document.createElement('div');
-  d.className=cls;
-  d.textContent=initials(name);
-  if(!d.textContent) d.classList.add('is-empty-fallback');
-  return d;
+  return createInitialFallback(cls,name);
 }
 function readyImageEl(cls,name,src,onError,opts={}){
-  const img=document.createElement('img');
-  img.className=cls;
-  img.alt=name||'';
-  img.decoding='async';
-  img.loading=opts.loading||'lazy';
-  if(opts.fetchPriority) img.fetchPriority=opts.fetchPriority;
-  if(typeof onError==='function') img.onerror=()=>onError(img);
-  img.src=src;
-  return img;
+  return createResolvedImageEl('',name,cls,src,opts,onError);
 }
 function imageLoadHints(type,cls){
   if(type==='player' && String(cls||'').includes('motm-photo')){
-    return {loading:'eager',fetchPriority:'high'};
+    return {loading:'eager',fetchPriority:'high',priority:'high'};
   }
   return type==='player'
     ? {loading:'lazy',fetchPriority:'low'}
-    : {loading:'eager',fetchPriority:'high'};
+    : {loading:'lazy',fetchPriority:'low'};
 }
 
 /* Crea elemento img o div iniziali — NESSUN innerHTML con dati utente.
    Accetta anche una lista di nomi alternativi: utile quando nei CSV squadra
    il giocatore è Cognome Nome, ma negli altri CSV o nei file immagine è Nome Cognome.
-   Strategia: iniziali subito al primo tentativo, foto subito se già risolta in cache. */
-function imgOrInitialEl(type,name,cls){
+   Strategia: iniziali subito al primo paint; foto prioritarie in Home, resto lazy. */
+function imgOrInitialEl(type,name,cls,options={}){
   const names=(Array.isArray(name)?name:[name])
     .map(x=>smartSpace(x))
     .filter(Boolean);
   const mainName=(type==='player' ? canonicalPlayerInitialName(names) : '') || names.find(n=>String(n||'').trim() && String(n||'').trim()!=='?') || '';
-  // Durante il caricamento manuale delle immagini non mostrare iniziali/? temporanei:
-  // renderizziamo placeholder neutri e facciamo un solo refresh quando gli alias sono pronti.
-  if(manualLoadActive && state.imagesReady===false){
-    return imagePlaceholderEl(cls,mainName);
-  }
-
-  const prefixes=type==='team'?['immagini/squadre/','data/immagini/squadre/']:['immagini/giocatori/','data/immagini/giocatori/'];
-  const candidates=[];
-  const addCandidate=(src)=>{
-    if(src && !candidates.includes(src)) candidates.push(src);
-  };
-
-  // Prima prova gli alias reali caricati dal picker/cartella, poi i fallback statici.
-  names.forEach(n=>addCandidate(imageFor(type,n)));
-  names.forEach(n=>{
-    const key=norm(n);
-    for(const pref of prefixes){
-      for(const ext of imageExts()) addCandidate(pref+key+'.'+ext);
-    }
-  });
-
-  // Caso veloce: se l'immagine era già stata risolta nella sessione o nella cache
-  // persistente, mostriamo subito la foto senza passare dalle iniziali.
-  const cached=cachedResolvedImage(type,names);
-  if(cached){
-    return readyImageEl(cls,mainName,cached,img=>{
-      // Cache persistente obsoleta o file rinominato: rimuovi la mappa e torna alle iniziali.
-      forgetResolvedImage(type,names,cached);
-      if(img.isConnected) img.replaceWith(initialIconEl(cls,mainName));
-    },imageLoadHints(type,cls));
-  }
-  if(cached===null){
-    return initialIconEl(cls,mainName);
-  }
-
-  // Prima volta: iniziali immediatamente visibili, poi foto appena risolta.
-  const fallback=initialIconEl(cls,mainName);
+  const fallback=createInitialFallback(cls,mainName);
   fallback.setAttribute('aria-label',mainName||'Immagine');
 
-  /* Quando l'avatar diventa visibile (o subito, se IntersectionObserver non è
-     supportato), prova tutte le candidate in parallelo invece che una alla volta.
-     La prima URL valida viene salvata in _resolvedImageURLCache e, per i giocatori,
-     anche in localStorage come mappa leggera nome -> URL. */
-  fallback._onAvatarVisible=()=>{
-    const runProbe=()=>{
-      probeFirstWorkingImage(candidates).then(src=>{
-        rememberResolvedImage(type,names,src);
-        if(!fallback.isConnected) return; // la sezione è cambiata nel frattempo
-        if(src){
-          const img=readyImageEl(cls,mainName,src,failedImg=>{
-            forgetResolvedImage(type,names,src);
-            if(failedImg.isConnected) failedImg.replaceWith(initialIconEl(cls,mainName));
-          },imageLoadHints(type,cls));
-          fallback.replaceWith(img);
-        }
-        // Se src è null restano le iniziali già visibili.
-      });
-    };
+  // Durante il caricamento manuale mostra subito le iniziali:
+  // niente skeleton o icone rotte mentre gli alias delle immagini vengono indicizzati.
+  if(manualLoadActive && state.imagesReady===false){
+    return fallback;
+  }
 
-    // I loghi squadra e la foto MVP/MotM in Home devono restare prioritari;
-    // le altre foto giocatori partono solo quando il browser ha tempo.
-    if(type==='player' && !String(cls||'').includes('motm-photo')){
-      if('requestIdleCallback' in window) requestIdleCallback(runProbe,{timeout:1200});
-      else setTimeout(runProbe,120);
-    }else{
-      runProbe();
-    }
+  const cached=cachedResolvedImage(type,names);
+  if(cached){
+    return createResolvedImageEl(type,mainName,cls,cached,options,img=>{
+      // Cache persistente obsoleta o file rinominato: rimuovi la mappa e torna alle iniziali.
+      forgetResolvedImage(type,names,cached);
+      if(img.isConnected) img.replaceWith(createInitialFallback(cls,mainName));
+    });
+  }
+  if(cached===null) return fallback;
+
+  const startProbe=()=>{
+    resolveImageForNames(type,names,options).then(src=>{
+      if(!src || !fallback.isConnected) return;
+      const img=createResolvedImageEl(type,mainName,cls,src,options,failedImg=>{
+        forgetResolvedImage(type,names,src);
+        if(failedImg.isConnected) failedImg.replaceWith(createInitialFallback(cls,mainName));
+      });
+      fallback.replaceWith(img);
+    });
   };
-  avatarObserver().observe(fallback);
+
+  if(options.priority==='high' || options.eager || (type==='player' && String(cls||'').includes('motm-photo'))){
+    // Home: MVP/MotM, top 5 marcatori e squadre vengono risolti subito ad alta priorità.
+    queueMicrotask(startProbe);
+  }else{
+    // Tutti gli altri giocatori partono solo quando vicini al viewport.
+    fallback._onAvatarVisible=startProbe;
+    avatarObserver().observe(fallback);
+  }
   return fallback;
 }
 /* ══════════════════════════════════
@@ -2750,13 +2761,7 @@ function renderChartAndamentoSquadre(){
 }
 
 function chartImageCandidates(type,name){
-  const key=norm(name);
-  const prefixes=type==='team'?['immagini/squadre/','data/immagini/squadre/']:['immagini/giocatori/','data/immagini/giocatori/'];
-  const candidates=[];
-  const add=src=>{ if(src && !candidates.includes(src)) candidates.push(src); };
-  add(imageFor(type,name));
-  prefixes.forEach(pref=>imageExts().forEach(ext=>add(pref+key+'.'+ext)));
-  return candidates;
+  return imageCandidatesFor(type,name);
 }
 function renderChartImageLabels(canvasId,labels,type,chart){
   const wrap=document.getElementById(canvasId+'Labels');
@@ -2775,27 +2780,21 @@ function renderChartImageLabels(canvasId,labels,type,chart){
     const x=xScale ? xScale.getPixelForValue(index) : ((index+.5)*(canvasWidth/Math.max(labels.length,1)));
     item.style.left=Math.round(x)+'px';
 
-    const img=document.createElement('img');
-    img.className='chart-label-img '+(type==='team'?'team':'player');
-    img.alt=label;
-    img.title=label;
-    img.decoding='async';
+    const fallback=document.createElement('div');
+    fallback.className='chart-label-img '+(type==='team'?'team':'player')+' fallback';
+    fallback.textContent=type==='player' ? initials(canonicalPlayerInitialName([label]) || label) : initials(label);
+    fallback.title=label;
+    if(!fallback.textContent) fallback.classList.add('is-empty-fallback');
 
-    const txt=document.createElement('span');
-    txt.className='chart-label-text';
-    txt.textContent=label;
-    txt.title=label;
-
-    // Mostra subito un testo leggibile e sostituiscilo con la miniatura appena
-    // una candidata valida viene trovata. Il probe è parallelo e cache-ato.
-    item.appendChild(txt);
+    // Nei grafici della Home mostra subito iniziali/sigla e carica le miniature
+    // con priorità alta: MVP, squadre e top 5 marcatori sono sopra la piega.
+    item.appendChild(fallback);
     wrap.appendChild(item);
 
-    const candidates=chartImageCandidates(type,label);
-    probeFirstWorkingImage(candidates).then(src=>{
+    resolveImageForNames(type,[label],{priority:'high',loading:'eager'}).then(src=>{
       if(!src || !item.isConnected || wrap.dataset.renderToken!==renderToken) return;
-      img.src=src;
-      txt.replaceWith(img);
+      const img=createResolvedImageEl(type,label,'chart-label-img '+(type==='team'?'team':'player'),src,{priority:'high',loading:'eager'});
+      fallback.replaceWith(img);
     });
   });
 }
@@ -3028,6 +3027,40 @@ function homeProgressStatus(){
   };
 }
 
+
+function topMarcatoriNamesForHome(){
+  const f=sectionFiles('marcatori')[0];
+  if(!f) return [];
+  const rows=rowsToObjects(state.rows[f]);
+  const sorted=csvHasAnyNote(state.rows[f]) ? rows : sortMarcatoriRowsByGoalsThenTeamRank(rows);
+  return sorted.slice(0,5).map(r=>col(r,['giocatore','nome','calciatore','player'])||Object.values(r)[0]||'').filter(Boolean);
+}
+
+function warmupHomeImages(){
+  const items=[];
+  const seen=new Set();
+  const add=(type,names)=>{
+    const arr=(Array.isArray(names)?names:[names]).map(x=>smartSpace(x)).filter(Boolean);
+    const key=type+':'+arr.map(norm).join('|');
+    if(!arr.length || seen.has(key)) return;
+    seen.add(key);
+    items.push({type,names:arr});
+  };
+
+  // Ordine intenzionale: MVP/MotM, Top 5 marcatori, squadre visibili in Home.
+  const motm=currentMvpOfTournament();
+  if(motm){
+    add('player',motm.imageNames||[motm.name]);
+    if(motm.team) add('team',motm.team);
+  }
+  topMarcatoriNamesForHome().forEach(player=>add('player',player));
+  teamNamesForCharts().forEach(team=>add('team',team));
+
+  items.forEach(item=>{
+    resolveImageForNames(item.type,item.names,{priority:'high',loading:'eager'}).catch(()=>null);
+  });
+}
+
 function renderHome(){
   const el=document.getElementById('home'); el.innerHTML='';
   const players=allPlayersFromTeams(), matches=matchRows();
@@ -3056,6 +3089,9 @@ function renderHome(){
   if(motmCard) el.appendChild(motmCard);
 
   const br=document.createElement('br'); el.appendChild(br);
+
+  // Precarica subito le immagini che appaiono in Home; gli altri giocatori restano lazy.
+  warmupHomeImages();
 
   // Grafici
   const chartsWrap=document.createElement('div'); chartsWrap.className='grid';
@@ -4146,7 +4182,7 @@ function renderMotmCard(){
   eyebrow.innerHTML='⭐ '+(complete ? 'MVP Torneo' : 'MVP attuale del torneo');
   card.appendChild(eyebrow);
 
-  card.appendChild(imgOrInitialEl('player',motm.imageNames,'motm-photo'));
+  card.appendChild(imgOrInitialEl('player',motm.imageNames,'motm-photo',{priority:'high',loading:'eager'}));
 
   const info=document.createElement('div'); info.className='motm-info';
   const name=document.createElement('div'); name.className='motm-name'; name.textContent=motm.name;
@@ -4154,7 +4190,7 @@ function renderMotmCard(){
 
   if(motm.team){
     const teamRow=document.createElement('div'); teamRow.className='motm-team';
-    teamRow.appendChild(imgOrInitialEl('team',motm.team,'mini-logo'));
+    teamRow.appendChild(imgOrInitialEl('team',motm.team,'mini-logo',{priority:'high',loading:'eager'}));
     const teamName=document.createElement('span'); teamName.textContent=motm.team;
     teamRow.appendChild(teamName);
     info.appendChild(teamRow);
