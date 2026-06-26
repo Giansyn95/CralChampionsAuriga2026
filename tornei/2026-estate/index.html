@@ -6257,7 +6257,7 @@ function addExternalScorerPill(parent,label,count,teamName){
   row.style.cssText='display:flex;gap:8px;align-items:flex-start;margin-top:8px;flex-wrap:wrap';
   const icon=document.createElement('b');
   icon.className='small'; icon.style.minWidth='28px'; icon.style.fontSize='16px';
-  icon.textContent='\u26bd'; icon.title=label; icon.setAttribute('aria-label',label);
+  icon.textContent='⚽'; icon.title=label; icon.setAttribute('aria-label',label);
   row.appendChild(icon);
   const list=document.createElement('div'); list.style.cssText='display:flex;gap:6px;flex-wrap:wrap;align-items:center';
   const pill=document.createElement('span');
@@ -6268,7 +6268,7 @@ function addExternalScorerPill(parent,label,count,teamName){
     pill.appendChild(logo);
   }
   const t=document.createElement('span');
-  t.textContent='Marcature esterne'+(count>1?' \xd7'+count:'');
+  t.textContent='Marcature esterne'+(count>1?' ×'+count:'');
   pill.appendChild(t);
   list.appendChild(pill); row.appendChild(list); parent.appendChild(row);
 }
@@ -6279,7 +6279,7 @@ function addExternalAwardPill(parent,label){
   const icon=document.createElement('b');
   icon.className='small'; icon.style.minWidth='28px'; icon.style.fontSize='16px';
   const isKeeper=norm(label).includes('portiere')||norm(label).includes('keeper');
-  icon.textContent=isKeeper ? '\ud83e\uddค' : '\u2b50';
+  icon.textContent=isKeeper ? '🧤' : '⭐';
   icon.title=label; icon.setAttribute('aria-label',label);
   row.appendChild(icon);
   const list=document.createElement('div'); list.style.cssText='display:flex;gap:6px;flex-wrap:wrap;align-items:center';
