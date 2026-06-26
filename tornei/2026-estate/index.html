@@ -6351,8 +6351,10 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
     }
 
     // ── Premi individuali: verifica se tutti i nominati sono esterni ──────────
-    const mvpExternal=hasRoster && mvp.length>0 && mvp.every(n=>isPersonExternal(n));
-    const portiereExternal=hasRoster && portiere.length>0 && portiere.every(n=>isPersonExternal(n));
+    // Solo se la partita è già stata giocata (c'è un risultato leggibile).
+    const matchPlayed=!!scorePair;
+    const mvpExternal=matchPlayed && hasRoster && mvp.length>0 && mvp.every(n=>isPersonExternal(n));
+    const portiereExternal=matchPlayed && hasRoster && portiere.length>0 && portiere.every(n=>isPersonExternal(n));
 
     const m=document.createElement('div'); m.className='match riepilogo-match';
     const left=document.createElement('div'); left.style.cssText='min-width:0;flex:1';
@@ -6455,9 +6457,15 @@ function renderRiepilogoGiornate(){
       content.appendChild(card);
     }
     const tablePrefix='riepilogo_'+norm(f)+'_'+rowGiornataKey(allRows[0]||{},f);
+    // Determina se ci sono partite già giocate nella giornata (risultato leggibile).
+    const hasPlayedMatches=partite.some(r=>!!parseScorePair(resultText(r)));
+    const hasRosterForExt=rosterIdentityRecords().length>0;
+    // MVP: se assente ma ci sono partite giocate e roster → "Premiato giocatore esterno"
+    const mvpEmptyText=(!playerSearch && hasPlayedMatches && hasRosterForExt) ? 'Premiato giocatore esterno' : (playerSearch?'':'Nessun MVP indicato.');
+    // Portiere: stessa logica
+    const portiereEmptyText=(!playerSearch && !norm(state.search) && hasPlayedMatches && hasRosterForExt) ? 'Premiato giocatore esterno' : ((playerSearch||norm(state.search))?'':'Nessun miglior portiere indicato.');
     renderMiniSection(content,'Marcatori della giornata',marcatori,'player',playerSearch?'':'Nessun marcatore indicato.',tablePrefix+'_marcatori',['sezione','giocatore','marcatore','gol','goal','reti'],['gol','goal','reti']);
-    renderMiniSection(content,'MVP della giornata',mvp,'player',playerSearch?'':'Nessun MVP indicato.',tablePrefix+'_mvp',['sezione','giocatore','mvp','punti'],['punti']);
-    const portiereEmptyText=(playerSearch||norm(state.search))?'':'Nessun miglior portiere indicato.';
+    renderMiniSection(content,'MVP della giornata',mvp,'player',mvpEmptyText,tablePrefix+'_mvp',['sezione','giocatore','mvp','punti'],['punti']);
     renderMiniSection(content,'Miglior portiere',portiere,'player',portiereEmptyText,tablePrefix+'_portiere',['sezione','giocatore','portiere','punti'],['punti']);
     renderMiniSection(content,'Autogol',autogoal,'player','',tablePrefix+'_autogol',['giocatore']);
     rendered++;
