@@ -546,7 +546,13 @@
       border-color:rgba(245,185,66,.42);
       color:#9a6500;
     }
-    [data-theme="dark"] .calendar-status-badge.is-next{color:var(--gold)}
+    .calendar-status-badge.is-current{
+      background:rgba(245,185,66,.22);
+      border-color:rgba(245,185,66,.52);
+      color:#9a6500;
+    }
+    [data-theme="dark"] .calendar-status-badge.is-next,
+    [data-theme="dark"] .calendar-status-badge.is-current{color:var(--gold)}
     .calendar-status-badge.is-todo{
       background:rgba(15,90,168,.10);
       border-color:rgba(15,90,168,.20);
@@ -557,7 +563,8 @@
       flex:0 0 auto;
     }
     .match.is-calendar-played{border-left:4px solid var(--green)}
-    .match.is-calendar-next{
+    .match.is-calendar-next,
+    .match.is-calendar-current{
       border-left:4px solid var(--gold);
       background:linear-gradient(90deg,rgba(245,185,66,.12),transparent 70%);
     }
@@ -3018,11 +3025,19 @@ function latestRiepilogoGiornata(){
   return maxNumericGiornata(options) || options.length;
 }
 function homeProgressStatus(){
-  const total=totalCalendarioGiornate();
   const latest=latestRiepilogoGiornata();
+  const progress=buildCalendarioProgress(calendarioProgressRoundItems());
+  const total=progress.total || totalCalendarioGiornate();
   if(!total && !latest) return null;
+
+  let parziale=false;
+  if(progress.inProgress && latest){
+    const currentNumber=progress.inProgress.num || parseInt(giornataNumberFromText(progress.inProgress.label)||'',10);
+    parziale=String(currentNumber||'')===String(latest);
+  }
+
   return {
-    value: total ? ((latest||0)+'/'+total) : String(latest||0),
+    value: total ? ((latest||0)+'/'+total+(parziale?' (parziale)':'')) : String(latest||0)+(parziale?' (parziale)':''),
     label: 'Dati aggiornati a giornata'
   };
 }
@@ -4865,6 +4880,118 @@ function calendarioRoundKey(value){
   return giornataNumberFromText(value) || norm(value);
 }
 
+function calendarioMatchStatusClass(status){
+  if(status?.played) return 'is-calendar-played';
+  if(status?.current) return 'is-calendar-current';
+  if(status?.next) return 'is-calendar-next';
+  return 'is-calendar-todo';
+}
+
+function calendarioNormalMatchCount(partite){
+  return (partite||[]).filter(p=>{
+    const casa=String(p?.casa||'').trim();
+    const trasferta=String(p?.trasferta||'').trim();
+    const riposa=String(p?.riposa||'').trim();
+    return !!(casa||trasferta) && !(riposa && !casa && !trasferta);
+  }).length;
+}
+
+function calendarioFlatRowIsMatch(row){
+  const home=firstPresent(row,[['squadra casa','casa','home','squadra 1','team casa']]) || Object.values(row||{})[0] || '';
+  const away=firstPresent(row,[['squadra trasferta','trasferta','ospite','away','squadra 2','team trasferta']]) || Object.values(row||{})[1] || '';
+  const allText=Object.values(row||{}).join(' ');
+  const onlyRiposa=/riposa[:\s]/i.test(allText) && !String(home||'').trim() && !String(away||'').trim();
+  return !!(String(home||'').trim()||String(away||'').trim()) && !onlyRiposa;
+}
+
+function calendarioProgressRoundItems(){
+  const map=new Map();
+  let index=0;
+  const add=(label,expected)=>{
+    const cleanLabel=String(label||'').trim();
+    const key=calendarioRoundKey(cleanLabel);
+    if(!cleanLabel || !key) return;
+    if(!map.has(key)) map.set(key,{label:cleanLabel,key,index:index++,expectedMatches:0});
+    const item=map.get(key);
+    item.expectedMatches=Math.max(item.expectedMatches||0,Number(expected)||0);
+  };
+
+  sectionFiles('calendario').forEach(f=>{
+    const raw=state.files[f]||'';
+    if(isBlockCalendar(raw)){
+      const parsed=parseBlockCalendar(raw);
+      parsed.forEach(g=>add(g.label,calendarioNormalMatchCount(g.partite)));
+      return;
+    }
+
+    const rows=rowsToObjects(state.rows[f]||[]);
+    if(rows.length){
+      const perRound=new Map();
+      rows.forEach(r=>{
+        const g=firstPresent(r,[['giornata','turno','round']]);
+        const label=g ? (giornataNumberFromText(g)?('Giornata '+giornataNumberFromText(g)):String(g)) : giornataLabelFromFile(f);
+        const key=calendarioRoundKey(label);
+        if(!key) return;
+        if(!perRound.has(key)) perRound.set(key,{label,count:0});
+        if(calendarioFlatRowIsMatch(r)) perRound.get(key).count++;
+      });
+      perRound.forEach(v=>add(v.label,v.count));
+    }
+
+    // Fallback robusto sul testo grezzo, utile se il CSV contiene solo intestazioni giornata.
+    const re=/giornata[_\s-]*(\d+)/gi;
+    let m;
+    while((m=re.exec(raw))!==null) add('Giornata '+String(parseInt(m[1],10)),0);
+  });
+
+  return [...map.values()].sort((a,b)=>{
+    const an=parseInt(giornataNumberFromText(a.label)||'',10);
+    const bn=parseInt(giornataNumberFromText(b.label)||'',10);
+    if(Number.isFinite(an)&&Number.isFinite(bn)&&an!==bn) return an-bn;
+    return String(a.label).localeCompare(String(b.label),'it',{numeric:true});
+  });
+}
+
+function isPlayedResultText(value){
+  const text=String(value||'').trim();
+  if(!text) return false;
+  const key=norm(text);
+  if(!key || ['sv','siv','nd','na','dadisputare','nondisputata','rinviata','riposo'].includes(key)) return false;
+  return parseScorePair(text)!==null;
+}
+
+function isRiepilogoPartitaGiocata(row){
+  const gh=firstPresent(row,[['gol casa','reti casa','goal casa','gc','gol squadra casa']]);
+  const ga=firstPresent(row,[['gol trasferta','reti trasferta','goal trasferta','gt','gol squadra trasferta']]);
+  const ghText=String(gh||'').trim();
+  const gaText=String(ga||'').trim();
+  if(ghText!=='' && gaText!=='' && /^-?\d+(?:[,.]\d+)?$/.test(ghText) && /^-?\d+(?:[,.]\d+)?$/.test(gaText)) return true;
+  return isPlayedResultText(resultText(row));
+}
+
+function riepilogoPlayedMatchesByRound(){
+  const map=new Map();
+  sectionFiles('riepilogo').forEach(f=>{
+    const parsed=parseRiepilogoFile(f);
+    (parsed.partite||[]).forEach(r=>{
+      const key=calendarioRoundKey(rowGiornataKey(r,f));
+      if(!key) return;
+      if(!map.has(key)) map.set(key,{played:0,totalRows:0});
+      const info=map.get(key);
+      info.totalRows++;
+      if(isRiepilogoPartitaGiocata(r)) info.played++;
+    });
+
+    // Se il riepilogo non contiene righe partita ma la giornata esiste, conserva il vecchio comportamento:
+    // la presenza del riepilogo basta a considerare la giornata aggiornata.
+    if(!(parsed.partite||[]).length){
+      const key=calendarioRoundKey(giornataKeyFromFile(f));
+      if(key && !map.has(key)) map.set(key,{played:Infinity,totalRows:0});
+    }
+  });
+  return map;
+}
+
 function calendarioPlayedKeys(){
   const files=sectionFiles('riepilogo');
   const keys=new Set();
@@ -4877,14 +5004,19 @@ function calendarioPlayedKeys(){
   return keys;
 }
 
-function buildCalendarioProgress(labels){
-  const ordered=(labels||[])
-    .map((label,index)=>({
-      label:String(label||'').trim(),
-      key:calendarioRoundKey(label),
-      index,
-      num:parseInt(giornataNumberFromText(label)||'',10)
-    }))
+function buildCalendarioProgress(rounds){
+  const ordered=(rounds||[])
+    .map((item,index)=>{
+      const isObj=item && typeof item==='object' && !Array.isArray(item);
+      const label=String(isObj ? (item.label||'') : (item||'')).trim();
+      return {
+        label,
+        key:calendarioRoundKey(isObj ? (item.key||label) : label),
+        index:isObj && Number.isFinite(item.index) ? item.index : index,
+        num:parseInt(giornataNumberFromText(label)||'',10),
+        expectedMatches:Number(isObj ? (item.expectedMatches||item.expected||0) : 0) || 0
+      };
+    })
     .filter(x=>x.label && x.key);
 
   ordered.sort((a,b)=>{
@@ -4894,29 +5026,60 @@ function buildCalendarioProgress(labels){
     return a.label.localeCompare(b.label,'it',{numeric:true});
   });
 
-  const played=calendarioPlayedKeys();
-  const firstTodo=ordered.find(x=>!played.has(x.key));
+  const playedInfo=riepilogoPlayedMatchesByRound();
+  const legacyPlayed=calendarioPlayedKeys();
 
+  const progressItems=ordered.map(item=>{
+    const info=playedInfo.get(item.key);
+    const expected=item.expectedMatches||0;
+    const rawPlayed=info ? info.played : (legacyPlayed.has(item.key) ? Infinity : 0);
+    const playedMatches=Number.isFinite(rawPlayed) ? rawPlayed : expected;
+    const displayPlayed=expected ? Math.min(playedMatches,expected) : (playedMatches||0);
+
+    let state='todo';
+    if(expected>0){
+      if(displayPlayed>=expected && (info || legacyPlayed.has(item.key))) state='played';
+      else if(displayPlayed>0) state='current';
+    }else if(info || legacyPlayed.has(item.key)){
+      state='played';
+    }
+
+    return {...item,expectedMatches:expected,playedMatches:displayPlayed,state};
+  });
+
+  const inProgress=progressItems.find(x=>x.state==='current') || null;
+  const firstTodo=!inProgress ? progressItems.find(x=>x.state==='todo') : null;
   const map=new Map();
 
-  ordered.forEach(item=>{
-    const isPlayed=played.has(item.key);
-    const isNext=firstTodo && item.key===firstTodo.key;
+  progressItems.forEach(item=>{
+    const isPlayed=item.state==='played';
+    const isCurrent=item.state==='current';
+    const isNext=!!(firstTodo && item.key===firstTodo.key);
+    const fraction=item.expectedMatches ? (' ('+item.playedMatches+'/'+item.expectedMatches+')') : '';
 
     map.set(item.key,{
-      label:isPlayed?'Disputata':(isNext?'Prossima da disputare':'Da disputare'),
-      cls:isPlayed?'is-played':(isNext?'is-next':'is-todo'),
-      icon:isPlayed?'✅':(isNext?'🔥':'⏳'),
+      label:isPlayed?'Disputata':(isCurrent?'In corso'+fraction:(isNext?'Prossima da disputare':'Da disputare')),
+      cls:isPlayed?'is-played':(isCurrent?'is-current':(isNext?'is-next':'is-todo')),
+      icon:isPlayed?'✅':(isCurrent?'🟡':(isNext?'🔥':'⏳')),
       played:isPlayed,
-      next:isNext
+      current:isCurrent,
+      next:isNext,
+      playedMatches:item.playedMatches,
+      expectedMatches:item.expectedMatches,
+      roundLabel:item.label
     });
   });
 
+  const completedCount=progressItems.filter(x=>x.state==='played').length;
   return {
     map,
     total:ordered.length,
-    playedCount:ordered.filter(x=>played.has(x.key)).length,
-    next:firstTodo||null
+    playedCount:completedCount,
+    completedCount,
+    inProgress,
+    next:firstTodo||null,
+    todoCount:progressItems.filter(x=>x.state==='todo').length,
+    items:progressItems
   };
 }
 
@@ -4948,8 +5111,9 @@ function renderCalendarioProgressCard(el, progress){
   titleBox.appendChild(p);
 
   const globalBadge=document.createElement('span');
-  globalBadge.className='calendar-status-badge '+(progress.playedCount>=progress.total?'is-played':(progress.next?'is-next':'is-todo'));
-  globalBadge.textContent=progress.playedCount>=progress.total?'🏁 Torneo completato':(progress.next?'🔥 Prossima: '+progress.next.label:'⏳ In attesa');
+  const hasInProgress=!!progress.inProgress;
+  globalBadge.className='calendar-status-badge '+(progress.playedCount>=progress.total?'is-played':(hasInProgress?'is-current':(progress.next?'is-next':'is-todo')));
+  globalBadge.textContent=progress.playedCount>=progress.total?'🏁 Torneo completato':(hasInProgress?'🟡 '+progress.inProgress.label+' in corso ('+progress.inProgress.playedMatches+'/'+progress.inProgress.expectedMatches+')':(progress.next?'🔥 Prossima: '+progress.next.label:'⏳ In attesa'));
 
   head.appendChild(titleBox);
   head.appendChild(globalBadge);
@@ -4958,10 +5122,12 @@ function renderCalendarioProgressCard(el, progress){
   const grid=document.createElement('div');
   grid.className='calendar-progress-grid';
 
+  const currentLabel=progress.inProgress ? (progress.inProgress.label+' ('+progress.inProgress.playedMatches+'/'+progress.inProgress.expectedMatches+')') : (progress.next?progress.next.label:'Completato');
+  const currentCaption=progress.inProgress ? 'Giornata in corso' : 'Prossima giornata';
   [
     [progress.playedCount+'/'+progress.total,'Giornate disputate'],
-    [Math.max(progress.total-progress.playedCount,0),'Giornate da disputare'],
-    [progress.next?progress.next.label:'Completato','Prossima giornata']
+    [progress.todoCount ?? Math.max(progress.total-progress.playedCount,0),'Giornate da disputare'],
+    [currentLabel,currentCaption]
   ].forEach(([n,l])=>{
     const kpi=document.createElement('div');
     kpi.className='calendar-progress-kpi';
@@ -4995,7 +5161,7 @@ function renderCalendarioBlock(el, files){
 
   if(!allGiornate.length){ el.appendChild(buildEl('div','empty','Nessuna giornata trovata nel calendario.')); return; }
 
-  const calendarioProgress=buildCalendarioProgress(allGiornate.map(g=>g.label));
+  const calendarioProgress=buildCalendarioProgress(allGiornate.map(g=>({label:g.label,expectedMatches:calendarioNormalMatchCount(g.partite)})));
   renderCalendarioProgressCard(el,calendarioProgress);
 
   const q=norm(state.search);
@@ -5026,7 +5192,7 @@ function renderCalendarioBlock(el, files){
     const inner=document.createElement('div'); inner.className='tableWrap';
 
     partiteFiltrate.forEach(p=>{
-      const m=document.createElement('div'); m.className='match '+(roundStatus.played?'is-calendar-played':(roundStatus.next?'is-calendar-next':'is-calendar-todo'));
+      const m=document.createElement('div'); m.className='match '+calendarioMatchStatusClass(roundStatus);
 
       if(p.riposa&&!p.casa&&!p.trasferta){
         // Riga solo riposo
@@ -5897,7 +6063,7 @@ function riepilogoTopScorerLabel(partite, marcatori, totaliMarcatori){
   return '';
 }
 function deriveStats(partite, marcatori, stats, totaliMarcatori){
-  const partiteGiocate=statValue(stats,['partite giocate','partite']) || partite.length;
+  const partiteGiocate=statValue(stats,['partite giocate','partite']) || (partite||[]).filter(isRiepilogoPartitaGiocata).length || partite.length;
   const golTotali=statValue(stats,['gol totali','goal totali']) || partite.reduce((s,r)=>s+goalsFromResult(resultText(r)),0);
   const media=statValue(stats,['media gol','media goal']) || (partiteGiocate? (Number(golTotali)/Number(partiteGiocate)).toFixed(2).replace('.',',') : '');
   const clean=statValue(stats,['clean sheet','cleansheet']) || partite.reduce((s,r)=>{
@@ -6233,13 +6399,17 @@ function renderMatchSection(sectionId, kind){
   let calendarioProgress=null;
 
   if(kind==='calendario'){
-    const labels=[...new Set(rows.map(r=>{
+    const roundMap=new Map();
+    rows.forEach((r,index)=>{
       const g=firstPresent(r,[['giornata','turno','round']]);
-      if(g) return giornataNumberFromText(g)?('Giornata '+giornataNumberFromText(g)):String(g);
-      return giornataLabelFromFile(r._file);
-    }).filter(Boolean))];
+      const label=g ? (giornataNumberFromText(g)?('Giornata '+giornataNumberFromText(g)):String(g)) : giornataLabelFromFile(r._file);
+      const key=calendarioRoundKey(label);
+      if(!key) return;
+      if(!roundMap.has(key)) roundMap.set(key,{label,key,index,expectedMatches:0});
+      if(calendarioFlatRowIsMatch(r)) roundMap.get(key).expectedMatches++;
+    });
 
-    calendarioProgress=buildCalendarioProgress(labels);
+    calendarioProgress=buildCalendarioProgress([...roundMap.values()]);
     renderCalendarioProgressCard(el,calendarioProgress);
   }
 
@@ -6320,7 +6490,7 @@ function renderMatchSection(sectionId, kind){
       rowStatus=calendarioProgress.map.get(calendarioRoundKey(label));
     }
 
-    const m=document.createElement('div'); m.className='match '+(rowStatus?(rowStatus.played?'is-calendar-played':(rowStatus.next?'is-calendar-next':'is-calendar-todo')):'');
+    const m=document.createElement('div'); m.className='match '+(rowStatus?calendarioMatchStatusClass(rowStatus):'');
 
     const teamsWrap=document.createElement('div'); teamsWrap.className='match-teams';
     const homeTeam=document.createElement('div'); homeTeam.className='match-team';
