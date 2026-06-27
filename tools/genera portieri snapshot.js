@@ -86,6 +86,7 @@ function readCalendario(dataDir) {
   if (!existsFile(f)) return {};
   const text = fs.readFileSync(f, 'utf8').replace(/^\uFEFF/, '');
   const lines = text.split(/\r?\n/);
+  // cal: { 1: { partite: [{casa,trasferta}], riposa: "Out Of Office FC" }, ... }
   const cal = {};
   let currentGiornata = null;
   let inHeader = false;
@@ -95,18 +96,24 @@ function readCalendario(dataDir) {
     const gMatch = trimmed.match(/GIORNATA\s+(\d+)/i);
     if (gMatch) {
       currentGiornata = parseInt(gMatch[1], 10);
-      inHeader = true; // prossima riga è l'header Casa;Trasferta;Note
-      cal[currentGiornata] = cal[currentGiornata] || [];
+      inHeader = true;
+      cal[currentGiornata] = cal[currentGiornata] || { partite: [], riposa: null };
       continue;
     }
-    if (inHeader) { inHeader = false; continue; } // salta header
+    if (inHeader) { inHeader = false; continue; }
     if (currentGiornata !== null) {
       const sep = detectSep(trimmed);
       const cells = parseCsvLine(trimmed, sep);
       const casa = (cells[0] || '').trim();
       const trasferta = (cells[1] || '').trim();
+      const note = (cells[2] || '').trim();
+      // Estrai squadra che riposa dalla colonna Note (es. "Riposa: Out Of Office FC")
+      const riposaMatch = note.match(/Riposa\s*:\s*(.+)/i);
+      if (riposaMatch) {
+        cal[currentGiornata].riposa = riposaMatch[1].trim();
+      }
       if (casa && trasferta) {
-        cal[currentGiornata].push({ casa, trasferta });
+        cal[currentGiornata].partite.push({ casa, trasferta });
       }
     }
   }
@@ -155,129 +162,39 @@ function readPartiteGiocate(dataDir) {
   return giocate;
 }
 
-// ── Calcola le giornate con portiere esterno ──────────────────────────────────
-// Logica:
-//   Per ogni giornata in partiteGiocate:
-//     delta punti portieri = puntiAttuali - puntiSnapshot[giornata-1]
-//     delta atteso = numero partite giocate quella giornata
-//     portieri esterni = delta atteso - delta reale  (se > 0)
-//
-// puntiSnapshot è cumulativo: { giornata: N, totale: 14, perPortiere: {...} }
-// Lo confrontiamo con lo snapshot precedente per ricavare il delta.
-function computeExternalPortieri(puntiAttuali, snapshotPrecedente, partiteGiocate, calendario) {
-  const result = {}; // { giornata: N, esterne: K, partite: [{casa,trasferta}] }
-
-  // Ordina le giornate giocate
-  const giornateGiocate = Object.keys(partiteGiocate).map(Number).sort((a, b) => a - b);
-
-  // Punti di partenza: snapshot precedente o zero
-  let puntiPrecedenti = snapshotPrecedente ? { ...snapshotPrecedente.perPortiere } : {};
-  let totalePrecedente = Object.values(puntiPrecedenti).reduce((s, v) => s + v, 0);
-
-  // Punti attuali totali
-  const totaleAttuale = Object.values(puntiAttuali).reduce((s, v) => s + v, 0);
-
-  // Se non c'è snapshot precedente assumiamo 0 per tutte le giornate non ancora snapsottate.
-  // Se c'è snapshot, lo usiamo come base per la giornata successiva a quella snapsottata.
-  const giornataSnapsottata = snapshotPrecedente ? (snapshotPrecedente.giornata || 0) : 0;
-
-  // Per le giornate successive allo snapshot calcoliamo il delta cumulativo.
-  // Siccome abbiamo solo il totale attuale (non per-giornata), possiamo calcolare
-  // il delta SOLO tra snapshot e adesso — ma non tra giornate intermedie.
-  // Soluzione: lo snapshot viene aggiornato ad ogni run, quindi il delta è sempre
-  // tra l'ultima giornata snapsottata e la/le nuove giornate caricate.
-
-  const nuoveGiornate = giornateGiocate.filter(g => g > giornataSnapsottata);
-  if (!nuoveGiornate.length) {
-    console.log('Nessuna nuova giornata rispetto allo snapshot.');
-    return result;
-  }
-
-  // Delta totale tra snapshot e adesso
-  const deltaTotal = totaleAttuale - totalePrecedente;
-  // Partite totali nelle nuove giornate
-  const partiteTotaliNuove = nuoveGiornate.reduce((s, g) => s + (partiteGiocate[g] || []).length, 0);
-  // Portieri esterni totali nelle nuove giornate
-  const esterniTotali = Math.max(0, partiteTotaliNuove - deltaTotal);
-
-  console.log(`Giornate nuove: ${nuoveGiornate.join(', ')}`);
-  console.log(`Partite giocate nelle nuove giornate: ${partiteTotaliNuove}`);
-  console.log(`Delta punti portieri: ${deltaTotal}`);
-  console.log(`Portieri esterni stimati: ${esterniTotali}`);
-
-  // Distribuzione per giornata: se abbiamo una sola giornata nuova è semplice.
-  // Se ne abbiamo più d'una, dobbiamo fare una stima per giornata — non è possibile
-  // essere certi senza snapshot intermedi. In questo caso segnaliamo solo il totale
-  // sull'ultima giornata nuova e lasciamo le altre a 0 (verranno corrette al prossimo run).
-  if (nuoveGiornate.length === 1) {
-    const g = nuoveGiornate[0];
-    const partiteG = (partiteGiocate[g] || []).length;
-    const esterniG = Math.max(0, partiteG - deltaTotal);
-    if (esterniG > 0) {
-      // Identifica le partite con portiere esterno: quelle le cui squadre NON hanno
-      // guadagnato punti rispetto allo snapshot
-      const partiteConEsterno = [];
-      for (const { casa, trasferta } of (partiteGiocate[g] || [])) {
-        // Cerca i portieri di casa e trasferta nel CSV classifica
-        // Non abbiamo il mapping squadra→portiere diretto, quindi usiamo il teamCode
-        // dalla classifica_portieri.csv (colonna teamCode = nome squadra)
-        const portiereC = Object.entries(puntiAttuali).find(([n]) => {
-          // cerca nella classifica se questo portiere appartiene a casa
-          return false; // placeholder — vedi sotto
-        });
-        // Semplicemente: per ora registriamo la partita come "esterna" senza sapere quale squadra
-        partiteConEsterno.push({ casa, trasferta });
-      }
-      result[g] = { esterne: esterniG, partite: partiteConEsterno };
-    }
-  } else {
-    // Più giornate nuove: registriamo il totale sull'ultima giornata, le altre a 0.
-    // Al prossimo run (con snapshot aggiornato) si avrà la precisione corretta.
-    const ultima = nuoveGiornate[nuoveGiornate.length - 1];
-    if (esterniTotali > 0) {
-      result[ultima] = { esterne: esterniTotali, partite: partiteGiocate[ultima] || [] };
-    }
-  }
-
-  return result;
-}
-
 // ── Identifica quali partite hanno portiere esterno ───────────────────────────
-// Usa la classifica_portieri.csv per mappare squadra→portiere, poi confronta
-// i punti attuali vs snapshot per vedere se il portiere di quella squadra ha preso punti
-function identificaPartiteEsterne(partiteGiocate, giornata, puntiAttuali, snapshotPrecedente, portieriPerSquadra) {
+// Per ogni partita giocata nella giornata:
+//   - recupera i portieri di casa e trasferta dalla classifica
+//   - confronta i punti attuali con lo snapshot precedente
+//   - se deltaC=0 e deltaT=0 → il punto è andato a un portiere esterno
+//   - la squadra che riposa viene ignorata (delta=0 per assenza, non per esterno)
+function identificaPartiteEsterne(partiteGiocate, giornata, puntiAttuali, snapshotPrecedente, portieriPerSquadra, riposa) {
   const partite = partiteGiocate[giornata] || [];
   const partiteEsterne = [];
+  const puntiPrec = (snapshotPrecedente && snapshotPrecedente.perPortiere) || {};
 
   for (const { casa, trasferta } of partite) {
     const portiereCasa = portieriPerSquadra[casa];
     const portiereTrasferta = portieriPerSquadra[trasferta];
 
-    const puntiCasaOra = portiereCasa ? (puntiAttuali[portiereCasa] || 0) : null;
-    const puntiTrasfOra = portiereTrasferta ? (puntiAttuali[portiereTrasferta] || 0) : null;
-    const puntiCasaPrec = portiereCasa ? ((snapshotPrecedente?.perPortiere || {})[portiereCasa] || 0) : null;
-    const puntiTrasfPrec = portiereTrasferta ? ((snapshotPrecedente?.perPortiere || {})[portiereTrasferta] || 0) : null;
+    // Delta punti rispetto allo snapshot precedente
+    const deltaC = portiereCasa ? ((puntiAttuali[portiereCasa] || 0) - (puntiPrec[portiereCasa] || 0)) : 0;
+    const deltaT = portiereTrasferta ? ((puntiAttuali[portiereTrasferta] || 0) - (puntiPrec[portiereTrasferta] || 0)) : 0;
 
-    const deltaC = puntiCasaOra !== null ? puntiCasaOra - puntiCasaPrec : 0;
-    const deltaT = puntiTrasfOra !== null ? puntiTrasfOra - puntiTrasfPrec : 0;
+    // La squadra che riposa non partecipa → il suo portiere non prende punti per definizione,
+    // non per assenza di un titolare. La escludiamo dal conteggio.
+    // Nota: in questa partita né casa né trasferta riposano (il riposo è una terza squadra),
+    // quindi riposa non influenza direttamente questa coppia. Ma se per qualche motivo
+    // casa o trasferta corrispondessero alla squadra che riposa, saltiamo.
+    const norm = s => String(s || '').toLowerCase().trim();
+    if (riposa && (norm(casa) === norm(riposa) || norm(trasferta) === norm(riposa))) continue;
 
-    // Se entrambi i portieri delle squadre non hanno guadagnato punti → esterno
-    const casaEsterna = deltaC === 0;
-    const trasfEsterna = deltaT === 0;
-
-    if (casaEsterna || trasfEsterna) {
-      // Il portiere esterno appartiene alla squadra che non ha guadagnato punti
-      // ma dobbiamo stare attenti: in una partita vince UN portiere (quello del clean sheet o MVG)
-      // In realtà il punto lo prende solo 1 portiere per partita.
-      // Se deltaC=0 e deltaT=0 → esterno (nessuno dei due ha preso punti)
-      // Se deltaC=1 e deltaT=0 → Casa ha portiere interno che ha vinto, Trasferta non conta
-      // Se deltaC=0 e deltaT=1 → Trasferta ha portiere interno che ha vinto, Casa non conta
-      // Il "vincitore" del premio portiere è chi ha guadagnato 1 punto.
-      if (deltaC === 0 && deltaT === 0) {
-        // Entrambi 0 → il punto è andato a un esterno per questa partita
-        partiteEsterne.push({ casa, trasferta });
-      }
-      // Se uno dei due ha preso il punto, non c'è esterno per questa partita
+    if (deltaC === 0 && deltaT === 0) {
+      // Nessuno dei due portieri ha guadagnato punti → portiere esterno per questa partita
+      console.log(`  Giornata ${giornata}: portiere esterno in ${casa} vs ${trasferta} (deltaC=${deltaC}, deltaT=${deltaT})`);
+      partiteEsterne.push({ casa, trasferta });
+    } else {
+      console.log(`  Giornata ${giornata}: portiere interno in ${casa} vs ${trasferta} (deltaC=${deltaC}, deltaT=${deltaT})`);
     }
   }
   return partiteEsterne;
@@ -396,8 +313,13 @@ function processOne(siteDir) {
   // portieriEsterni: { "8": [{casa, trasferta}], ... }
 
   for (const g of nuoveGiornate) {
+    // Recupera la squadra che riposa in questa giornata dal calendario
+    const calGiornata = calendario[g] || {};
+    const riposa = calGiornata.riposa || null;
+    if (riposa) console.log(`Giornata ${g}: riposa ${riposa} (esclusa dal confronto delta)`);
+
     const partiteEsterne = identificaPartiteEsterne(
-      partiteGiocate, g, puntiAttuali, snapshotPrecedente, portieriPerSquadra
+      partiteGiocate, g, puntiAttuali, snapshotPrecedente, portieriPerSquadra, riposa
     );
     if (partiteEsterne.length > 0) {
       console.log(`Giornata ${g}: ${partiteEsterne.length} partita/e con portiere esterno`);
@@ -406,8 +328,6 @@ function processOne(siteDir) {
     } else {
       console.log(`Giornata ${g}: nessun portiere esterno`);
     }
-    // Dopo ogni giornata aggiorno lo "snapshot intermedio" per la giornata successiva
-    // usando i punti attuali come riferimento (non possiamo avere i punti intermedi)
   }
 
   // 7. Salva snapshot aggiornato
