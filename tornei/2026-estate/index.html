@@ -6580,26 +6580,36 @@ function renderRiepilogoGiornate(){
       }
     }
 
+    // ── Costruisce righe sintetiche "Marcature esterne" per la tabella marcatori ─
+    const externalScorerRows=externalScorerResiduals.map(({team,count})=>({
+      'Sezione': 'Marcatore',
+      'Giocatore': 'Marcature di esterni',
+      'Gol': count,
+      'Squadra': team,
+      'Giornata': rowGiornataKey(allRows[0]||{},f)||''
+    }));
     // ── Render sezioni ────────────────────────────────────────────────────────
-    renderMiniSection(content,'Marcatori della giornata',marcatori,'player',playerSearch?'':'Nessun marcatore indicato.',tablePrefix+'_marcatori',['sezione','giocatore','marcatore','gol','goal','reti'],['gol','goal','reti']);
-    if(externalScorerResiduals.length){
-      const marcatoriCard=content.lastElementChild;
-      if(marcatoriCard) externalScorerResiduals.forEach(({team,count})=>addExternalScorerPill(marcatoriCard,'Marcature esterne',count,team));
+    const marcatoriRows=[...marcatori,...externalScorerRows];
+    renderMiniSection(content,'Marcatori della giornata',marcatoriRows,'player',playerSearch?'':'Nessun marcatore indicato.',tablePrefix+'_marcatori',['sezione','giocatore','marcatore','gol','goal','reti'],['gol','goal','reti']);
+    // Costruisce righe sintetiche per premi assegnati a giocatori esterni,
+    // da iniettare direttamente nella tabella come righe normali.
+    function buildExternalAwardRows(externalMatches, sectionLabel){
+      return externalMatches.map(({matchLabel})=>({
+        'Sezione': sectionLabel,
+        'Giocatore': 'Premio assegnato a giocatore esterno'+(matchLabel?' ('+matchLabel+')':''),
+        'Punti': '',
+        'Giornata': rowGiornataKey(allRows[0]||{},f)||'',
+        'Squadra': ''
+      }));
     }
-    // MVP: mostra tabella (interni) + pill per partite con esterni
-    const mvpNoInternalText=(!playerSearch&&!mvp.length&&!externalMvpMatches.length)?'Nessun MVP indicato.':'';
-    renderMiniSection(content,'MVP della giornata',mvp,'player',mvpNoInternalText,tablePrefix+'_mvp',['sezione','giocatore','mvp','punti'],['punti']);
-    if(externalMvpMatches.length){
-      const mvpCard=content.lastElementChild;
-      if(mvpCard) appendExternalAwardPills(mvpCard,externalMvpMatches,'MVP','Premi MVP assegnati a giocatori esterni');
-    }
-    // Portiere: stessa logica
-    const portiereNoInternalText=(!playerSearch&&!norm(state.search)&&!portiere.length&&!externalPortiereMatches.length)?'Nessun miglior portiere indicato.':'';
-    renderMiniSection(content,'Miglior portiere',portiere,'player',portiereNoInternalText,tablePrefix+'_portiere',['sezione','giocatore','portiere','punti'],['punti']);
-    if(externalPortiereMatches.length){
-      const portiereCard=content.lastElementChild;
-      if(portiereCard) appendExternalAwardPills(portiereCard,externalPortiereMatches,'Miglior portiere','Premi portiere assegnati a giocatori esterni');
-    }
+    // MVP: inietta righe esterne nella tabella
+    const mvpRows=[...mvp, ...buildExternalAwardRows(externalMvpMatches,'MVP')];
+    const mvpNoInternalText=(!playerSearch&&!mvpRows.length)?'Nessun MVP indicato.':'';
+    renderMiniSection(content,'MVP della giornata',mvpRows,'player',mvpNoInternalText,tablePrefix+'_mvp',['sezione','giocatore','mvp','punti'],['punti']);
+    // Portiere: idem
+    const portiereRows=[...portiere, ...buildExternalAwardRows(externalPortiereMatches,'Portiere')];
+    const portiereNoInternalText=(!playerSearch&&!norm(state.search)&&!portiereRows.length)?'Nessun miglior portiere indicato.':'';
+    renderMiniSection(content,'Miglior portiere',portiereRows,'player',portiereNoInternalText,tablePrefix+'_portiere',['sezione','giocatore','portiere','punti'],['punti']);
     renderMiniSection(content,'Autogol',autogoal,'player','',tablePrefix+'_autogol',['giocatore']);
     rendered++;
   }
