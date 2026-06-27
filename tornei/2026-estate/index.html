@@ -6391,12 +6391,16 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
     }
     if(!mvpExternal) addPeopleLineSmart(left,'MVP',mvp,true,'',contextRows);
     else addExternalAwardPill(left,'MVP');
-    if(portiere.length){
-      if(!portiereExternal) addPeopleLineSmart(left,'Miglior portiere',portiere,true,'',contextRows);
-      else addExternalAwardPill(left,'Miglior portiere');
-    }
+    // Portiere: rimosso dalla scheda partita, appare solo nelle tabelle sotto
     const notePulita=cleanRiepilogoNote(note);
     if(notePulita){ const n=document.createElement('div'); n.className='small'; n.style.marginTop='8px'; n.textContent=notePulita; left.appendChild(n); }
+    // Label aggiuntiva per marcature esterne e MVP esterno
+    const extraParts=[];
+    if(externalCasa>0) extraParts.push('Marcature esterne ×'+externalCasa+' ('+casa+')');
+    if(externalTrasferta>0) extraParts.push('Marcature esterne ×'+externalTrasferta+' ('+trasferta+')');
+    if(externalGeneric>0) extraParts.push('Marcature esterne ×'+externalGeneric);
+    if(mvpExternal) extraParts.push('MVP: Esterno');
+    if(extraParts.length){ const ex=document.createElement('div'); ex.className='small'; ex.style.marginTop='4px'; ex.style.opacity='.7'; ex.textContent=extraParts.join(' | '); left.appendChild(ex); }
 
     const sc=document.createElement('div'); sc.className='score'; sc.textContent=res;
     m.appendChild(left); m.appendChild(sc); wrap.appendChild(m);
