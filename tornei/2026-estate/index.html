@@ -6604,7 +6604,7 @@ function renderRiepilogoGiornate(){
     // MVP esterni: "Giocatore esterno", squadra "/", no link
     const mvpExternalRows=externalMvpMatches.map(({matchLabel})=>({
       'Sezione': 'MVP',
-      'Giocatore': 'Giocatore esterno',
+      'Giocatore': 'Esterno',
       'Punti': 'N/A',
       'Giornata': rowGiornataKey(allRows[0]||{},f)||'',
       'Squadra': '/',
@@ -6616,7 +6616,7 @@ function renderRiepilogoGiornate(){
     // Portiere esterni: "Giocatore esterno", squadra "/", partita nella colonna Partita, no link
     const portiereExternalRows=externalPortiereMatches.map(({matchLabel})=>({
       'Sezione': 'Portiere',
-      'Giocatore': 'Giocatore esterno',
+      'Giocatore': 'Esterno',
       'Punti': 'N/A',
       'Giornata': rowGiornataKey(allRows[0]||{},f)||'',
       'Squadra': '/',
