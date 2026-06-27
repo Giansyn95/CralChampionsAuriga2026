@@ -6496,19 +6496,78 @@ function renderRiepilogoGiornate(){
       });
     }
 
-    // ── Testo vuoto per MVP e portiere ────────────────────────────────────────
-    const mvpEmptyText=(!playerSearch && hasPlayedMatches && hasRosterForExt) ? 'Premio assegnato a giocatore esterno' : (playerSearch?'':'Nessun MVP indicato.');
-    const portiereEmptyText=(!playerSearch && !norm(state.search) && hasPlayedMatches && hasRosterForExt) ? 'Premio assegnato a giocatore esterno' : ((playerSearch||norm(state.search))?'':'Nessun miglior portiere indicato.');
+    // ── Calcola partite giocate con premio esterno per MVP e portiere ──────────
+    // Per ogni partita giocata, verifica se l'MVP/portiere assegnato è esterno.
+    // Struttura: [{matchLabel}] dove matchLabel = "Casa vs Trasferta"
+    function buildExternalAwardMatches(fieldNames){
+      const result=[];
+      if(!hasPlayedMatches||!hasRosterForExt) return result;
+      const playedPartite=partite.filter(r=>!!parseScorePair(resultText(r)));
+      playedPartite.forEach(r=>{
+        const casa=firstPresent(r,[['squadra casa','casa','home','squadra 1','team casa']])||Object.values(r)[0]||'';
+        const trasferta=firstPresent(r,[['squadra trasferta','trasferta','ospite','away','squadra 2','team trasferta']])||Object.values(r)[1]||'';
+        const note=firstPresent(r,[['note','commento','descrizione']]);
+        const inlineVal=fieldNames.map(fn=>extractInlineField(note,fn)).find(Boolean)||'';
+        const nominees=splitInlinePeople(firstPresent(r,[fieldNames])||inlineVal);
+        // Esterno = ha nominati E tutti sono esterni
+        if(nominees.length>0 && nominees.every(n=>isPersonExternal(n))){
+          result.push({matchLabel:casa&&trasferta?casa+' vs '+trasferta:''});
+        }
+      });
+      return result;
+    }
+    const externalMvpMatches=buildExternalAwardMatches(['mvp','migliore in campo','man of the match','motm']);
+    const externalPortiereMatches=buildExternalAwardMatches(['portiere','miglior portiere','best keeper','goalkeeper']);
+
+    // Aggiunge pill/label testuale dopo una card per i premi esterni per partita
+    function appendExternalAwardPills(card, externalMatches, labelSingolare, labelPlurale){
+      if(!externalMatches.length) return;
+      const allSameNoLabel=externalMatches.every(m=>!m.matchLabel);
+      if(externalMatches.length>1 && allSameNoLabel){
+        // Caso 3: tutti senza label → plurale unico
+        addExternalAwardPill(card, labelPlurale);
+      } else if(externalMatches.length>1 && externalMatches.every(m=>!!m.matchLabel)){
+        // Caso 3 con label: plurale unico generico
+        addExternalAwardPill(card, labelPlurale);
+      } else {
+        // Caso 1 o 2: una pill per partita con label testuale
+        externalMatches.forEach(({matchLabel})=>{
+          const row=document.createElement('div');
+          row.style.cssText='display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap';
+          const icon=document.createElement('b');
+          icon.className='small'; icon.style.minWidth='28px'; icon.style.fontSize='16px';
+          const isKeeper=norm(labelSingolare).includes('portiere')||norm(labelSingolare).includes('keeper');
+          icon.textContent=isKeeper?'🧤':'⭐';
+          row.appendChild(icon);
+          const pill=document.createElement('span');
+          pill.style.cssText='display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--soft);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;opacity:.8';
+          const t=document.createElement('span');
+          t.textContent='Premio assegnato a giocatore esterno'+(matchLabel?' ('+matchLabel+')':'');
+          pill.appendChild(t); row.appendChild(pill); card.appendChild(row);
+        });
+      }
+    }
 
     // ── Render sezioni ────────────────────────────────────────────────────────
     renderMiniSection(content,'Marcatori della giornata',marcatori,'player',playerSearch?'':'Nessun marcatore indicato.',tablePrefix+'_marcatori',['sezione','giocatore','marcatore','gol','goal','reti'],['gol','goal','reti']);
-    // Appende pill "Marcature esterne" alla card marcatori appena creata
     if(externalScorerResiduals.length){
       const marcatoriCard=content.lastElementChild;
       if(marcatoriCard) externalScorerResiduals.forEach(({team,count})=>addExternalScorerPill(marcatoriCard,'Marcature esterne',count,team));
     }
-    renderMiniSection(content,'MVP della giornata',mvp,'player',mvpEmptyText,tablePrefix+'_mvp',['sezione','giocatore','mvp','punti'],['punti']);
-    renderMiniSection(content,'Miglior portiere',portiere,'player',portiereEmptyText,tablePrefix+'_portiere',['sezione','giocatore','portiere','punti'],['punti']);
+    // MVP: mostra tabella (interni) + pill per partite con esterni
+    const mvpNoInternalText=(!playerSearch&&!mvp.length&&!externalMvpMatches.length)?'Nessun MVP indicato.':'';
+    renderMiniSection(content,'MVP della giornata',mvp,'player',mvpNoInternalText,tablePrefix+'_mvp',['sezione','giocatore','mvp','punti'],['punti']);
+    if(externalMvpMatches.length){
+      const mvpCard=content.lastElementChild;
+      if(mvpCard) appendExternalAwardPills(mvpCard,externalMvpMatches,'MVP','Premi MVP assegnati a giocatori esterni');
+    }
+    // Portiere: stessa logica
+    const portiereNoInternalText=(!playerSearch&&!norm(state.search)&&!portiere.length&&!externalPortiereMatches.length)?'Nessun miglior portiere indicato.':'';
+    renderMiniSection(content,'Miglior portiere',portiere,'player',portiereNoInternalText,tablePrefix+'_portiere',['sezione','giocatore','portiere','punti'],['punti']);
+    if(externalPortiereMatches.length){
+      const portiereCard=content.lastElementChild;
+      if(portiereCard) appendExternalAwardPills(portiereCard,externalPortiereMatches,'Miglior portiere','Premi portiere assegnati a giocatori esterni');
+    }
     renderMiniSection(content,'Autogol',autogoal,'player','',tablePrefix+'_autogol',['giocatore']);
     rendered++;
   }
