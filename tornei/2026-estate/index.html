@@ -2164,7 +2164,7 @@ function buildTable(rows, tableId, imgType, priorityNames, highlightName){
   if(hasSearch) body=body.filter(rowMatchesSearch);
   if(!body.length) return buildEl('div','empty',hasSearch?'Nessun risultato per la ricerca.':'Nessun dato disponibile.');
   const order=reorderIndices(headers,priorityNames);
-  if(order){ headers=order.map(i=>headers[i]); body=body.map(r=>order.map(i=>r[i])); }
+  if(order){ headers=order.map(i=>headers[i]); body=body.map(r=>{ const nr=order.map(i=>r[i]); if(r._noLink) nr._noLink=true; return nr; }); }
   if(!tableId){ tableId='tbl_'+(++_tableCounter); }
   const sort=state.sortState[tableId]||{col:-1,dir:'asc'};
   const nameColIdx = imgType ? findNameColIndex(headers, imgType) : -1;
@@ -2220,12 +2220,15 @@ function buildTable(rows, tableId, imgType, priorityNames, highlightName){
         const name=row[i]??'';
         const cls=imgType==='team'?'tbl-logo':'tbl-avatar';
         cell.appendChild(imgOrInitialEl(imgType,name,cls));
-        const labelEl=document.createElement(imgType==='player'?'button':'span');
-        if(imgType==='player'){
+        const rowNoLink=!!(row._noLink);
+        const labelEl=document.createElement(imgType==='player'&&!rowNoLink?'button':'span');
+        if(imgType==='player'&&!rowNoLink){
           labelEl.type='button';
           labelEl.className='player-link player-link-inline';
           labelEl.onclick=(ev)=>{ ev.stopPropagation(); openPlayerProfile(name); };
           labelEl.title='Apri scheda giocatore';
+        } else if(imgType==='player'&&rowNoLink){
+          labelEl.className='player-link-inline';
         }
         labelEl.textContent=name;
         cell.appendChild(labelEl);
@@ -6169,7 +6172,11 @@ function objectsToRows(objs){
   // per quella sezione specifica; nasconderle rende le tabelle leggibili.
   const headers=allHeaders.filter(h=>objs.some(o=>String(o[h]??'').trim()!==''));
   if(!headers.length) return [];
-  return [headers,...objs.map(o=>headers.map(h=>o[h]??''))];
+  return [headers,...objs.map(o=>{
+    const row=headers.map(h=>o[h]??'');
+    if(o._noLink) row._noLink=true;
+    return row;
+  })];
 }
 
 function teamNameFromMatchRow(r, names){
@@ -6586,28 +6593,37 @@ function renderRiepilogoGiornate(){
       'Giocatore': 'Marcature di esterni',
       'Gol': count,
       'Squadra': team,
-      'Giornata': rowGiornataKey(allRows[0]||{},f)||''
+      'Giornata': rowGiornataKey(allRows[0]||{},f)||'',
+      _noLink: true
     }));
     // ── Render sezioni ────────────────────────────────────────────────────────
     const marcatoriRows=[...marcatori,...externalScorerRows];
     renderMiniSection(content,'Marcatori della giornata',marcatoriRows,'player',playerSearch?'':'Nessun marcatore indicato.',tablePrefix+'_marcatori',['sezione','giocatore','marcatore','gol','goal','reti'],['gol','goal','reti']);
     // Costruisce righe sintetiche per premi assegnati a giocatori esterni,
     // da iniettare direttamente nella tabella come righe normali.
-    function buildExternalAwardRows(externalMatches, sectionLabel){
-      return externalMatches.map(({matchLabel})=>({
-        'Sezione': sectionLabel,
-        'Giocatore': 'Premio assegnato a giocatore esterno'+(matchLabel?' ('+matchLabel+')':''),
-        'Punti': '',
-        'Giornata': rowGiornataKey(allRows[0]||{},f)||'',
-        'Squadra': ''
-      }));
-    }
-    // MVP: inietta righe esterne nella tabella
-    const mvpRows=[...mvp, ...buildExternalAwardRows(externalMvpMatches,'MVP')];
+    // MVP esterni: "Giocatore esterno", squadra "/", no link
+    const mvpExternalRows=externalMvpMatches.map(({matchLabel})=>({
+      'Sezione': 'MVP',
+      'Giocatore': 'Giocatore esterno',
+      'Punti': 'N/A',
+      'Giornata': rowGiornataKey(allRows[0]||{},f)||'',
+      'Squadra': '/',
+      _noLink: true
+    }));
+    const mvpRows=[...mvp,...mvpExternalRows];
     const mvpNoInternalText=(!playerSearch&&!mvpRows.length)?'Nessun MVP indicato.':'';
     renderMiniSection(content,'MVP della giornata',mvpRows,'player',mvpNoInternalText,tablePrefix+'_mvp',['sezione','giocatore','mvp','punti'],['punti']);
-    // Portiere: idem
-    const portiereRows=[...portiere, ...buildExternalAwardRows(externalPortiereMatches,'Portiere')];
+    // Portiere esterni: "Giocatore esterno", squadra "/", partita nella colonna Partita, no link
+    const portiereExternalRows=externalPortiereMatches.map(({matchLabel})=>({
+      'Sezione': 'Portiere',
+      'Giocatore': 'Giocatore esterno',
+      'Punti': 'N/A',
+      'Giornata': rowGiornataKey(allRows[0]||{},f)||'',
+      'Squadra': '/',
+      'Partita': matchLabel||'',
+      _noLink: true
+    }));
+    const portiereRows=[...portiere,...portiereExternalRows];
     const portiereNoInternalText=(!playerSearch&&!norm(state.search)&&!portiereRows.length)?'Nessun miglior portiere indicato.':'';
     renderMiniSection(content,'Miglior portiere',portiereRows,'player',portiereNoInternalText,tablePrefix+'_portiere',['sezione','giocatore','portiere','punti'],['punti']);
     renderMiniSection(content,'Autogol',autogoal,'player','',tablePrefix+'_autogol',['giocatore']);
