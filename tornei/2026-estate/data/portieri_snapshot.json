@@ -1,16 +1,20 @@
 {
-  "generatoIl": "2026-06-27T08:53:53.345Z",
+  "generatoIl": "2026-06-29T08:02:01.810Z",
   "giornata": 8,
-  "totalePunti": 14,
+  "totalePunti": 15,
   "perPortiere": {
-    "Iacobellis PT": 5,
+    "Iacobellis PT": 6,
     "Colangiuli PT": 3,
     "Mincuzzi PT": 3,
     "Bruno PT": 2,
     "Schiavone PT": 1
   },
   "portieriEsterni": {
-    "8": [{"casa": "BOT & BALL", "trasferta": "FC Stealthy Dribblers"}]
+    "8": [
+      {
+        "casa": "BOT & BALL",
+        "trasferta": "FC Stealthy Dribblers"
+      }
+    ]
   }
 }
-
