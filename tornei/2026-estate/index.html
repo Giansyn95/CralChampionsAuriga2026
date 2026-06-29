@@ -6332,23 +6332,15 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
     if(scorePair){
       const [ghTot,gaTot]=scorePair;
       if(marcatoriCasa.length || marcatoriTrasferta.length){
-        // Gol interni nominati per squadra
         const internalCasa=countGoalsInTokenList(marcatoriCasaKnown);
         const internalTrasf=countGoalsInTokenList(marcatoriTrasfertaKnown);
-        // Autogol: favoriscono la squadra avversaria, non sappiamo quale —
-        // li distribuiamo sottraendo dai gol totali prima del confronto.
-        // Residuo = gol totali − interni nominati − autogol (distribuiti proporzionalmente)
-        // Semplificazione: autogol vengono sottratti dal totale complessivo e
-        // attribuiti alla squadra col residuo maggiore (worst case conservativo).
-        const totalExt=Math.max(0, ghTot+gaTot - internalCasa - internalTrasf - autogoalCount);
-        const rawC=Math.max(0, ghTot - internalCasa);
-        const rawT=Math.max(0, gaTot - internalTrasf);
-        if(rawC+rawT>0){
-          // Distribuisce gli autogol proporzionalmente al residuo grezzo
-          const agC=Math.round(autogoalCount*(rawC/(rawC+rawT)));
-          const agT=autogoalCount-agC;
-          externalCasa=Math.max(0, rawC-agC);
-          externalTrasferta=Math.max(0, rawT-agT);
+        const availC=Math.max(0, ghTot - internalCasa);
+        const availT=Math.max(0, gaTot - internalTrasf);
+        const totalResiduo=Math.max(0, availC+availT - autogoalCount);
+        if(totalResiduo>0){
+          const ratio=availC+availT>0 ? availC/(availC+availT) : 0.5;
+          externalCasa=Math.round(totalResiduo*ratio);
+          externalTrasferta=totalResiduo-externalCasa;
         }
       } else if(marcatoriGenerici.length){
         const internalGen=countGoalsInTokenList(marcatoriGenericiKnown);
@@ -6386,6 +6378,19 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
     if(!marcatoriCasa.length && !marcatoriTrasferta.length){
       addPeopleLineSmart(left,'Marcatori',marcatoriGenericiKnown,true,'',contextRows,[casa,trasferta]);
       addExternalScorerPill(left,'Marcatori',externalGeneric,'');
+    }
+    if(autogoalCount>0){
+      const agRow=document.createElement('div');
+      agRow.style.cssText='display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap';
+      const agIcon=document.createElement('b');
+      agIcon.className='small'; agIcon.style.minWidth='28px'; agIcon.style.fontSize='16px';
+      agIcon.textContent='AG'; agIcon.title='Autogol';
+      agRow.appendChild(agIcon);
+      const agPill=document.createElement('span');
+      agPill.style.cssText='display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--soft);border-radius:999px;padding:4px 8px;font-size:12px;font-weight:700';
+      agPill.textContent='Autogol'+(autogoalCount>1?' ×'+String(autogoalCount):'');
+      agRow.appendChild(agPill);
+      left.appendChild(agRow);
     }
     if(!mvpExternal) addPeopleLineSmart(left,'MVP',mvp,true,'',contextRows);
     else addExternalAwardPill(left,'MVP');
@@ -6598,7 +6603,7 @@ function renderRiepilogoGiornate(){
       'Sezione': 'Marcatore',
       'Giornata': rowGiornataKey(allRows[0]||{},f)||'',
       'Squadra': '—',
-      'Giocatore': 'Marcature di esterni',
+      'Giocatore': 'Esterno',
       'Gol': count,
       _noLink: true
     }));
