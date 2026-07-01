@@ -5339,6 +5339,11 @@ function giornataLabelFromFile(f){
 function giornataKeyFromFile(f){
   return giornataNumberFromText(f) || norm(giornataLabelFromFile(f));
 }
+function isEmptyPeopleToken(value){
+  const raw=String(value||'').trim();
+  const n=norm(raw);
+  return !raw || /^[-–—]+$/.test(raw) || ['nessuno','nessuna','na','nd','nonassegnato','nonassegnata'].includes(n);
+}
 function firstPresent(obj, groups){
   for(const g of groups){
     const v=col(obj,Array.isArray(g)?g:[g]);
@@ -5358,7 +5363,7 @@ function splitPeopleList(value){
   return String(value||'')
     .split(/\s*(?:\n|\r|\||,|;|\+| - )\s*/)
     .map(x=>smartSpace(x))
-    .filter(Boolean);
+    .filter(x=>!isEmptyPeopleToken(x));
 }
 function playerNameFromRow(r){
   const direct=firstPresent(r,[['giocatore','marcatore','calciatore','player','nome giocatore','nome completo','cognome e nome','mvp','portiere']]);
@@ -5837,7 +5842,7 @@ function splitInlinePeople(value){
   return String(value||'')
     .split(/\s*(?:\n|\r|,|;|\+)\s*/)
     .map(x=>smartSpace(x))
-    .filter(Boolean);
+    .filter(x=>!isEmptyPeopleToken(x));
 }
 function labelEmoji(label){
   const k=norm(label);
@@ -5911,6 +5916,107 @@ function resultText(r){
   return '-';
 }
 function esitoText(r){ return firstPresent(r,[['esito','vincitore','outcome']]); }
+function isTavolinoText(value){
+  const n=norm(value);
+  return !!n && (
+    n.includes('tavolino') ||
+    n.includes('forfeit') ||
+    n.includes('rinuncia') ||
+    n.includes('persaatavolino') ||
+    n.includes('sconfittaatavolino') ||
+    n.includes('vintaatavolino')
+  );
+}
+function tavolinoRowsFromClassifica(){
+  const out=[];
+  sectionFiles('classifica_squadre').forEach(f=>{
+    rowsToObjects(state.rows[f]).forEach(r=>{
+      const note=firstPresent(r,[['nota penalita','notapenalita','note penalita','note penalità','nota','note','commento','descrizione']]);
+      if(!isTavolinoText(note)) return;
+      const team=firstPresent(r,[['squadra','team','nome','club']]) || Object.values(r||{})[1] || Object.values(r||{})[0] || '';
+      const round=giornataNumberFromText(note);
+      // Robustezza: una nota generica in classifica tipo "tavolino" non basta
+      // per scegliere una partita. Da classifica si abbina solo se la nota contiene
+      // anche la giornata (es. "9 giornata persa a tavolino" o "Giornata 9 tavolino").
+      if(team && round) out.push({team:teamDisplayNameForChart(team),round,note});
+    });
+  });
+  return out;
+}
+function loserTeamFromScore(home,away,scorePair){
+  if(!scorePair) return '';
+  const [gh,ga]=scorePair;
+  if(gh<ga) return home;
+  if(ga<gh) return away;
+  return '';
+}
+function riepilogoForfeitInfo(row,file){
+  const home=firstPresent(row,[['squadra casa','casa','home','squadra 1','team casa']]) || Object.values(row||{})[0] || '';
+  const away=firstPresent(row,[['squadra trasferta','trasferta','ospite','away','squadra 2','team trasferta']]) || Object.values(row||{})[1] || '';
+  const round=String(rowGiornataKey(row,file)||'');
+  const rowFlag=firstPresent(row,[['tavolino','a tavolino','forfeit','persa a tavolino','sconfitta a tavolino','vinta a tavolino']]);
+  const rowText=[rowFlag,firstPresent(row,[['note','commento','descrizione']]),esitoText(row)].find(isTavolinoText) || '';
+  let penalized=firstPresent(row,[['squadra penalizzata','penalizzata','team penalizzato','squadra sconfitta','perdente','sconfitta tavolino','persa a tavolino']]);
+
+  // Caso più robusto: la parola chiave è direttamente nella riga Partita del riepilogo.
+  // In quel caso la riga stessa identifica giornata, squadre e risultato.
+  if(rowText){
+    if(!penalized){
+      penalized=loserTeamFromScore(home,away,parseScorePair(resultText(row)));
+    }
+    return {
+      isForfeit:true,
+      team:teamDisplayNameForChart(penalized),
+      note:rowText || 'Partita decisa a tavolino',
+      source:'riepilogo'
+    };
+  }
+
+  // Caso da classifica_squadre.csv: richiede squadra + giornata nella NotaPenalita.
+  // Una sola parola chiave in classifica non viene usata, perché sarebbe ambigua.
+  const fromClassifica=tavolinoRowsFromClassifica().find(x=>{
+    const sameRound=!!x.round && !!round && String(x.round)===String(round);
+    const sameTeam=[home,away].some(t=>norm(t)===norm(x.team));
+    return sameRound && sameTeam;
+  });
+
+  if(fromClassifica){
+    return {
+      isForfeit:true,
+      team:fromClassifica.team,
+      note:fromClassifica.note || 'Partita decisa a tavolino',
+      source:'classifica'
+    };
+  }
+
+  return {isForfeit:false,team:'',note:'',source:''};
+}
+function riepilogoForfeitMatches(partite,file){
+  return (partite||[]).map(r=>{
+    const info=riepilogoForfeitInfo(r,file);
+    if(!info.isForfeit) return null;
+    const home=firstPresent(r,[['squadra casa','casa','home','squadra 1','team casa']]) || Object.values(r||{})[0] || '';
+    const away=firstPresent(r,[['squadra trasferta','trasferta','ospite','away','squadra 2','team trasferta']]) || Object.values(r||{})[1] || '';
+    return {round:String(rowGiornataKey(r,file)||''),home,away,info};
+  }).filter(Boolean);
+}
+function riepilogoRowBelongsToForfeit(row,file,forfeitMatches){
+  if(!row || !forfeitMatches || !forfeitMatches.length) return false;
+  const rowRound=String(rowGiornataKey(row,file)||'');
+  const matchText=norm(firstPresent(row,[['partita','match','gara','incontro']]) || '');
+  const rowTeam=norm(firstPresent(row,[['squadra','team','squadra casa','casa','home','squadra trasferta','trasferta','away']]) || '');
+  return forfeitMatches.some(m=>{
+    const sameRound=!m.round || !rowRound || String(m.round)===String(rowRound);
+    if(!sameRound) return false;
+    const h=norm(m.home), a=norm(m.away);
+    if(matchText && h && a && matchText.includes(h) && matchText.includes(a)) return true;
+    if(rowTeam && (rowTeam===h || rowTeam===a)) return true;
+    return false;
+  });
+}
+function filterRiepilogoRowsForForfeit(rows,file,forfeitMatches){
+  return (rows||[]).filter(r=>!riepilogoRowBelongsToForfeit(r,file,forfeitMatches));
+}
 function goalsFromResult(res){
   const nums=String(res||'').match(/\d+/g)||[];
   return nums.length>=2 ? nums.slice(0,2).reduce((s,x)=>s+parseInt(x,10),0) : 0;
@@ -6468,6 +6574,7 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
     const esito=esitoText(r);
     const res=resultText(r);
     const scorePair=parseScorePair(res);
+    const tavolinoInfo=riepilogoForfeitInfo(r,file);
 
     // ── Goal esterni = Goal totali − Goal torneo − Autogoal ─────────────────────────
     // Gli autogoal possono essere in colonna inline OPPURE su righe separate (Sezione=Autogoal).
@@ -6494,7 +6601,7 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
     const marcatoriTrasfertaKnown=filterKnown(marcatoriTrasferta);
     const marcatoriGenericiKnown=filterKnown(marcatoriGenerici);
     let externalCasa=0, externalTrasferta=0, externalGeneric=0;
-    if(scorePair){
+    if(scorePair && !tavolinoInfo.isForfeit){
       const [ghTot,gaTot]=scorePair;
       const golTotali=ghTot+gaTot;
       if(marcatoriCasa.length || marcatoriTrasferta.length){
@@ -6521,8 +6628,8 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
     // ── Premi individuali: verifica se tutti i nominati sono esterni ──────────
     // Solo se la partita è già stata giocata (c'è un risultato leggibile).
     const matchPlayed=!!scorePair;
-    const mvpExternal=matchPlayed && hasRoster && mvp.length>0 && mvp.every(n=>isPersonExternal(n));
-    const portiereExternal=matchPlayed && hasRoster && portiere.length>0 && portiere.every(n=>isPersonExternal(n));
+    const mvpExternal=matchPlayed && !tavolinoInfo.isForfeit && hasRoster && mvp.length>0 && mvp.every(n=>isPersonExternal(n));
+    const portiereExternal=matchPlayed && !tavolinoInfo.isForfeit && hasRoster && portiere.length>0 && portiere.every(n=>isPersonExternal(n));
 
     const m=document.createElement('div'); m.className='match riepilogo-match';
     const left=document.createElement('div'); left.style.cssText='min-width:0;flex:1';
@@ -6540,16 +6647,21 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
     left.appendChild(teamsWrap);
 
     const metaParts=[giornata,data,esito?('Esito: '+esito):''].filter(Boolean);
-    if(metaParts.length){ const meta=document.createElement('div'); meta.className='small'; meta.textContent=metaParts.join(' · '); left.appendChild(meta); }
-    addPeopleLineSmart(left,'Marcatori casa',marcatoriCasaKnown,true,casa,contextRows);
-    addExternalScorerPill(left,'Marcatori casa',externalCasa,casa);
-    addPeopleLineSmart(left,'Marcatori trasf.',marcatoriTrasfertaKnown,true,trasferta,contextRows);
-    addExternalScorerPill(left,'Marcatori trasf.',externalTrasferta,trasferta);
-    if(!marcatoriCasa.length && !marcatoriTrasferta.length){
-      addPeopleLineSmart(left,'Marcatori',marcatoriGenericiKnown,true,'',contextRows,[casa,trasferta]);
-      addExternalScorerPill(left,'Marcatori',externalGeneric,'');
+    if(tavolinoInfo.isForfeit){
+      metaParts.push('A tavolino');
     }
-    if(autogoalCount>0){
+    if(metaParts.length){ const meta=document.createElement('div'); meta.className='small'; meta.textContent=metaParts.join(' · '); left.appendChild(meta); }
+    if(!tavolinoInfo.isForfeit){
+      addPeopleLineSmart(left,'Marcatori casa',marcatoriCasaKnown,true,casa,contextRows);
+      addExternalScorerPill(left,'Marcatori casa',externalCasa,casa);
+      addPeopleLineSmart(left,'Marcatori trasf.',marcatoriTrasfertaKnown,true,trasferta,contextRows);
+      addExternalScorerPill(left,'Marcatori trasf.',externalTrasferta,trasferta);
+      if(!marcatoriCasa.length && !marcatoriTrasferta.length){
+        addPeopleLineSmart(left,'Marcatori',marcatoriGenericiKnown,true,'',contextRows,[casa,trasferta]);
+        addExternalScorerPill(left,'Marcatori',externalGeneric,'');
+      }
+    }
+    if(!tavolinoInfo.isForfeit && autogoalCount>0){
       const agRow=document.createElement('div');
       agRow.style.cssText='display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap';
       const agIcon=document.createElement('b');
@@ -6562,9 +6674,23 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
       agRow.appendChild(agPill);
       left.appendChild(agRow);
     }
-    if(!mvpExternal) addPeopleLineSmart(left,'MVP',mvp,true,'',contextRows);
-    else addExternalAwardPill(left,'MVP');
+    if(!tavolinoInfo.isForfeit){
+      if(!mvpExternal) addPeopleLineSmart(left,'MVP',mvp,true,'',contextRows);
+      else addExternalAwardPill(left,'MVP');
+    }
     // Portiere: rimosso dalla scheda partita, appare solo nelle tabelle sotto
+    if(tavolinoInfo.isForfeit){
+      const tvRow=document.createElement('div');
+      tvRow.style.cssText='display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap';
+      const tvIcon=document.createElement('b');
+      tvIcon.className='small'; tvIcon.style.minWidth='28px'; tvIcon.style.fontSize='16px'; tvIcon.textContent='⚠️'; tvIcon.title='Partita a tavolino';
+      tvRow.appendChild(tvIcon);
+      const tvPill=document.createElement('span');
+      tvPill.style.cssText='display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(180,35,24,.25);background:rgba(180,35,24,.10);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:800;color:var(--red)';
+      tvPill.textContent='A tavolino';
+      tvRow.appendChild(tvPill);
+      left.appendChild(tvRow);
+    }
     const notePulita=cleanRiepilogoNote(note);
     if(notePulita){ const n=document.createElement('div'); n.className='small'; n.style.marginTop='8px'; n.textContent=notePulita; left.appendChild(n); }
     // Label aggiuntiva per marcature esterne e MVP esterno
@@ -6618,12 +6744,13 @@ function renderRiepilogoGiornate(){
     const dayPartite=parsed.partite.filter(r=>!state.selectedRiepilogoGiornata || rowGiornataKey(r,f)===state.selectedRiepilogoGiornata);
     const playerSearch=isRiepilogoPlayerSearch(parsed,f);
     const partite=playerSearch ? [] : filteredRiepilogoRows(parsed.partite,f);
-    let marcatori=filteredRiepilogoRows(parsed.marcatori,f);
-    const totaliMarcatori=filteredRiepilogoRows(parsed.totaliMarcatori||[],f);
+    const forfeitMatches=riepilogoForfeitMatches(partite,f);
+    let marcatori=filterRiepilogoRowsForForfeit(filteredRiepilogoRows(parsed.marcatori,f),f,forfeitMatches);
+    const totaliMarcatori=filterRiepilogoRowsForForfeit(filteredRiepilogoRows(parsed.totaliMarcatori||[],f),f,forfeitMatches);
     if(!marcatori.length && totaliMarcatori.length) marcatori=totaliMarcatori;
-    const mvp=filteredRiepilogoRows(parsed.mvp,f);
-    const portiere=filteredRiepilogoRows(parsed.portiere,f);
-    const autogoalRaw=filteredRiepilogoRows(parsed.autogoal,f);
+    const mvp=filterRiepilogoRowsForForfeit(filteredRiepilogoRows(parsed.mvp,f),f,forfeitMatches);
+    const portiere=filterRiepilogoRowsForForfeit(filteredRiepilogoRows(parsed.portiere,f),f,forfeitMatches);
+    const autogoalRaw=filterRiepilogoRowsForForfeit(filteredRiepilogoRows(parsed.autogoal,f),f,forfeitMatches);
     const autogoal=autogoalRowsForDisplay(autogoalRaw,dayPartite);
     const statistiche=playerSearch ? [] : filteredRiepilogoRows(parsed.statistiche,f);
     const statisticheRiepilogo=playerSearch ? [] : riepilogoStatisticheWithTopScorerTie(statistiche,partite,marcatori,totaliMarcatori);
@@ -6653,6 +6780,7 @@ function renderRiepilogoGiornate(){
         const res=resultText(r);
         const scorePair=parseScorePair(res);
         if(!scorePair) return;
+        if(riepilogoForfeitInfo(r,f).isForfeit) return;
         const [ghTot,gaTot]=scorePair;
         const casa=firstPresent(r,[['squadra casa','casa','home','squadra 1','team casa']])||Object.values(r)[0]||'';
         const trasferta=firstPresent(r,[['squadra trasferta','trasferta','ospite','away','squadra 2','team trasferta']])||Object.values(r)[1]||'';
@@ -6703,6 +6831,7 @@ function renderRiepilogoGiornate(){
       if(!hasPlayedMatches||!hasRosterForExt) return result;
       const playedPartite=partite.filter(r=>!!parseScorePair(resultText(r)));
       playedPartite.forEach(r=>{
+        if(riepilogoForfeitInfo(r,f).isForfeit) return;
         const casa=firstPresent(r,[['squadra casa','casa','home','squadra 1','team casa']])||Object.values(r)[0]||'';
         const trasferta=firstPresent(r,[['squadra trasferta','trasferta','ospite','away','squadra 2','team trasferta']])||Object.values(r)[1]||'';
         const note=firstPresent(r,[['note','commento','descrizione']]);
@@ -6736,6 +6865,7 @@ function renderRiepilogoGiornate(){
       const result=[];
       const playedPartite=partite.filter(r=>!!parseScorePair(resultText(r)));
       playedPartite.forEach(r=>{
+        if(riepilogoForfeitInfo(r,f).isForfeit) return;
         const casa=firstPresent(r,[['squadra casa','casa','home','squadra 1','team casa']])||Object.values(r)[0]||'';
         const trasferta=firstPresent(r,[['squadra trasferta','trasferta','ospite','away','squadra 2','team trasferta']])||Object.values(r)[1]||'';
         const note=firstPresent(r,[['note','commento','descrizione']]);
