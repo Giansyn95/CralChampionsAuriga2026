@@ -1,5 +1,5 @@
 Sezione;Giornata;Casa;Trasferta;GolCasa;GolTrasferta;Esito;Squadra;Giocatore;Gol;PuntiMVP;Portiere;PuntiPortiere;Partita;Voce;Valore;Note
-Partita;9;BlackJack;FC Stealthy Dribblers;;;;;;;;;;BlackJack vs FC Stealthy Dribblers;;;Marcatori: — | MVP: — | Riposa: BOT & BALL
+Partita;9;BlackJack;FC Stealthy Dribblers;3;0;V/S;;;;;;;BlackJack vs FC Stealthy Dribblers;;;Marcatori: — | MVP: — | Riposa: BOT & BALL
 Partita;9;Out Of Office FC;Auriga Juniors;8;2;V/S;;;;;;;Out Of Office FC vs Auriga Juniors;;;Marcatori: Mondelli x2, Lorusso, Di Giovine, Arena, Saracino x3, Iacobellis x2 | MVP: Saracino
 Marcatore;9;;;;;;Out Of Office FC;Mondelli Francesco;2;;;;;;;
 Marcatore;9;;;;;;Out Of Office FC;Lorusso Salvatore;1;;;;;;;
@@ -15,9 +15,9 @@ Totale marcatore giornata;9;;;;;;Out Of Office FC;Di Giovine Domenico;1;;;;;;;
 Totale marcatore giornata;9;;;;;;Out Of Office FC;Lorusso Salvatore;1;;;;;;;
 MVP;9;;;;;;Out Of Office FC;Saracino Gianvito;;4;;;;;;
 Miglior portiere;9;;;;;;Out Of Office FC;;;;Colangiuli PT;1;Out Of Office FC vs Auriga Juniors;;;
-Statistica;9;;;;;;;;;;;;;Gol totali;10;
-Statistica;9;;;;;;;;;;;;;Media gol/partita;10.0;
-Statistica;9;;;;;;;;;;;;;Clean sheet;0;
+Statistica;9;;;;;;;;;;;;;Gol totali;13;
+Statistica;9;;;;;;;;;;;;;Media gol/partita;6.5;
+Statistica;9;;;;;;;;;;;;;Clean sheet;1;
 Statistica;9;;;;;;;;;;;;;Partita con piu gol;Out Of Office FC 8-2 Auriga Juniors;
 Statistica;9;;;;;;;;;;;;;Miglior marcatore;Saracino Gianvito (3 gol);
-Statistica;9;;;;;;;;;;;;;Partite giocate;1;
+Statistica;9;;;;;;;;;;;;;Partite giocate;2;
