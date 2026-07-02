@@ -126,6 +126,39 @@
     table.tbl-aligned th[data-col-role=section],table.tbl-aligned td[data-col-role=section]{min-width:100px;max-width:160px}
     table.tbl-aligned th[data-col-role=note],table.tbl-aligned td[data-col-role=note]{min-width:130px;max-width:230px}
     table.tbl-aligned td[data-col-role=note][title]{cursor:help}
+    [data-auto-tooltip="1"]{cursor:help}
+    .cral-truncated-tooltip{
+      position:fixed;
+      z-index:12000;
+      max-width:min(360px,calc(100vw - 28px));
+      padding:10px 12px;
+      border-radius:13px;
+      background:rgba(7,29,58,.96);
+      color:#fff;
+      box-shadow:0 16px 42px rgba(0,0,0,.36);
+      font-size:13px;
+      line-height:1.38;
+      font-weight:700;
+      word-break:normal;
+      overflow-wrap:anywhere;
+      pointer-events:auto;
+      opacity:0;
+      transform:translate(-50%,6px);
+      transition:opacity .14s ease,transform .14s ease;
+    }
+    .cral-truncated-tooltip.is-visible{opacity:1;transform:translate(-50%,0)}
+    .cral-truncated-tooltip::after{
+      content:'';
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      border:7px solid transparent;
+    }
+    .cral-truncated-tooltip.is-below::after{top:-14px;border-bottom-color:rgba(7,29,58,.96)}
+    .cral-truncated-tooltip.is-above::after{bottom:-14px;border-top-color:rgba(7,29,58,.96)}
+    @media(hover:hover) and (pointer:fine){
+      .cral-truncated-tooltip{display:none!important}
+    }
     table.tbl-aligned th[data-col-role=text],table.tbl-aligned td[data-col-role=text]{min-width:90px;max-width:170px}
     th{background:var(--soft);font-size:12px;text-transform:none;color:var(--muted);cursor:pointer;user-select:none;position:relative}
     th:hover{background:var(--line)}
@@ -2182,6 +2215,91 @@ function clearAutoTooltip(el){
   el.removeAttribute('aria-label');
   delete el.dataset.autoTooltip;
 }
+
+let _truncatedTooltipEl=null;
+let _truncatedTooltipTarget=null;
+let _truncatedTooltipHideTimer=null;
+function isTouchTooltipMode(){
+  return !!(window.matchMedia && window.matchMedia('(hover: none), (pointer: coarse)').matches);
+}
+function ensureTruncatedTooltipEl(){
+  if(_truncatedTooltipEl) return _truncatedTooltipEl;
+  const el=document.createElement('div');
+  el.id='cralTruncatedTooltip';
+  el.className='cral-truncated-tooltip';
+  el.setAttribute('role','tooltip');
+  el.setAttribute('aria-live','polite');
+  document.body.appendChild(el);
+  _truncatedTooltipEl=el;
+  return el;
+}
+function hideTruncatedTooltip(){
+  if(_truncatedTooltipHideTimer){ clearTimeout(_truncatedTooltipHideTimer); _truncatedTooltipHideTimer=null; }
+  if(_truncatedTooltipEl) _truncatedTooltipEl.classList.remove('is-visible');
+  if(_truncatedTooltipTarget) _truncatedTooltipTarget.removeAttribute('aria-describedby');
+  _truncatedTooltipTarget=null;
+}
+function clampTooltipValue(value,min,max){ return Math.max(min,Math.min(max,value)); }
+function showTruncatedTooltip(target){
+  const text=tooltipTextFor(target);
+  if(!target || !text) return;
+  if(_truncatedTooltipHideTimer){ clearTimeout(_truncatedTooltipHideTimer); _truncatedTooltipHideTimer=null; }
+  const tip=ensureTruncatedTooltipEl();
+  tip.textContent=text;
+  tip.classList.remove('is-visible','is-above','is-below');
+  tip.style.visibility='hidden';
+  tip.style.left='50%';
+  tip.style.top='0px';
+  target.setAttribute('aria-describedby',tip.id);
+  _truncatedTooltipTarget=target;
+  requestAnimationFrame(()=>{
+    const margin=10;
+    const rect=target.getBoundingClientRect();
+    const tipRect=tip.getBoundingClientRect();
+    const left=clampTooltipValue(rect.left+(rect.width/2), margin+(tipRect.width/2), window.innerWidth-margin-(tipRect.width/2));
+    let top=rect.bottom+10;
+    let posClass='is-below';
+    if(top+tipRect.height>window.innerHeight-margin){
+      top=rect.top-tipRect.height-10;
+      posClass='is-above';
+    }
+    if(top<margin){
+      top=clampTooltipValue(window.innerHeight-tipRect.height-margin, margin, window.innerHeight-margin);
+      posClass='is-above';
+    }
+    tip.style.left=left+'px';
+    tip.style.top=top+'px';
+    tip.style.visibility='visible';
+    tip.classList.add(posClass);
+    requestAnimationFrame(()=>tip.classList.add('is-visible'));
+  });
+}
+function tooltipTargetIsActionable(target){
+  return !!(target && (target.tagName==='TH' || target.closest('button,a,[role="button"]')));
+}
+document.addEventListener('click',(ev)=>{
+  if(!isTouchTooltipMode()) return;
+  const target=ev.target.closest('[data-auto-tooltip="1"]');
+  if(!target){
+    if(_truncatedTooltipEl && _truncatedTooltipEl.classList.contains('is-visible')) hideTruncatedTooltip();
+    return;
+  }
+  // Su mobile/tablet il primo tap su un contenuto troncato apre il popup.
+  // Se quell'elemento è anche cliccabile (es. intestazione ordinabile o nome giocatore),
+  // il secondo tap sullo stesso elemento lascia passare l'azione originale.
+  const sameVisible=target===_truncatedTooltipTarget && _truncatedTooltipEl && _truncatedTooltipEl.classList.contains('is-visible');
+  const actionable=tooltipTargetIsActionable(target);
+  if(!(sameVisible && actionable)){
+    ev.preventDefault();
+    ev.stopPropagation();
+    showTruncatedTooltip(target);
+  }else{
+    hideTruncatedTooltip();
+  }
+},true);
+document.addEventListener('keydown',(ev)=>{ if(ev.key==='Escape') hideTruncatedTooltip(); });
+window.addEventListener('scroll',hideTruncatedTooltip,true);
+window.addEventListener('resize',hideTruncatedTooltip);
 function refreshTruncatedTooltips(root){
   if(!root) return;
   const targets=[...root.querySelectorAll('th,td,.name-cell span,.name-cell button,.fanta-participant-text,.match-name')];
