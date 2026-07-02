@@ -125,6 +125,7 @@
     table.tbl-aligned th[data-col-role=match],table.tbl-aligned td[data-col-role=match]{min-width:150px;max-width:230px}
     table.tbl-aligned th[data-col-role=section],table.tbl-aligned td[data-col-role=section]{min-width:100px;max-width:160px}
     table.tbl-aligned th[data-col-role=note],table.tbl-aligned td[data-col-role=note]{min-width:130px;max-width:230px}
+    table.tbl-aligned td[data-col-role=note][title]{cursor:help}
     table.tbl-aligned th[data-col-role=text],table.tbl-aligned td[data-col-role=text]{min-width:90px;max-width:170px}
     th{background:var(--soft);font-size:12px;text-transform:none;color:var(--muted);cursor:pointer;user-select:none;position:relative}
     th:hover{background:var(--line)}
@@ -2108,8 +2109,14 @@ function tableColumnRole(header,index,imgType,nameColIdx){
   if(['partita','match','gara','incontro'].includes(n)) return 'match';
   if(n.includes('quantita') || ['qta','qty','quantity'].includes(n)) return 'quantity';
   if(n.includes('punti') || n.includes('goal') || n.includes('reti') || ['pts','pg','gf','gs','dr','pt','mvp'].includes(n)) return 'metric';
-  if(n.includes('note') || n.includes('descrizione') || n.includes('commento')) return 'note';
+  // Colonne testuali lunghe: note, descrizioni e commenti.
+  // "Nota penalità" diventa "notapenalita" dopo norm(), quindi serve anche "nota".
+  if(n.includes('note') || n.includes('nota') || n.includes('descrizione') || n.includes('commento')) return 'note';
   return 'text';
+}
+function isLongTextColumn(header, role){
+  const n=norm(header);
+  return role==='note' || n.includes('note') || n.includes('nota') || n.includes('descrizione') || n.includes('commento');
 }
 function findHighlightIndex(headers, highlightCandidates){
   if(!highlightCandidates) return -1;
@@ -2141,6 +2148,49 @@ function stickyColumnCount(roles, highlightIdx){
 /* Misura la larghezza reale della 1ª (e 2ª) colonna fissa per posizionare
    esattamente di fianco quelle successive, e segnala se la tabella è più
    larga dello schermo (per mostrare il suggerimento "scorri"). */
+function tooltipTextFor(el){
+  return fixItalianAccents((el?.dataset?.tooltipText || el?.textContent || '').replace(/\s+/g,' ').trim());
+}
+function elementIsVisuallyTruncated(el){
+  if(!el) return false;
+  const overflowX=el.scrollWidth>el.clientWidth+1;
+  const overflowY=el.scrollHeight>el.clientHeight+1;
+  if(!overflowX && !overflowY) return false;
+  const style=getComputedStyle(el);
+  const clipsX=style.textOverflow==='ellipsis' || ['hidden','clip','auto','scroll'].includes(style.overflowX);
+  const clipsY=['hidden','clip','auto','scroll'].includes(style.overflowY);
+  return (overflowX && clipsX) || (overflowY && clipsY);
+}
+function setAutoTooltip(el,text){
+  if(!el || !text) return;
+  if(!el.dataset.defaultTitle && el.hasAttribute('title') && el.dataset.autoTooltip!=='1'){
+    el.dataset.defaultTitle=el.getAttribute('title') || '';
+  }
+  el.title=text;
+  el.setAttribute('aria-label',text);
+  el.dataset.autoTooltip='1';
+}
+function clearAutoTooltip(el){
+  if(!el || el.dataset.autoTooltip!=='1') return;
+  if(Object.prototype.hasOwnProperty.call(el.dataset,'defaultTitle')){
+    const defaultTitle=el.dataset.defaultTitle;
+    if(defaultTitle) el.title=defaultTitle;
+    else el.removeAttribute('title');
+  }else{
+    el.removeAttribute('title');
+  }
+  el.removeAttribute('aria-label');
+  delete el.dataset.autoTooltip;
+}
+function refreshTruncatedTooltips(root){
+  if(!root) return;
+  const targets=[...root.querySelectorAll('th,td,.name-cell span,.name-cell button,.fanta-participant-text,.match-name')];
+  targets.forEach(el=>{
+    const text=tooltipTextFor(el);
+    if(text && elementIsVisuallyTruncated(el)) setAutoTooltip(el,text);
+    else clearAutoTooltip(el);
+  });
+}
 function refreshTableScrollState(wrap){
   if(!wrap) return;
   const col1=wrap.querySelector('thead .col-sticky-1');
@@ -2153,6 +2203,7 @@ function refreshTableScrollState(wrap){
   }
   const tbl=wrap.querySelector('table');
   if(tbl) wrap.classList.toggle('has-overflow', tbl.scrollWidth>wrap.clientWidth+1);
+  refreshTruncatedTooltips(wrap);
 }
 function refreshAllTablesScrollState(){
   document.querySelectorAll('.tableWrap').forEach(refreshTableScrollState);
@@ -2255,7 +2306,9 @@ function buildTable(rows, tableId, imgType, priorityNames, highlightName){
     if(i<stickyCount) th.classList.add('col-sticky-'+(i+1));
     if(i===stickyCount-1) th.classList.add('col-sticky-edge');
     if(i===highlightIdx) th.classList.add('col-highlight');
-    const span=document.createElement('span'); span.textContent=fixItalianAccents(prettyColumnName(h||''));
+    const headerText=fixItalianAccents(prettyColumnName(h||''));
+    th.dataset.tooltipText=headerText;
+    const span=document.createElement('span'); span.textContent=headerText;
     const arrow=document.createElement('i'); arrow.className='sort-arrow';
     th.appendChild(span); th.appendChild(arrow);
     if(sort.col===i) th.classList.add(sort.dir==='asc'?'sort-asc':'sort-desc');
@@ -2279,10 +2332,12 @@ function buildTable(rows, tableId, imgType, priorityNames, highlightName){
       if(imgType && i===nameColIdx){
         const cell=document.createElement('div'); cell.className='name-cell';
         const name=row[i]??'';
+        td.dataset.tooltipText=fixItalianAccents(name);
         const cls=imgType==='team'?'tbl-logo':'tbl-avatar';
         cell.appendChild(imgOrInitialEl(imgType,name,cls));
         const rowNoLink=!!(row._noLink);
         const labelEl=document.createElement(imgType==='player'&&!rowNoLink?'button':'span');
+        labelEl.dataset.tooltipText=fixItalianAccents(name);
         if(imgType==='player'&&!rowNoLink){
           labelEl.type='button';
           labelEl.className='player-link player-link-inline';
@@ -2295,7 +2350,9 @@ function buildTable(rows, tableId, imgType, priorityNames, highlightName){
         cell.appendChild(labelEl);
         td.appendChild(cell);
       } else {
-        td.textContent=fixItalianAccents(row[i]??'');
+        const cellText=fixItalianAccents(row[i]??'');
+        td.textContent=cellText;
+        td.dataset.tooltipText=cellText;
       }
       tr.appendChild(td);
     });
@@ -6658,9 +6715,8 @@ function renderPartiteRiepilogo(parent,rows,file,contextRows){
     left.appendChild(teamsWrap);
 
     const metaParts=[giornata,data,esito?('Esito: '+esito):''].filter(Boolean);
-    if(tavolinoInfo.isForfeit){
-      metaParts.push('A tavolino');
-    }
+    // La dicitura "A tavolino" non viene aggiunta nella riga meta:
+    // e' gia' mostrata sotto con l'icona di avviso dedicata.
     if(metaParts.length){ const meta=document.createElement('div'); meta.className='small'; meta.textContent=metaParts.join(' · '); left.appendChild(meta); }
     if(!tavolinoInfo.isForfeit){
       addPeopleLineSmart(left,'Marcatori casa',marcatoriCasaKnown,true,casa,contextRows);
