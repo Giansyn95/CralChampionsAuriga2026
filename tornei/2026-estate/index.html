@@ -126,7 +126,7 @@
     table.tbl-aligned th[data-col-role=section],table.tbl-aligned td[data-col-role=section]{min-width:100px;max-width:160px}
     table.tbl-aligned th[data-col-role=note],table.tbl-aligned td[data-col-role=note]{min-width:130px;max-width:230px}
     table.tbl-aligned td[data-col-role=note][title]{cursor:help}
-    [data-auto-tooltip="1"]{cursor:help}
+    [data-auto-tooltip="1"]{cursor:help;touch-action:manipulation}
     .cral-truncated-tooltip{
       position:fixed;
       z-index:12000;
@@ -144,9 +144,11 @@
       pointer-events:auto;
       opacity:0;
       transform:translate(-50%,6px);
-      transition:opacity .14s ease,transform .14s ease;
+      transition:opacity .08s ease,transform .08s ease;
+      will-change:opacity,transform,left,top;
     }
     .cral-truncated-tooltip.is-visible{opacity:1;transform:translate(-50%,0)}
+    .cral-truncated-tooltip.is-fast-switch{transition:none!important;transform:translate(-50%,0)}
     .cral-truncated-tooltip::after{
       content:'';
       position:absolute;
@@ -2219,6 +2221,8 @@ function clearAutoTooltip(el){
 let _truncatedTooltipEl=null;
 let _truncatedTooltipTarget=null;
 let _truncatedTooltipHideTimer=null;
+let _truncatedTooltipShowRaf=null;
+let _truncatedTooltipFastSwitchRaf=null;
 function isTouchTooltipMode(){
   return !!(window.matchMedia && window.matchMedia('(hover: none), (pointer: coarse)').matches);
 }
@@ -2233,53 +2237,97 @@ function ensureTruncatedTooltipEl(){
   _truncatedTooltipEl=el;
   return el;
 }
+function cancelTruncatedTooltipRafs(){
+  if(_truncatedTooltipShowRaf){ cancelAnimationFrame(_truncatedTooltipShowRaf); _truncatedTooltipShowRaf=null; }
+  if(_truncatedTooltipFastSwitchRaf){ cancelAnimationFrame(_truncatedTooltipFastSwitchRaf); _truncatedTooltipFastSwitchRaf=null; }
+}
 function hideTruncatedTooltip(){
   if(_truncatedTooltipHideTimer){ clearTimeout(_truncatedTooltipHideTimer); _truncatedTooltipHideTimer=null; }
-  if(_truncatedTooltipEl) _truncatedTooltipEl.classList.remove('is-visible');
+  cancelTruncatedTooltipRafs();
+  if(_truncatedTooltipEl) _truncatedTooltipEl.classList.remove('is-visible','is-fast-switch');
   if(_truncatedTooltipTarget) _truncatedTooltipTarget.removeAttribute('aria-describedby');
   _truncatedTooltipTarget=null;
 }
 function clampTooltipValue(value,min,max){ return Math.max(min,Math.min(max,value)); }
+function positionTruncatedTooltip(tip,target){
+  const margin=10;
+  const rect=target.getBoundingClientRect();
+  const tipRect=tip.getBoundingClientRect();
+  const left=clampTooltipValue(rect.left+(rect.width/2), margin+(tipRect.width/2), window.innerWidth-margin-(tipRect.width/2));
+  let top=rect.bottom+10;
+  let posClass='is-below';
+  if(top+tipRect.height>window.innerHeight-margin){
+    top=rect.top-tipRect.height-10;
+    posClass='is-above';
+  }
+  if(top<margin){
+    top=clampTooltipValue(window.innerHeight-tipRect.height-margin, margin, window.innerHeight-margin);
+    posClass='is-above';
+  }
+  tip.classList.remove('is-above','is-below');
+  tip.style.left=left+'px';
+  tip.style.top=top+'px';
+  tip.classList.add(posClass);
+}
 function showTruncatedTooltip(target){
   const text=tooltipTextFor(target);
   if(!target || !text) return;
   if(_truncatedTooltipHideTimer){ clearTimeout(_truncatedTooltipHideTimer); _truncatedTooltipHideTimer=null; }
+  cancelTruncatedTooltipRafs();
   const tip=ensureTruncatedTooltipEl();
+  const wasVisible=tip.classList.contains('is-visible');
+  const isSwitch=wasVisible && _truncatedTooltipTarget && _truncatedTooltipTarget!==target;
+  const isFastUpdate=wasVisible;
+  if(_truncatedTooltipTarget && _truncatedTooltipTarget!==target){
+    _truncatedTooltipTarget.removeAttribute('aria-describedby');
+  }
   tip.textContent=text;
-  tip.classList.remove('is-visible','is-above','is-below');
-  tip.style.visibility='hidden';
-  tip.style.left='50%';
-  tip.style.top='0px';
   target.setAttribute('aria-describedby',tip.id);
   _truncatedTooltipTarget=target;
-  requestAnimationFrame(()=>{
-    const margin=10;
-    const rect=target.getBoundingClientRect();
-    const tipRect=tip.getBoundingClientRect();
-    const left=clampTooltipValue(rect.left+(rect.width/2), margin+(tipRect.width/2), window.innerWidth-margin-(tipRect.width/2));
-    let top=rect.bottom+10;
-    let posClass='is-below';
-    if(top+tipRect.height>window.innerHeight-margin){
-      top=rect.top-tipRect.height-10;
-      posClass='is-above';
-    }
-    if(top<margin){
-      top=clampTooltipValue(window.innerHeight-tipRect.height-margin, margin, window.innerHeight-margin);
-      posClass='is-above';
-    }
-    tip.style.left=left+'px';
-    tip.style.top=top+'px';
-    tip.style.visibility='visible';
-    tip.classList.add(posClass);
-    requestAnimationFrame(()=>tip.classList.add('is-visible'));
-  });
+
+  // Se il popup è già aperto, aggiorna testo e posizione senza fade-out/fade-in:
+  // lo switch tra celle troncate risulta immediato anche con tap/click molto rapidi.
+  if(isFastUpdate) tip.classList.add('is-fast-switch');
+  else{
+    tip.classList.remove('is-visible','is-fast-switch');
+    tip.style.visibility='hidden';
+    tip.style.left='50%';
+    tip.style.top='0px';
+  }
+  tip.style.visibility='visible';
+  positionTruncatedTooltip(tip,target);
+  if(isFastUpdate){
+    tip.classList.add('is-visible');
+    _truncatedTooltipFastSwitchRaf=requestAnimationFrame(()=>{
+      _truncatedTooltipFastSwitchRaf=null;
+      tip.classList.remove('is-fast-switch');
+    });
+  }else{
+    _truncatedTooltipShowRaf=requestAnimationFrame(()=>{
+      _truncatedTooltipShowRaf=null;
+      tip.classList.add('is-visible');
+    });
+  }
 }
 function tooltipTargetIsActionable(target){
   return !!(target && (target.tagName==='TH' || target.closest('button,a,[role="button"]')));
 }
+function isPlayerTooltipExcluded(el){
+  if(!el) return false;
+  // I nomi giocatore devono aprire subito la scheda al click/tap, anche se troncati.
+  // Escludiamo quindi sia il bottone .player-link sia la cella persona che lo contiene,
+  // altrimenti su mobile il tooltip intercetterebbe il primo tap.
+  if(el.closest('.player-link')) return true;
+  const personCell=el.closest('td[data-col-role="person"]');
+  return !!(personCell && personCell.querySelector('.player-link'));
+}
 document.addEventListener('click',(ev)=>{
   if(!isTouchTooltipMode()) return;
   const target=ev.target.closest('[data-auto-tooltip="1"]');
+  if(target && isPlayerTooltipExcluded(target)){
+    hideTruncatedTooltip();
+    return;
+  }
   if(!target){
     if(_truncatedTooltipEl && _truncatedTooltipEl.classList.contains('is-visible')) hideTruncatedTooltip();
     return;
@@ -2304,6 +2352,10 @@ function refreshTruncatedTooltips(root){
   if(!root) return;
   const targets=[...root.querySelectorAll('th,td,.name-cell span,.name-cell button,.fanta-participant-text,.match-name')];
   targets.forEach(el=>{
+    if(isPlayerTooltipExcluded(el)){
+      clearAutoTooltip(el);
+      return;
+    }
     const text=tooltipTextFor(el);
     if(text && elementIsVisuallyTruncated(el)) setAutoTooltip(el,text);
     else clearAutoTooltip(el);
