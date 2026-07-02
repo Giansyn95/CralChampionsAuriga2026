@@ -3095,11 +3095,7 @@ function homeProgressStatus(){
   const total=progress.total || totalCalendarioGiornate();
   if(!total && !latest) return null;
 
-  let parziale=false;
-  if(progress.inProgress && latest){
-    const currentNumber=progress.inProgress.num || parseInt(giornataNumberFromText(progress.inProgress.label)||'',10);
-    parziale=String(currentNumber||'')===String(latest);
-  }
+  const parziale=isLatestGiornataParziale();
 
   return {
     value: total ? ((latest||0)+'/'+total+(parziale?' (parziale)':'')) : String(latest||0)+(parziale?' (parziale)':''),
@@ -3694,13 +3690,28 @@ function profileGoalsFromRow(row){
 function profilePointsFromRow(row){
   return statNumberFromRow(row,['punti mvp','puntimvp','punti miglior portiere','punti portiere','punti pt','puntipt','punti','pts','points','valore','totale'],1);
 }
+function isLatestGiornataParziale(){
+  // Vero se l'ultima giornata con riepilogo (latestRiepilogoGiornata) coincide
+  // con la giornata ancora "in corso" secondo il calendario, cioè non tutte
+  // le partite di quella giornata risultano disputate. Stessa logica già
+  // usata per la scritta "(parziale)" nella card Home.
+  const latest=latestRiepilogoGiornata();
+  if(!latest) return false;
+  const progress=buildCalendarioProgress(calendarioProgressRoundItems());
+  if(!progress.inProgress) return false;
+  const currentNumber=progress.inProgress.num || parseInt(giornataNumberFromText(progress.inProgress.label)||'',10);
+  return String(currentNumber||'')===String(latest);
+}
 function isTournamentComplete(){
   // Stessa fonte della card "Dati aggiornati a giornata X/Y" in Home:
   // il torneo è concluso quando X (ultima giornata con riepilogo) raggiunge
-  // Y (totale giornate da calendario).
+  // Y (totale giornate da calendario) E quella giornata non è parziale
+  // (altrimenti basterebbe un inserimento incompleto sull'ultima giornata
+  // per far comparire il Wrapped con dati non definitivi).
   const total=totalCalendarioGiornate();
   const latest=latestRiepilogoGiornata();
-  return !!total && !!latest && latest>=total;
+  if(!total || !latest || latest<total) return false;
+  return !isLatestGiornataParziale();
 }
 function wrappedTopScorer(){
   const f=sectionFiles('marcatori')[0];
